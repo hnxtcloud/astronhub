@@ -101,6 +101,35 @@ export interface MergeConfirmRequest {
 export type NamespaceStatus = 'ACTIVE' | 'FROZEN' | 'ARCHIVED' | string
 export type NamespaceRole = 'OWNER' | 'ADMIN' | 'MEMBER' | string
 
+export type CapabilityCatalogItem = Omit<
+  components['schemas']['CapabilityCatalogItem'],
+  'type' | 'id' | 'coordinate' | 'namespace' | 'slug' | 'displayName' | 'visibility' | 'status' | 'targets' | 'primaryMetric'
+> & {
+  type: 'SKILL' | 'PLUGIN' | 'MCP'
+  id: number
+  coordinate: string
+  namespace: string
+  slug: string
+  displayName: string
+  summary?: string
+  visibility: string
+  status: string
+  version?: string
+  targets: string[]
+  primaryMetric: number
+  updatedAt?: string
+}
+
+export type CapabilityCatalogPage = Omit<
+  components['schemas']['PageResponseCapabilityCatalogItem'],
+  'items' | 'total' | 'page' | 'size'
+> & {
+  items: CapabilityCatalogItem[]
+  total: number
+  page: number
+  size: number
+}
+
 export interface Namespace {
   id: number
   slug: string

@@ -9,6 +9,17 @@
     "expand": "Expand details",
     "collapse": "Collapse details"
   },
+  "catalog": {
+    "eyebrow": "AstronHub capability catalog",
+    "title": "Discover Agent capabilities",
+    "description": "Discover Skills, cross-runtime Plugins, and MCP Servers in one catalog while each domain keeps independent governance.",
+    "searchPlaceholder": "Search names, coordinates, or descriptions",
+    "typeLabel": "Capability type",
+    "loading": "Loading catalog…",
+    "error": "The catalog could not be loaded. Try again later.",
+    "empty": "No published entries match the current filters.",
+    "types": { "all": "All", "skill": "Skills", "plugin": "Plugins", "mcp": "MCP" }
+  },
   "nav": {
     "landing": "Home",
     "home": "Skill Center",
@@ -18,6 +29,9 @@
     "dashboard": "Dashboard",
     "mySkills": "My Skills",
     "publish": "Publish",
+    "catalog": "Catalog",
+    "plugins": "Plugins",
+    "mcp": "MCP",
     "login": "Login"
   },
   "landing": {
@@ -60,8 +74,8 @@
       "teams": "Teams"
     },
     "whySkillHub": {
-      "title": "Why SkillHub",
-      "subtitle": "A private Agent skill platform designed for enterprise teams"
+      "title": "Why AstronHub",
+      "subtitle": "A private Agent capability platform designed for enterprise teams"
     },
     "badge": "Enterprise Skill Registry",
     "tagline": "Publish, Discover, Manage",
@@ -102,7 +116,7 @@
     "ctaTitle": "Ready to Get Started?",
     "ctaDescription": "Start your local development environment with a single command and experience the complete skill management workflow",
     "ctaButton": "Try Now",
-    "footerLicense": "© 2026 SkillHub. Apache License 2.0.",
+    "footerLicense": "© 2026 AstronHub. Apache License 2.0.",
     "footerDocs": "Docs",
     "footerGithub": "GitHub",
     "footerCommunity": "Community",
@@ -121,9 +135,9 @@
         "command": "npm i -g @astron-team/skillhub"
       },
       "agent": {
-        "description": "Send a prompt to your Agent to set up the SkillHub Registry",
-        "command": "Read https://www.example.com/registry/skill.md and follow the instructions to setup SkillHub Skills Registry",
-        "commandTemplate": "Read {{url}} and follow the instructions to setup SkillHub Skills Registry"
+        "description": "Send a prompt to your Agent to set up the AstronHub Registry",
+        "command": "Read https://www.example.com/registry/skill.md and follow the instructions to set up AstronHub Skills Registry",
+        "commandTemplate": "Read {{url}} and follow the instructions to set up AstronHub Skills Registry"
       },
       "human": {
         "description": "Use the CLI tool to install Skills",
@@ -132,7 +146,7 @@
       "steps": {
         "configureEnv": {
           "title": "1. Configure Environment Variables",
-          "description": "Configure ClawHub CLI to connect to SkillHub"
+          "description": "Configure ClawHub CLI to connect to AstronHub"
         },
         "installSkills": {
           "title": "2. Install Skills",
@@ -160,12 +174,12 @@
     "quickStart": {
       "title": "Quick Start",
       "subtitle": "快速开始",
-      "description": "Get started with SkillHub in just a few simple steps",
+      "description": "Get started with AstronHub in just a few simple steps",
       "tip": "💡 Tip: Visit the skill detail page for one-click install commands with environment variables",
       "steps": {
         "configureEnv": {
           "title": "1. Configure Environment Variables",
-          "description": "Configure ClawHub CLI to connect to SkillHub"
+          "description": "Configure ClawHub CLI to connect to AstronHub"
         },
         "installSkills": {
           "title": "2. Install Skills",
@@ -211,7 +225,7 @@
     "clear": "Clear search"
   },
   "login": {
-    "title": "Login to SkillHub",
+    "title": "Login to AstronHub",
     "subtitle": "Choose a method to continue",
     "tabPassword": "Password",
     "tabOAuth": "OAuth",
@@ -231,7 +245,7 @@
     "oauthHint": "After OAuth authentication, you will be automatically redirected back to this site.",
     "passwordCompatHint": "This deployment has the password compatibility layer enabled. The form will route to {{name}} instead of the fixed local account endpoint.",
     "enterpriseSsoTitle": "Enterprise SSO",
-    "enterpriseSsoHint": "This deployment has the compatibility layer enabled. If your browser already has a {{name}} session, you can try establishing a SkillHub session directly.",
+    "enterpriseSsoHint": "This deployment has the compatibility layer enabled. If your browser already has a {{name}} session, you can try establishing an AstronHub session directly.",
     "enterpriseSsoAutoHint": "This deployment has automatic {{name}} probing enabled. If it does not succeed, you can continue with the standard login methods.",
     "enterpriseSsoAction": "Try {{name}}",
     "enterpriseSsoSubmitting": "Trying {{name}}...",
@@ -621,6 +635,8 @@
     "selectRole": "Select role",
     "roleUser": "User",
     "roleReviewer": "Reviewer",
+    "rolePluginAdmin": "Plugin Admin",
+    "roleMcpAdmin": "MCP Admin",
     "roleUserAdmin": "User Admin",
     "roleAuditor": "Auditor",
     "roleSuperAdmin": "Super Admin",
@@ -1349,11 +1365,11 @@
     "community": "Community",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "copyright": "© 2026 SkillHub. All rights reserved."
+    "copyright": "© 2026 AstronHub. All rights reserved."
   },
   "publish": {
     "title": "Publish Skill",
-    "subtitle": "Upload skill package to SkillHub",
+    "subtitle": "Upload skill package to AstronHub",
     "reviewNotice": {
       "title": "Review Notice",
       "description": "Submitted skill packages require admin review before publication."

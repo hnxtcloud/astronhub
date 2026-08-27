@@ -1,6 +1,6 @@
 import createClient from 'openapi-fetch'
 import { BASE_PATH } from '@/shared/lib/base-path'
-import type { paths } from './generated/schema'
+import type { components, paths } from './generated/schema'
 import type {
   ChangePasswordRequest,
   PasswordResetConfirmRequest,
@@ -47,6 +47,8 @@ import type {
   LabelDefinition,
   LabelItem,
   BatchMemberResponse,
+  CapabilityCatalogItem,
+  CapabilityCatalogPage,
 } from './types'
 import { ApiError } from '@/shared/lib/api-error'
 import i18n from '@/i18n/config'
@@ -256,6 +258,56 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestWithT
   }
 
   return json.data
+}
+
+function normalizeCapabilityCatalogItem(
+  item: components['schemas']['CapabilityCatalogItem'],
+): CapabilityCatalogItem | null {
+  if (!item || (item.type !== 'SKILL' && item.type !== 'PLUGIN' && item.type !== 'MCP')) return null
+  if (item.id === undefined || !item.coordinate || !item.namespace || !item.slug || !item.displayName) return null
+  if (!item.visibility || !item.status) return null
+  return {
+    ...item,
+    type: item.type,
+    id: item.id,
+    coordinate: item.coordinate,
+    namespace: item.namespace,
+    slug: item.slug,
+    displayName: item.displayName,
+    visibility: item.visibility,
+    status: item.status,
+    targets: item.targets ?? [],
+    primaryMetric: item.primaryMetric ?? 0,
+  }
+}
+
+export const catalogApi = {
+  async search(params: { type: 'ALL' | 'SKILL' | 'PLUGIN' | 'MCP'; q?: string; page?: number; size?: number }): Promise<CapabilityCatalogPage> {
+    const { data, error, response } = await client.GET('/api/v1/catalog/search', {
+      params: {
+        query: {
+          type: params.type,
+          q: params.q,
+          page: params.page ?? 0,
+          size: params.size ?? 20,
+        },
+      },
+      headers: withRequestHeaders(),
+    })
+    if (!response.ok || error || !data?.data || data.code !== 0) {
+      const message = data?.msg ?? `HTTP ${response.status}`
+      throw new ApiError(message, response.status, message, message)
+    }
+    const page = data.data
+    return {
+      items: (page.items ?? [])
+        .map(normalizeCapabilityCatalogItem)
+        .filter((item): item is CapabilityCatalogItem => item !== null),
+      total: page.total ?? 0,
+      page: page.page ?? 0,
+      size: page.size ?? (params.size ?? 20),
+    }
+  },
 }
 
 export async function fetchText(input: RequestInfo | URL, init?: RequestInit): Promise<string> {

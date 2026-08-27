@@ -143,6 +143,15 @@ class RouteSecurityPolicyRegistryTest {
     }
 
     @Test
+    void capabilityCatalogReadRoutesArePublicAndTokenReachable() {
+        assertTrue(registry.authorizeApiToken("GET", "/api/v1/plugins", Set.of()).allowed());
+        assertTrue(registry.authorizeApiToken("GET", "/api/v1/plugins/global/demo", Set.of()).allowed());
+        assertTrue(registry.authorizeApiToken("GET", "/api/v1/mcp-servers", Set.of()).allowed());
+        assertTrue(registry.authorizeApiToken("GET", "/api/v1/mcp-servers/global/demo", Set.of()).allowed());
+        assertTrue(registry.authorizeApiToken("GET", "/api/v1/catalog/search", Set.of()).allowed());
+    }
+
+    @Test
     void authorizeApiToken_allowsStarAndRatingWritesWithoutSkillDeleteScope() {
         assertTrue(registry.authorizeApiToken("PUT", "/api/v1/skills/42/star", Set.of("skill:read")).allowed());
         assertTrue(registry.authorizeApiToken("DELETE", "/api/v1/skills/42/star", Set.of("skill:read")).allowed());

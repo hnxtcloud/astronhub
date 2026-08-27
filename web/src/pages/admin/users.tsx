@@ -50,6 +50,8 @@ export function AdminUsersPage() {
   const roleOptions = [
     { value: 'USER', label: t('adminUsers.roleUser') },
     { value: 'SKILL_ADMIN', label: t('adminUsers.roleReviewer') },
+    { value: 'PLUGIN_ADMIN', label: t('adminUsers.rolePluginAdmin') },
+    { value: 'MCP_ADMIN', label: t('adminUsers.roleMcpAdmin') },
     { value: 'USER_ADMIN', label: t('adminUsers.roleUserAdmin') },
     { value: 'AUDITOR', label: t('adminUsers.roleAuditor') },
     { value: 'SUPER_ADMIN', label: t('adminUsers.roleSuperAdmin') },

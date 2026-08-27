@@ -78,6 +78,9 @@ const RegisterPage = createLazyRouteComponent(() => import('@/pages/register'), 
 const ResetPasswordPage = createLazyRouteComponent(() => import('@/pages/reset-password'), 'ResetPasswordPage')
 const PrivacyPolicyPage = createLazyRouteComponent(() => import('@/pages/privacy'), 'PrivacyPolicyPage')
 const SearchPage = createLazyRouteComponent(() => import('@/pages/search'), 'SearchPage')
+const CatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'CatalogPage')
+const PluginCatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'PluginCatalogPage')
+const McpCatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'McpCatalogPage')
 const TermsOfServicePage = createLazyRouteComponent(() => import('@/pages/terms'), 'TermsOfServicePage')
 const NamespacePage = createLazyRouteComponent(() => import('@/pages/namespace'), 'NamespacePage')
 const SkillDetailPage = createLazyRouteComponent(() => import('@/pages/skill-detail'), 'SkillDetailPage')
@@ -231,6 +234,24 @@ const termsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'terms',
   component: TermsOfServicePage,
+})
+
+const catalogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'catalog',
+  component: CatalogPage,
+})
+
+const pluginsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'plugins',
+  component: PluginCatalogPage,
+})
+
+const mcpServersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'mcp-servers',
+  component: McpCatalogPage,
 })
 
 const namespaceRoute = createRoute({
@@ -466,6 +487,9 @@ const routeTree = rootRoute.addChildren([
   privacyRoute,
   searchRoute,
   termsRoute,
+  catalogRoute,
+  pluginsRoute,
+  mcpServersRoute,
   namespaceRoute,
   skillDetailRoute,
   skillVersionCompareRoute,

@@ -67,7 +67,7 @@ describe('LandingPage', () => {
   it('renders the brand name in the hero section', () => {
     const html = renderToStaticMarkup(<LandingPage />)
 
-    expect(html).toContain('SkillHub')
+    expect(html).toContain('星枢')
     expect(html).toContain('landing.hero.title')
   })
 })

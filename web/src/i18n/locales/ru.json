@@ -9,6 +9,17 @@
     "expand": "Развернуть подробности",
     "collapse": "Свернуть подробности"
   },
+  "catalog": {
+    "eyebrow": "Каталог возможностей AstronHub",
+    "title": "Возможности для Agent",
+    "description": "Единый каталог Skills, кросс-средовых Plugins и MCP Servers с независимым управлением каждой областью.",
+    "searchPlaceholder": "Поиск по имени, координате или описанию",
+    "typeLabel": "Тип возможности",
+    "loading": "Каталог загружается…",
+    "error": "Не удалось загрузить каталог. Повторите попытку позже.",
+    "empty": "Опубликованных записей с такими фильтрами нет.",
+    "types": { "all": "Все", "skill": "Skills", "plugin": "Plugins", "mcp": "MCP" }
+  },
   "nav": {
     "landing": "Главная",
     "home": "Центр скиллов",
@@ -18,6 +29,9 @@
     "dashboard": "Панель управления",
     "mySkills": "Мои скиллы",
     "publish": "Опубликовать",
+    "catalog": "Каталог",
+    "plugins": "Плагины",
+    "mcp": "MCP",
     "login": "Вход"
   },
   "landing": {
@@ -60,8 +74,8 @@
       "teams": "Команды"
     },
     "whySkillHub": {
-      "title": "Почему SkillHub",
-      "subtitle": "Частная платформа Agent-скиллов для корпоративных команд"
+      "title": "Почему AstronHub",
+      "subtitle": "Частная платформа возможностей Agent для корпоративных команд"
     },
     "badge": "Корпоративный реестр скиллов",
     "tagline": "Публикуйте, находите, управляйте",
@@ -102,7 +116,7 @@
     "ctaTitle": "Готовы начать?",
     "ctaDescription": "Запустите локальное окружение одной командой и пройдите полный цикл управления скиллами",
     "ctaButton": "Попробовать",
-    "footerLicense": "© 2026 SkillHub. Apache License 2.0.",
+    "footerLicense": "© 2026 AstronHub. Apache License 2.0.",
     "footerDocs": "Документация",
     "footerGithub": "GitHub",
     "footerCommunity": "Сообщество",
@@ -121,9 +135,9 @@
         "command": "npm i -g @astron-team/skillhub"
       },
       "agent": {
-        "description": "Отправьте промпт своему Agent, чтобы настроить SkillHub Registry",
-        "command": "Прочитайте https://www.example.com/registry/skill.md и следуйте инструкциям для настройки SkillHub Skills Registry",
-        "commandTemplate": "Прочитайте {{url}} и следуйте инструкциям для настройки SkillHub Skills Registry"
+        "description": "Отправьте промпт своему Agent, чтобы настроить AstronHub Registry",
+        "command": "Прочитайте https://www.example.com/registry/skill.md и следуйте инструкциям для настройки AstronHub Skills Registry",
+        "commandTemplate": "Прочитайте {{url}} и следуйте инструкциям для настройки AstronHub Skills Registry"
       },
       "human": {
         "description": "Используйте CLI для установки Skills",
@@ -132,7 +146,7 @@
       "steps": {
         "configureEnv": {
           "title": "1. Настройте переменные окружения",
-          "description": "Настройте ClawHub CLI для подключения к SkillHub"
+          "description": "Настройте ClawHub CLI для подключения к AstronHub"
         },
         "installSkills": {
           "title": "2. Установите скиллы",
@@ -160,12 +174,12 @@
     "quickStart": {
       "title": "Быстрый старт",
       "subtitle": "Быстрый старт",
-      "description": "Начните работу с SkillHub за несколько простых шагов",
+      "description": "Начните работу с AstronHub за несколько простых шагов",
       "tip": "💡 Совет: на странице скилла есть команды установки в один клик с переменными окружения",
       "steps": {
         "configureEnv": {
           "title": "1. Настройте переменные окружения",
-          "description": "Настройте ClawHub CLI для подключения к SkillHub"
+          "description": "Настройте ClawHub CLI для подключения к AstronHub"
         },
         "installSkills": {
           "title": "2. Установите скиллы",
@@ -211,7 +225,7 @@
     "clear": "Очистить поиск"
   },
   "login": {
-    "title": "Вход в SkillHub",
+    "title": "Вход в AstronHub",
     "subtitle": "Выберите способ продолжения",
     "tabPassword": "Пароль",
     "tabOAuth": "OAuth",
@@ -231,7 +245,7 @@
     "oauthHint": "После аутентификации OAuth вы будете автоматически перенаправлены обратно на этот сайт.",
     "passwordCompatHint": "В этом развёртывании включён слой совместимости паролей. Форма направит запрос в {{name}} вместо фиксированной локальной учётной записи.",
     "enterpriseSsoTitle": "Корпоративный SSO",
-    "enterpriseSsoHint": "В этом развёртывании включён слой совместимости. Если в браузере уже есть сессия {{name}}, можно попробовать сразу установить сессию SkillHub.",
+    "enterpriseSsoHint": "В этом развёртывании включён слой совместимости. Если в браузере уже есть сессия {{name}}, можно попробовать сразу установить сессию AstronHub.",
     "enterpriseSsoAutoHint": "В этом развёртывании включено автоматическое зондирование {{name}}. Если оно не сработает, продолжайте стандартными способами входа.",
     "enterpriseSsoAction": "Попробовать {{name}}",
     "enterpriseSsoSubmitting": "Пробуем {{name}}...",
@@ -686,6 +700,8 @@
     "selectRole": "Выберите роль",
     "roleUser": "Пользователь",
     "roleReviewer": "Ревьюер",
+    "rolePluginAdmin": "Администратор плагинов",
+    "roleMcpAdmin": "Администратор MCP",
     "roleUserAdmin": "Администратор пользователей",
     "roleAuditor": "Аудитор",
     "roleSuperAdmin": "Суперадминистратор",
@@ -1360,7 +1376,7 @@
     "community": "Сообщество",
     "privacy": "Политика конфиденциальности",
     "terms": "Условия использования",
-    "copyright": "© 2026 SkillHub. Все права защищены."
+    "copyright": "© 2026 AstronHub. Все права защищены."
   },
   "layout": {
     "footerDescription": "Реестр скиллов: эффективное управление и распространение скиллов для разработчиков."
@@ -1432,7 +1448,7 @@
   },
   "publish": {
     "title": "Опубликовать скилл",
-    "subtitle": "Загрузить пакет скилла в SkillHub",
+    "subtitle": "Загрузить пакет скилла в AstronHub",
     "reviewNotice": {
       "title": "Уведомление о ревью",
       "description": "Отправленные пакеты скиллов проходят ревью администратора перед публикацией."

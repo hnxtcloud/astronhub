@@ -92,7 +92,7 @@ export function LandingPage() {
       {/* Hero Section */}
       <main ref={heroView.ref} className={`relative z-10 flex flex-col items-center pt-16 pb-20 px-4 md:pt-24 scroll-fade-up${heroView.inView ? ' in-view' : ''}`}>
         <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-brand-gradient mb-4">
-          SkillHub
+          星枢
         </h1>
         <h2
           className="text-xl md:text-2xl font-semibold tracking-tight text-center mb-3"
@@ -170,7 +170,7 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3" style={{ color: 'hsl(var(--foreground))' }}>
-              {t('landing.whySkillHub.title', { defaultValue: '为什么选择 SkillHub' })}
+              {t('landing.whySkillHub.title', { defaultValue: '为什么选择星枢' })}
             </h2>
             <p className="text-base md:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'hsl(var(--text-secondary))' }}>
               {t('landing.whySkillHub.subtitle', { defaultValue: '专为企业打造的私有化 Agent 技能管理平台' })}

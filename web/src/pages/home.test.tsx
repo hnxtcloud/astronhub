@@ -59,7 +59,7 @@ describe('HomePage', () => {
   it('renders the hero section with brand name', () => {
     const html = renderToStaticMarkup(<HomePage />)
 
-    expect(html).toContain('SkillHub')
+    expect(html).toContain('星枢')
     expect(html).toContain('home.subtitle')
   })
 })

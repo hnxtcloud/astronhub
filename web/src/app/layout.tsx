@@ -63,10 +63,11 @@ export function Layout() {
     auth?: boolean
   }> = [
     { label: t('nav.landing'), to: '/', exact: true },
+    { label: t('nav.catalog'), to: '/catalog' },
+    { label: t('nav.plugins'), to: '/plugins' },
+    { label: t('nav.mcp'), to: '/mcp-servers' },
     { label: t('nav.publish'), to: '/dashboard/publish', auth: true },
-    { label: t('nav.search'), to: '/search' },
     { label: t('nav.dashboard'), to: '/dashboard', auth: true },
-    { label: t('nav.mySkills'), to: '/dashboard/skills', auth: true },
   ]
 
   const isActive = (to: string, exact?: boolean) => {
@@ -91,7 +92,7 @@ export function Layout() {
       {/* Header */}
       <header className={getAppHeaderClassName(isHeaderElevated)} style={{ borderColor: 'hsl(var(--border))' }}>
         <Link to="/" className="text-xl font-semibold tracking-tight text-brand-gradient">
-          SkillHub
+          星枢
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 text-[15px] font-normal" style={{ color: 'hsl(var(--text-secondary))' }}>
@@ -155,9 +156,9 @@ export function Layout() {
             <div className="flex-shrink-0">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm bg-brand-gradient">
-                  S
+                  星
                 </div>
-                <span className="text-lg font-bold text-brand-gradient">SkillHub</span>
+                <span className="text-lg font-bold text-brand-gradient">星枢</span>
               </div>
               <p className="text-sm max-w-xs" style={{ color: 'hsl(var(--text-secondary))' }}>
                 {t('layout.footerDescription')}
