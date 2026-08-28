@@ -31,35 +31,35 @@ export function HomePage() {
   }
 
   return (
-    <div className="space-y-20">
+    <div className="space-y-14 pb-8">
       {/* Hero Section */}
-      <div className="text-center space-y-8 py-16 animate-fade-up">
-        <div className="space-y-4">
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-brand-gradient leading-tight">
-            星枢
-          </h1>
-          <p className="text-xl md:text-2xl max-w-2xl mx-auto" style={{ color: 'hsl(var(--text-secondary))' }}>
+      <div className="border-b border-border py-10 md:py-14">
+        <div className="max-w-3xl">
+          <div className="mb-5 flex items-baseline gap-3">
+            <span className="text-xl font-semibold text-primary">星枢</span>
+            <span className="font-mono text-xs text-muted-foreground">AstronHub</span>
+          </div>
+          <h1 className="text-3xl font-semibold leading-tight tracking-tight text-foreground md:text-4xl">
             {t('home.subtitle')}
-          </p>
-          <p className="text-base max-w-xl mx-auto" style={{ color: 'hsl(var(--muted-foreground))' }}>
+          </h1>
+          <p className="mt-3 max-w-2xl text-base leading-7 text-muted-foreground">
             {t('home.description')}
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto animate-fade-up delay-1">
+        <div className="mt-7 max-w-2xl">
           <SearchBar onSearch={handleSearch} />
         </div>
 
-        <div className="flex items-center justify-center gap-4 animate-fade-up delay-2">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <button
-            className="px-8 py-3.5 rounded-xl text-base font-medium text-white bg-brand-gradient shadow-sm hover:opacity-95 transition-opacity"
+            className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             onClick={() => navigate({ to: '/search', search: { q: '', sort: 'relevance', page: 0, starredOnly: false } })}
           >
             {t('home.browseSkills')}
           </button>
           <button
-            className="px-8 py-3.5 rounded-xl text-base font-medium border transition-colors"
-            style={{ background: 'var(--bg-secondary-btn, #F7FAFC)', borderColor: 'hsl(var(--muted-foreground))', color: 'hsl(var(--muted-foreground))' }}
+            className="rounded-md border border-border bg-white px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             onClick={() => navigate({ to: '/dashboard/publish' })}
           >
             {t('home.publishSkill')}
@@ -68,7 +68,7 @@ export function HomePage() {
       </div>
 
       {/* Popular Downloads Section */}
-      <section className="space-y-6 animate-fade-up">
+      <section className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'hsl(var(--foreground))' }}>
@@ -87,8 +87,8 @@ export function HomePage() {
           <SkeletonList count={6} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {popularSkills?.items.map((skill, idx) => (
-              <div key={skill.id} className={`animate-fade-up delay-${Math.min(idx + 1, 6)}`}>
+            {popularSkills?.items.map((skill) => (
+              <div key={skill.id}>
                 <SkillCard
                   skill={skill}
                   onClick={() => handleSkillClick(skill.namespace, skill.slug)}
@@ -100,7 +100,7 @@ export function HomePage() {
       </section>
 
       {/* Latest Releases Section */}
-      <section className="space-y-6 animate-fade-up">
+      <section className="space-y-6 border-t border-border pt-14">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'hsl(var(--foreground))' }}>
@@ -119,8 +119,8 @@ export function HomePage() {
           <SkeletonList count={6} />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {latestSkills?.items.map((skill, idx) => (
-              <div key={skill.id} className={`animate-fade-up delay-${Math.min(idx + 1, 6)}`}>
+            {latestSkills?.items.map((skill) => (
+              <div key={skill.id}>
                 <SkillCard
                   skill={skill}
                   onClick={() => handleSkillClick(skill.namespace, skill.slug)}

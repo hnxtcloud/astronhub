@@ -36,11 +36,18 @@
   },
   "landing": {
     "hero": {
-      "title": "发现与分享 AI 技能",
-      "subtitle": "使用社区驱动的技能构建强大的 AI 代理",
-      "searchPlaceholder": "搜索技能...",
-      "exploreSkills": "探索技能",
-      "publishSkill": "发布技能"
+      "title": "团队的 Agent 能力目录",
+      "subtitle": "统一发现、评估和治理 Skills、Plugins 与 MCP Servers，部署方式与生命周期保持独立。",
+      "searchPlaceholder": "按名称、坐标或描述搜索",
+      "exploreSkills": "浏览能力目录",
+      "publishSkill": "进入控制台"
+    },
+    "scope": {
+      "title": "能力范围",
+      "description": "三类能力并列呈现，分别维护各自的协议与生命周期。",
+      "skill": { "description": "可复用的 Agent 指令、脚本与资源包" },
+      "plugin": { "description": "面向 Claude Code、Codex、Pi 等运行时的扩展" },
+      "mcp": { "description": "展示组织内可用的 MCP Server 及连接信息" }
     },
     "features": {
       "secure": {
@@ -74,8 +81,8 @@
       "teams": "团队"
     },
     "whySkillHub": {
-      "title": "为什么选择星枢",
-      "subtitle": "专为企业打造的私有化 Agent 能力管理平台"
+      "title": "面向组织协作的基础设施",
+      "subtitle": "把能力发现、版本追踪和审核治理放在同一套工作流中。"
     },
     "badge": "企业级技能注册中心",
     "tagline": "发布、发现、管理",
@@ -1232,7 +1239,7 @@
     "folderHint": "或选择文件夹，自动打包上传"
   },
   "layout": {
-    "footerDescription": "技能注册中心，为开发者提供高效的技能管理和分发平台。"
+    "footerDescription": "统一展示和治理 Skills、Plugins 与 MCP Servers 的企业能力目录。"
   },
   "nsReviews": {
     "title": "命名空间审核",

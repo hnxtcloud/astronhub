@@ -46,7 +46,7 @@ export function SkillCard({ skill, onClick, highlightStarred = true }: SkillCard
 
   return (
     <Card
-      className="h-full p-5 cursor-pointer group relative overflow-hidden bg-white border shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2"
+      className="group relative h-full cursor-pointer overflow-hidden rounded-lg border bg-white p-5 shadow-none transition-colors hover:border-primary/40 hover:bg-secondary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2"
       style={{ borderColor: 'hsl(var(--border-card))' }}
       onClick={onClick}
       onKeyDown={(event) => {
@@ -102,7 +102,7 @@ export function SkillCard({ skill, onClick, highlightStarred = true }: SkillCard
 
         <div className="mt-auto flex items-center gap-4 text-xs text-muted-foreground">
           {headlineVersion && (
-            <span className="px-2.5 py-1 rounded-full bg-secondary/60 font-mono">
+            <span className="rounded-md bg-secondary/60 px-2.5 py-1 font-mono">
               v{headlineVersion.version}
             </span>
           )}

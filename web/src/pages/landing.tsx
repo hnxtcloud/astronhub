@@ -1,276 +1,186 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { normalizeSearchQuery } from '@/shared/lib/search-query'
-import { PackageOpen, Terminal, Shield, Users, GitBranch, Search as SearchIcon, Settings } from 'lucide-react'
+import {
+  GitBranch,
+  PackageOpen,
+  Search as SearchIcon,
+  Settings,
+  Shield,
+  Terminal,
+  Users,
+} from 'lucide-react'
 import { LandingQuickStartSection } from '@/shared/components/landing-quick-start'
 import { SkillCard } from '@/features/skill/skill-card'
 import { SkeletonList } from '@/shared/components/skeleton-loader'
 import { useSearchSkills } from '@/shared/hooks/use-skill-queries'
-import { useInView } from '@/shared/hooks/use-in-view'
+import { normalizeSearchQuery } from '@/shared/lib/search-query'
 import { Button } from '@/shared/ui/button'
 
-/**
- * Marketing-style landing page for unauthenticated and first-time visitors.
- *
- * The page mixes static positioning content with live skill queries so popular and latest skills
- * stay aligned with the current registry state.
- */
+/** Public overview and entry point for the capability registry. */
 export function LandingPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  const { data: popularSkills, isLoading: isLoadingPopular } = useSearchSkills({
-    sort: 'downloads',
-    size: 6,
-  })
-
-  const { data: latestSkills, isLoading: isLoadingLatest } = useSearchSkills({
-    sort: 'newest',
-    size: 6,
-  })
+  const { data: popularSkills, isLoading: isLoadingPopular } = useSearchSkills({ sort: 'downloads', size: 6 })
+  const { data: latestSkills, isLoading: isLoadingLatest } = useSearchSkills({ sort: 'newest', size: 6 })
 
   const handleSkillClick = (namespace: string, slug: string) => {
     navigate({ to: `/space/${namespace}/${encodeURIComponent(slug)}` })
   }
 
-  const heroView = useInView()
-  const statsView = useInView()
-  const featuresView = useInView()
-  const quickStartView = useInView()
-  const popularView = useInView()
-  const latestView = useInView()
-
   const handleSearch = (query: string) => {
-    const normalized = normalizeSearchQuery(query)
     navigate({
       to: '/search',
-      search: { q: normalized, sort: 'relevance', page: 0, starredOnly: false },
+      search: { q: normalizeSearchQuery(query), sort: 'relevance', page: 0, starredOnly: false },
     })
   }
 
-  const features = [
-    {
-      icon: <Shield className="w-6 h-6 text-white" strokeWidth={2} />,
-      title: t('landing.features.secure.title'),
-      description: t('landing.features.secure.description'),
-    },
-    {
-      icon: <Users className="w-6 h-6 text-white" strokeWidth={2} />,
-      title: t('landing.features.community.title'),
-      description: t('landing.features.community.description'),
-    },
-    {
-      icon: <PackageOpen className="w-6 h-6 text-white" strokeWidth={2} />,
-      title: t('landing.features.integration.title'),
-      description: t('landing.features.integration.description'),
-    },
-    {
-      icon: <GitBranch className="w-6 h-6 text-white" strokeWidth={2} />,
-      title: t('landing.features.versionControl.title', { defaultValue: 'Version control' }),
-      description: t('landing.features.versionControl.description', { defaultValue: 'Managed release flows keep skill packages traceable and easier to review.' }),
-    },
-    {
-      icon: <Terminal className="w-6 h-6 text-white" strokeWidth={2} />,
-      title: t('landing.features.cli.title', { defaultValue: 'CLI tooling' }),
-      description: t('landing.features.cli.description', { defaultValue: 'Command-line workflows support publishing, installing, and operating skills quickly.' }),
-    },
-    {
-      icon: <Settings className="w-6 h-6 text-white" strokeWidth={2} />,
-      title: t('landing.features.governance.title', { defaultValue: 'Governance' }),
-      description: t('landing.features.governance.description', { defaultValue: 'Built-in review and permission flows help teams enforce skill quality.' }),
-    },
+  const capabilityTypes = [
+    { label: t('catalog.types.skill'), description: t('landing.scope.skill.description'), to: '/catalog' as const },
+    { label: t('catalog.types.plugin'), description: t('landing.scope.plugin.description'), to: '/plugins' as const },
+    { label: t('catalog.types.mcp'), description: t('landing.scope.mcp.description'), to: '/mcp-servers' as const },
   ]
 
-  const stats = [
-    { value: '1000+', label: t('landing.stats.skills', { defaultValue: 'Registry items' }) },
-    { value: '50K+', label: t('landing.stats.downloads', { defaultValue: 'Downloads' }) },
-    { value: '200+', label: t('landing.stats.teams', { defaultValue: 'Teams' }) },
+  const features = [
+    { icon: Shield, title: t('landing.features.secure.title'), description: t('landing.features.secure.description') },
+    { icon: Users, title: t('landing.features.community.title'), description: t('landing.features.community.description') },
+    { icon: PackageOpen, title: t('landing.features.integration.title'), description: t('landing.features.integration.description') },
+    { icon: GitBranch, title: t('landing.features.versionControl.title'), description: t('landing.features.versionControl.description') },
+    { icon: Terminal, title: t('landing.features.cli.title'), description: t('landing.features.cli.description') },
+    { icon: Settings, title: t('landing.features.governance.title'), description: t('landing.features.governance.description') },
   ]
+
+  const skillSection = (
+    title: string,
+    description: string,
+    sort: 'downloads' | 'newest',
+    isLoading: boolean,
+    skills: typeof popularSkills,
+  ) => (
+    <section className="w-full border-t border-border px-6 py-14 md:py-16">
+      <div className="mx-auto max-w-6xl space-y-7">
+        <div className="flex items-end justify-between gap-6">
+          <div className="max-w-2xl">
+            <h2 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
+            <p className="text-sm leading-6 text-muted-foreground md:text-base">{description}</p>
+          </div>
+          <Button
+            variant="ghost"
+            className="shrink-0 rounded-md"
+            onClick={() => navigate({ to: '/search', search: { q: '', sort, page: 0, starredOnly: false } })}
+          >
+            {t('home.viewAll')}
+          </Button>
+        </div>
+        {isLoading ? (
+          <SkeletonList count={6} />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {skills?.items.map((skill) => (
+              <SkillCard key={skill.id} skill={skill} onClick={() => handleSkillClick(skill.namespace, skill.slug)} />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  )
 
   return (
     <>
-      {/* Hero Section */}
-      <main ref={heroView.ref} className={`relative z-10 flex flex-col items-center pt-16 pb-20 px-4 md:pt-24 scroll-fade-up${heroView.inView ? ' in-view' : ''}`}>
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-brand-gradient mb-4">
-          星枢
-        </h1>
-        <h2
-          className="text-xl md:text-2xl font-semibold tracking-tight text-center mb-3"
-          style={{ color: 'hsl(var(--foreground))' }}
-        >
-          {t('landing.hero.title')}
-        </h2>
-        <p
-          className="text-base md:text-lg text-center max-w-2xl mb-10 leading-relaxed"
-          style={{ color: 'hsl(var(--text-secondary))' }}
-        >
-          {t('landing.hero.subtitle')}
-        </p>
-
-        {/* Search box */}
-        <div className="w-full max-w-2xl mb-8">
-          <div
-            className="flex items-center bg-white rounded-xl border shadow-sm px-5 py-3.5"
-            style={{ borderColor: 'hsl(var(--border))' }}
-          >
-            <SearchIcon className="w-5 h-5 flex-shrink-0 mr-3" style={{ color: 'hsl(var(--text-placeholder))' }} strokeWidth={1.5} />
-            <input
-              type="text"
-              placeholder={t('landing.hero.searchPlaceholder')}
-              className="hero-input flex-1 bg-transparent outline-none text-base"
-              style={{ color: 'hsl(var(--foreground))' }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSearch((e.target as HTMLInputElement).value)
-                }
-              }}
-            />
-          </div>
-        </div>
-
-        {/* CTA buttons */}
-        <div className="flex flex-wrap justify-center gap-4 mb-14">
-          <Link
-            to="/search"
-            search={{ q: '', sort: 'relevance', page: 0, starredOnly: false }}
-            className="px-8 py-3.5 rounded-xl text-base font-medium text-white bg-brand-gradient shadow-sm hover:opacity-95 transition-opacity"
-          >
-            {t('landing.hero.exploreSkills')}
-          </Link>
-          <Link
-            to="/dashboard/publish"
-            className="px-8 py-3.5 rounded-xl text-base font-medium border transition-colors"
-            style={{
-              background: 'hsl(var(--secondary))',
-              borderColor: 'hsl(var(--muted-foreground))',
-              color: 'hsl(var(--muted-foreground))',
-            }}
-          >
-            {t('landing.hero.publishSkill', { defaultValue: '开始构建' })}
-          </Link>
-        </div>
-
-        {/* Stats */}
-        <div ref={statsView.ref} className={`flex flex-row justify-center gap-16 md:gap-24 scroll-fade-up${statsView.inView ? ' in-view' : ''}`} style={{ transitionDelay: '0.15s' }}>
-          {stats.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center">
-              <span className="text-3xl md:text-4xl font-bold tracking-tight text-brand-gradient mb-1">
-                {stat.value}
-              </span>
-              <span className="text-sm font-normal" style={{ color: 'hsl(var(--foreground))' }}>
-                {stat.label}
-              </span>
+      <main className="w-full px-6 py-14 md:py-20">
+        <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)] lg:items-center">
+          <div className="max-w-3xl">
+            <div className="mb-6 flex items-baseline gap-3">
+              <span className="text-xl font-semibold text-primary">星枢</span>
+              <span className="font-mono text-xs text-muted-foreground">AstronHub</span>
             </div>
-          ))}
+            <h1 className="max-w-2xl text-4xl font-semibold leading-[1.12] tracking-tight text-foreground md:text-5xl">
+              {t('landing.hero.title')}
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
+              {t('landing.hero.subtitle')}
+            </p>
+
+            <div className="mt-8 flex max-w-2xl items-center rounded-md border border-border bg-white px-4 py-3 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10">
+              <SearchIcon className="mr-3 h-5 w-5 shrink-0 text-muted-foreground" strokeWidth={1.75} />
+              <input
+                type="search"
+                placeholder={t('landing.hero.searchPlaceholder')}
+                className="hero-input min-w-0 flex-1 bg-transparent text-base text-foreground outline-none"
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') handleSearch(event.currentTarget.value)
+                }}
+              />
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Link
+                to="/catalog"
+                className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                {t('landing.hero.exploreSkills')}
+              </Link>
+              <Link
+                to="/dashboard"
+                className="rounded-md border border-border bg-white px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                {t('landing.hero.publishSkill')}
+              </Link>
+            </div>
+          </div>
+
+          <aside className="border-y border-border" aria-labelledby="capability-scope-title">
+            <div className="py-4">
+              <h2 id="capability-scope-title" className="text-sm font-semibold text-foreground">
+                {t('landing.scope.title')}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">{t('landing.scope.description')}</p>
+            </div>
+            {capabilityTypes.map((capability) => (
+              <Link
+                key={capability.label}
+                to={capability.to}
+                className="group grid grid-cols-[6rem_1fr] gap-4 border-t border-border py-4 transition-colors hover:bg-secondary/60"
+              >
+                <span className="font-mono text-sm font-medium text-primary">{capability.label}</span>
+                <span className="text-sm leading-6 text-muted-foreground group-hover:text-foreground">
+                  {capability.description}
+                </span>
+              </Link>
+            ))}
+          </aside>
         </div>
       </main>
 
-      {/* Features Section */}
-      <section ref={featuresView.ref} className={`relative z-10 w-full py-20 md:py-24 px-6 scroll-fade-up${featuresView.inView ? ' in-view' : ''}`} style={{ background: 'var(--bg-page, hsl(var(--background)))' }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-3" style={{ color: 'hsl(var(--foreground))' }}>
-              {t('landing.whySkillHub.title', { defaultValue: '为什么选择星枢' })}
-            </h2>
-            <p className="text-base md:text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: 'hsl(var(--text-secondary))' }}>
-              {t('landing.whySkillHub.subtitle', { defaultValue: '专为企业打造的私有化 Agent 技能管理平台' })}
-            </p>
+      <section className="w-full border-t border-border px-6 py-14 md:py-16">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-9 max-w-2xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">{t('landing.whySkillHub.title')}</h2>
+            <p className="mt-2 text-base leading-7 text-muted-foreground">{t('landing.whySkillHub.subtitle')}</p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="bg-white rounded-xl p-8 border shadow-sm transition-shadow hover:shadow-md"
-                style={{ borderColor: 'hsl(var(--border-card))' }}
-              >
-                <div className="feature-icon w-12 h-12 rounded-2xl flex items-center justify-center mb-6 mx-auto bg-brand-gradient">
-                  {feature.icon}
+          <div className="grid grid-cols-1 border-y border-border md:grid-cols-2">
+            {features.map((feature, index) => {
+              const Icon = feature.icon
+              return (
+                <div
+                  key={feature.title}
+                  className={`grid grid-cols-[2rem_1fr] gap-4 border-border py-5 md:px-5 ${index > 1 ? 'border-t' : ''} ${index % 2 === 1 ? 'md:border-l' : ''}`}
+                >
+                  <Icon className="mt-0.5 h-5 w-5 text-primary" strokeWidth={1.75} />
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground">{feature.title}</h3>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">{feature.description}</p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-center mb-3" style={{ color: 'hsl(var(--foreground))' }}>
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-center leading-relaxed" style={{ color: 'hsl(var(--text-secondary))' }}>
-                  {feature.description}
-                </p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* Quick Start */}
-      <div ref={quickStartView.ref} className={`scroll-fade-up${quickStartView.inView ? ' in-view' : ''}`}>
-        <LandingQuickStartSection />
-      </div>
-
-      {/* Popular Downloads Section */}
-      <section ref={popularView.ref} className={`relative z-10 w-full py-20 md:py-24 px-6 scroll-fade-up${popularView.inView ? ' in-view' : ''}`} style={{ background: 'var(--bg-page, hsl(var(--background)))' }}>
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'hsl(var(--foreground))' }}>
-                {t('home.popularTitle')}
-              </h2>
-              <p style={{ color: 'hsl(var(--text-secondary))' }}>{t('home.popularDescription')}</p>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={() => navigate({ to: '/search', search: { q: '', sort: 'downloads', page: 0, starredOnly: false } })}
-            >
-              {t('home.viewAll')}
-            </Button>
-          </div>
-          {isLoadingPopular ? (
-            <SkeletonList count={6} />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {popularSkills?.items.map((skill, idx) => (
-                <div key={skill.id} className={`animate-fade-up delay-${Math.min(idx + 1, 6)}`}>
-                  <SkillCard
-                    skill={skill}
-                    onClick={() => handleSkillClick(skill.namespace, skill.slug)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Latest Releases Section */}
-      <section ref={latestView.ref} className={`relative z-10 w-full py-20 md:py-24 px-6 scroll-fade-up${latestView.inView ? ' in-view' : ''}`} style={{ background: 'var(--bg-page, hsl(var(--background)))' }}>
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'hsl(var(--foreground))' }}>
-                {t('home.latestTitle')}
-              </h2>
-              <p style={{ color: 'hsl(var(--text-secondary))' }}>{t('home.latestDescription')}</p>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={() => navigate({ to: '/search', search: { q: '', sort: 'newest', page: 0, starredOnly: false } })}
-            >
-              {t('home.viewAll')}
-            </Button>
-          </div>
-          {isLoadingLatest ? (
-            <SkeletonList count={6} />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {latestSkills?.items.map((skill, idx) => (
-                <div key={skill.id} className={`animate-fade-up delay-${Math.min(idx + 1, 6)}`}>
-                  <SkillCard
-                    skill={skill}
-                    onClick={() => handleSkillClick(skill.namespace, skill.slug)}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <LandingQuickStartSection />
+      {skillSection(t('home.popularTitle'), t('home.popularDescription'), 'downloads', isLoadingPopular, popularSkills)}
+      {skillSection(t('home.latestTitle'), t('home.latestDescription'), 'newest', isLoadingLatest, latestSkills)}
     </>
   )
 }

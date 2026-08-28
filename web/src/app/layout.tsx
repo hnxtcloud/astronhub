@@ -78,57 +78,49 @@ export function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col relative" style={{ background: 'var(--bg-page, hsl(var(--background)))' }}>
-      {/* Clip only the decorative layer so in-tree Select/Dropdown are not cropped. */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-x-clip" aria-hidden>
-        <div
-          className="absolute top-0 right-0 w-[600px] h-[500px] rounded-full opacity-90"
-          style={{
-            background: 'radial-gradient(ellipse at 70% 20%, rgba(184,94,255,0.25) 0%, rgba(106,109,255,0.15) 40%, transparent 70%)',
-            filter: 'blur(60px)',
-          }}
-        />
-      </div>
-
       {/* Header */}
       <header className={getAppHeaderClassName(isHeaderElevated)} style={{ borderColor: 'hsl(var(--border))' }}>
-        <Link to="/" className="text-xl font-semibold tracking-tight text-brand-gradient">
-          星枢
-        </Link>
+        <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between px-6 md:px-10">
+          <Link to="/" className="flex items-baseline gap-2 text-foreground">
+            <span className="text-lg font-semibold tracking-tight">星枢</span>
+            <span className="hidden text-xs font-medium text-muted-foreground sm:inline">AstronHub</span>
+          </Link>
 
-        <nav className="hidden md:flex items-center gap-8 text-[15px] font-normal" style={{ color: 'hsl(var(--text-secondary))' }}>
-          {navItems.map((item) => {
-            if (item.auth && !user) return null
-            const active = isActive(item.to, item.exact)
+          <nav className="hidden md:flex items-center gap-1 text-sm" style={{ color: 'hsl(var(--text-secondary))' }}>
+            {navItems.map((item) => {
+              if (item.auth && !user) return null
+              const active = isActive(item.to, item.exact)
 
-            return (
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={
+                    active
+                      ? 'rounded-md bg-secondary px-3 py-2 font-medium text-foreground'
+                      : 'rounded-md px-3 py-2 transition-colors duration-150 hover:bg-secondary/60 hover:text-foreground'
+                  }
+                >
+                  {item.label}
+                </Link>
+              )
+            })}
+          </nav>
+
+          <div className="flex items-center gap-4 text-sm" style={{ color: 'hsl(var(--text-secondary))' }}>
+            <LanguageSwitcher />
+            {user && <NotificationBell />}
+            {isLoading ? null : user ? (
+              <UserMenu user={user} />
+            ) : (
               <Link
-                key={item.to}
-                to={item.to}
-                className={
-                  active
-                    ? 'px-4 py-1.5 rounded-full bg-brand-gradient text-white shadow-sm'
-                    : 'hover:opacity-80 transition-opacity duration-150'
-                }
+                to="/login"
+                className="rounded-md px-2 py-1.5 transition-colors hover:bg-secondary/60 hover:text-foreground"
               >
-                {item.label}
+                {t('nav.login')}
               </Link>
-            )
-          })}
-        </nav>
-
-        <div className="flex items-center gap-6 text-[15px] font-normal" style={{ color: 'hsl(var(--text-secondary))' }}>
-          <LanguageSwitcher />
-          {user && <NotificationBell />}
-          {isLoading ? null : user ? (
-            <UserMenu user={user} />
-          ) : (
-            <Link
-              to="/login"
-              className="hover:opacity-80 transition-opacity"
-            >
-              {t('nav.login')}
-            </Link>
-          )}
+            )}
+          </div>
         </div>
       </header>
 
@@ -150,15 +142,15 @@ export function Layout() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t rounded-t-2xl mt-auto" style={{ background: '#F1F5F9', borderColor: 'hsl(var(--border))' }}>
-        <div className="max-w-6xl mx-auto px-6 md:px-12 py-10">
+      <footer className="relative z-10 mt-auto border-t bg-white" style={{ borderColor: 'hsl(var(--border))' }}>
+        <div className="max-w-6xl mx-auto px-6 py-10 md:px-10">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10 md:gap-12">
             <div className="flex-shrink-0">
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm bg-brand-gradient">
+                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-sm font-semibold text-primary-foreground">
                   星
                 </div>
-                <span className="text-lg font-bold text-brand-gradient">星枢</span>
+                <span className="text-base font-semibold text-foreground">星枢</span>
               </div>
               <p className="text-sm max-w-xs" style={{ color: 'hsl(var(--text-secondary))' }}>
                 {t('layout.footerDescription')}

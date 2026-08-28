@@ -36,11 +36,18 @@
   },
   "landing": {
     "hero": {
-      "title": "Discover & Share AI Skills",
-      "subtitle": "Build powerful AI agents with community-driven skills",
-      "searchPlaceholder": "Search skills...",
-      "exploreSkills": "Explore Skills",
-      "publishSkill": "Publish Skill"
+      "title": "Your team's Agent capability catalog",
+      "subtitle": "Discover, evaluate, and govern Skills, Plugins, and MCP Servers in one place while each keeps its own deployment model and lifecycle.",
+      "searchPlaceholder": "Search by name, coordinate, or description",
+      "exploreSkills": "Browse the catalog",
+      "publishSkill": "Open dashboard"
+    },
+    "scope": {
+      "title": "Capability scope",
+      "description": "Three peer domains, each retaining its own protocol and lifecycle.",
+      "skill": { "description": "Reusable instructions, scripts, and resources for Agents" },
+      "plugin": { "description": "Extensions for runtimes such as Claude Code, Codex, and Pi" },
+      "mcp": { "description": "Available MCP Servers and their connection information" }
     },
     "features": {
       "secure": {
@@ -74,8 +81,8 @@
       "teams": "Teams"
     },
     "whySkillHub": {
-      "title": "Why AstronHub",
-      "subtitle": "A private Agent capability platform designed for enterprise teams"
+      "title": "Infrastructure for organizational reuse",
+      "subtitle": "Bring capability discovery, version tracking, and review governance into one workflow."
     },
     "badge": "Enterprise Skill Registry",
     "tagline": "Publish, Discover, Manage",
@@ -1232,7 +1239,7 @@
     "folderHint": "Or select a folder to package and upload"
   },
   "layout": {
-    "footerDescription": "Skill registry, providing efficient skill management and distribution for developers."
+    "footerDescription": "An enterprise catalog for discovering and governing Skills, Plugins, and MCP Servers."
   },
   "nsReviews": {
     "title": "Namespace Reviews",
