@@ -14,5 +14,6 @@
     "vite": "^6.4.3",
     "postcss": "^8.5.23",
     "esbuild": "^0.28.1"
-  }
+  },
+  "packageManager": "pnpm@11.19.0"
 }

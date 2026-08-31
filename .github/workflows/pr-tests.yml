@@ -100,16 +100,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: docs/skillhub/package-lock.json
 
       - name: Install docs dependencies
         if: steps.changed.outputs.docs == 'true'
-        run: cd docs/skillhub && npm ci
+        run: cd docs/skillhub && corepack enable && pnpm install --frozen-lockfile
 
       - name: Build VitePress site
         if: steps.changed.outputs.docs == 'true'
-        run: cd docs/skillhub && npm run build
+        run: cd docs/skillhub && pnpm build
 
       - name: Build and validate weekly reports
         if: steps.changed.outputs.docs == 'true'
