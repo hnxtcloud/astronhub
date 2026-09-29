@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -214,7 +215,8 @@ public class SoftwareUploadAppService {
             throw new DomainBadRequestException("error.software.upload.formatRequired");
         }
         try {
-            return SoftwarePackageFormat.valueOf(value);
+            // formats are canonical upper case; clients may send "zip", "Zip", "ZIP"
+            return SoftwarePackageFormat.valueOf(value.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new DomainBadRequestException("error.software.upload.formatNotAllowed", value);
         }
@@ -225,7 +227,7 @@ public class SoftwareUploadAppService {
             throw new DomainBadRequestException("error.software.upload.fieldRequired", field);
         }
         try {
-            return Enum.valueOf(type, value);
+            return Enum.valueOf(type, value.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new DomainBadRequestException("error.software.upload.fieldRequired", field);
         }

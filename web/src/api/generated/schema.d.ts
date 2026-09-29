@@ -4,6 +4,22 @@
  */
 
 export interface paths {
+    "/api/v1/software/downloads/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["download"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head: operations["download_1"];
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/skills/{skillId}/subscription": {
         parameters: {
             query?: never;
@@ -365,6 +381,118 @@ export interface paths {
         };
         get?: never;
         put: operations["updateUserRole"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/uploads/{id}/chunks/{chunkNo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["putChunk"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getActive"];
+        put: operations["update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/releases/{releaseId}/recommendations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listRecommendations"];
+        put: operations["setRecommendations"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/releases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateRelease"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/packages/{id}/note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updatePackageNote"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateCategory"];
+        post?: never;
+        delete: operations["deleteCategory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/apps/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateApp"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1220,6 +1348,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/software/packages/{packageId}/download-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createDownloadSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/skills": {
         parameters: {
             query?: never;
@@ -1262,6 +1406,54 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["publish_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/internal/software/inspector/tasks/{taskId}/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submitResult"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/internal/software/inspector/tasks/{taskId}/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["heartbeat"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/internal/software/inspector/tasks/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["claim"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1486,6 +1678,294 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["approveUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["createSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/uploads/{id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["complete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/uploads/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/settings/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["validate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/settings/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["rollback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/packages/{id}/takedown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["takeDownPackage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/packages/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["restorePackage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/packages/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["publishPackage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/packages/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["confirmPackage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/inspections/{taskId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/inspections/{taskId}/confirm-metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["confirmMetadata"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listCategories_1"];
+        put?: never;
+        post: operations["createCategory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listApps_1"];
+        put?: never;
+        post: operations["createApp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/apps/{id}/takedown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["takeDownApp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/apps/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["restoreApp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/apps/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["publishApp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/apps/{appId}/releases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listReleases"];
+        put?: never;
+        post: operations["createRelease"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/admin-grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listGrants"];
+        put?: never;
+        post: operations["grant"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2996,6 +3476,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/software/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List software-center categories for filtering */
+        get: operations["listCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/software/apps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List published software applications with keyword, category, and platform filters */
+        get: operations["listApps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/software/apps/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a published application with releases, packages, and recommendations */
+        get: operations["getAppDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/skills/{skillId}/versions/{versionId}/security-audit": {
         parameters: {
             query?: never;
@@ -3144,6 +3675,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/internal/software/inspector/tasks/{taskId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["downloadContent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -3273,6 +3820,102 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/software/uploads/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["progress"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/settings/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/releases/{releaseId}/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listPackages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/inspections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_5"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/inspections/{taskId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["detail_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/apps/{slug}/detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getAppDetail_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/skill-reports": {
         parameters: {
             query?: never;
@@ -3296,7 +3939,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3577,6 +4220,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/software/admin-grants/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["revoke_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/namespaces/{slug}/members/{userId}": {
         parameters: {
             query?: never;
@@ -3794,6 +4453,235 @@ export interface components {
         };
         AdminUserRoleUpdateRequest: {
             role: string;
+        };
+        ApiResponseSoftwareChunkReceiptResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareChunkReceiptResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareChunkReceiptResponse: {
+            /** Format: int32 */
+            chunkNo?: number;
+            /** Format: int64 */
+            byteSize?: number;
+            sha256?: string;
+            alreadyPresent?: boolean;
+        };
+        SoftwarePolicyConfigDto: {
+            /** Format: int64 */
+            maxPackageBytes?: number;
+            /** Format: int64 */
+            totalQuotaBytes?: number;
+            /** Format: int32 */
+            maxActiveUploadsPerAdmin?: number;
+            /** Format: int64 */
+            chunkSizeBytes?: number;
+            /** Format: int64 */
+            uploadIdleTimeoutMinutes?: number;
+            /** Format: int64 */
+            failedTempRetentionHours?: number;
+            /** Format: int64 */
+            cleanupScanIntervalMinutes?: number;
+            /** Format: int32 */
+            maxConcurrentInspectionsPerWorker?: number;
+            /** Format: int64 */
+            inspectionTotalTimeoutSeconds?: number;
+            /** Format: int64 */
+            inspectionSubprocessTimeoutSeconds?: number;
+            /** Format: int64 */
+            inspectionSoftMemoryLimitBytes?: number;
+            /** Format: int64 */
+            inspectionMaxExtractedBytes?: number;
+            /** Format: int32 */
+            inspectionMaxExtractedEntries?: number;
+            /** Format: int32 */
+            maxAutoInspectionAttempts?: number;
+            /** Format: int64 */
+            downloadSessionIdleTimeoutMinutes?: number;
+        };
+        SoftwareSettingsUpdateRequest: {
+            /** Format: int64 */
+            expectedRevision: number;
+            changeReason: string;
+            config: components["schemas"]["SoftwarePolicyConfigDto"];
+        };
+        ApiResponseSoftwareSettingsResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareSettingsResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareDeploymentLimitsDto: {
+            /** Format: int64 */
+            proxyMaxBodyBytes?: number;
+            /** Format: int64 */
+            workerMemoryHardLimitBytes?: number;
+            /** Format: int64 */
+            workerMemoryReservedBytes?: number;
+            /** Format: int64 */
+            workerAvailableMemoryBytes?: number;
+        };
+        SoftwareSettingsResponse: {
+            /** Format: int64 */
+            revision?: number;
+            /** Format: int32 */
+            schemaVersion?: number;
+            config?: components["schemas"]["SoftwarePolicyConfigDto"];
+            deploymentLimits?: components["schemas"]["SoftwareDeploymentLimitsDto"];
+            changedBy?: string;
+            /** Format: date-time */
+            changedAt?: string;
+        };
+        SoftwareRecommendationItemRequest: {
+            /** Format: int64 */
+            packageRevisionId: number;
+            /** @enum {string} */
+            targetOs: "WINDOWS" | "LINUX";
+            /** @enum {string} */
+            targetArch: "X86" | "X86_64" | "ARM64" | "NOARCH" | "UNKNOWN";
+            targetDistro?: string;
+            /** @enum {string} */
+            format: "MSI" | "EXE" | "DEB" | "RPM" | "ZIP" | "TAR_GZ" | "TAR_XZ";
+            note?: string;
+        };
+        SoftwareRecommendationSetRequest: {
+            recommendations: components["schemas"]["SoftwareRecommendationItemRequest"][];
+        };
+        ApiResponseListSoftwareRecommendationResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareRecommendationResponse"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareRecommendationResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            packageRevisionId?: number;
+            targetOs?: string;
+            targetArch?: string;
+            targetDistro?: string;
+            format?: string;
+            note?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        SoftwareReleaseUpdateRequest: {
+            releaseNotes?: string;
+        };
+        ApiResponseSoftwareReleaseResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareReleaseResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwarePackageResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int32 */
+            revisionNo?: number;
+            status?: string;
+            targetOs?: string;
+            targetArch?: string;
+            targetDistro?: string;
+            format?: string;
+            originalFullVersion?: string;
+            fileName?: string;
+            /** Format: int64 */
+            byteSize?: number;
+            sha256?: string;
+            applicabilityNote?: string;
+            confirmedBy?: string;
+            /** Format: date-time */
+            confirmedAt?: string;
+            /** Format: date-time */
+            publishedAt?: string;
+        };
+        SoftwareReleaseResponse: {
+            /** Format: int64 */
+            id?: number;
+            displayVersion?: string;
+            releaseNotes?: string;
+            /** Format: date-time */
+            publishedAt?: string;
+            /** Format: int32 */
+            packageCount?: number;
+            packages?: components["schemas"]["SoftwarePackageResponse"][];
+            recommendations?: components["schemas"]["SoftwareRecommendationResponse"][];
+        };
+        SoftwarePackageNoteRequest: {
+            applicabilityNote?: string;
+        };
+        ApiResponseSoftwarePackageResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwarePackageResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareCategoryUpdateRequest: {
+            name: string;
+            /** Format: int32 */
+            sortOrder?: number;
+        };
+        ApiResponseSoftwareCategoryResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareCategoryResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareCategoryResponse: {
+            /** Format: int64 */
+            id?: number;
+            code?: string;
+            name?: string;
+            /** Format: int32 */
+            sortOrder?: number;
+        };
+        SoftwareAppUpdateRequest: {
+            name: string;
+            description?: string;
+            iconObjectKey?: string;
+            categoryCode?: string;
+        };
+        ApiResponseSoftwareAppSummaryResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareAppSummaryResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareAppSummaryResponse: {
+            /** Format: int64 */
+            id?: number;
+            slug?: string;
+            name?: string;
+            description?: string;
+            iconObjectKey?: string;
+            categoryCode?: string;
+            categoryName?: string;
+            /** Format: date-time */
+            createdAt?: string;
         };
         AdminLabelUpdateRequest: {
             /** @enum {string} */
@@ -4104,6 +4992,21 @@ export interface components {
             starred?: boolean;
             alreadyStarred?: boolean;
         };
+        ApiResponseSoftwareDownloadSessionResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareDownloadSessionResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareDownloadSessionResponse: {
+            sessionId?: string;
+            downloadUrl?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+        };
         ClawHubPublishResponse: {
             ok?: boolean;
             skillId?: string;
@@ -4111,6 +5014,50 @@ export interface components {
         };
         ClawHubDeleteResponse: {
             ok?: boolean;
+        };
+        JsonNode: Record<string, never>;
+        SoftwareInspectorResultRequest: {
+            workerId: string;
+            attemptToken: string;
+            outcome: string;
+            errorCode?: string;
+            rawVersionFields?: components["schemas"]["JsonNode"];
+            parserName?: string;
+            parserVersion?: string;
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            finishedAt?: string;
+        };
+        SoftwareInspectorHeartbeatRequest: {
+            workerId: string;
+            attemptToken: string;
+        };
+        SoftwareInspectorClaimResponse: {
+            claimed?: boolean;
+            /** Format: int64 */
+            taskId?: number;
+            /** Format: int64 */
+            packageRevisionId?: number;
+            /** Format: int32 */
+            attemptNo?: number;
+            attemptToken?: string;
+            objectKey?: string;
+            format?: string;
+            /** Format: int64 */
+            policyRevision?: number;
+            /** Format: int64 */
+            totalTimeoutSeconds?: number;
+            /** Format: int64 */
+            subprocessTimeoutSeconds?: number;
+            /** Format: int64 */
+            softMemoryLimitBytes?: number;
+            /** Format: int64 */
+            maxExtractedBytes?: number;
+            /** Format: int32 */
+            maxExtractedEntries?: number;
+            /** Format: date-time */
+            leaseExpiresAt?: string;
         };
         AuthorizeRequest: {
             userCode?: string;
@@ -4196,6 +5143,177 @@ export interface components {
             expiresIn?: number;
             /** Format: int32 */
             interval?: number;
+        };
+        SoftwareUploadSessionCreateRequest: {
+            /** Format: int64 */
+            releaseId?: number;
+            fileName?: string;
+            format?: string;
+            targetOs?: string;
+            targetArch?: string;
+            targetDistro?: string;
+            applicabilityNote?: string;
+            originalFullVersion?: string;
+            /** Format: int64 */
+            byteSize?: number;
+        };
+        ApiResponseSoftwareUploadSessionResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareUploadSessionResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareUploadSessionResponse: {
+            /** Format: int64 */
+            id?: number;
+            status?: string;
+            fileName?: string;
+            format?: string;
+            targetOs?: string;
+            targetArch?: string;
+            targetDistro?: string;
+            /** Format: int64 */
+            expectedByteSize?: number;
+            /** Format: int64 */
+            chunkSizeBytes?: number;
+            /** Format: int32 */
+            totalChunks?: number;
+            /** Format: int64 */
+            uploadedBytes?: number;
+            /** Format: int64 */
+            policyRevision?: number;
+            /** Format: date-time */
+            lastActivityAt?: string;
+            /** Format: date-time */
+            expiresAt?: string;
+        };
+        ApiResponseSoftwareUploadCompleteResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareUploadCompleteResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareUploadCompleteResponse: {
+            /** Format: int64 */
+            sessionId?: number;
+            status?: string;
+            /** Format: int64 */
+            packageRevisionId?: number;
+            /** Format: int32 */
+            revisionNo?: number;
+            fileName?: string;
+            sha256?: string;
+            /** Format: int64 */
+            byteSize?: number;
+        };
+        ApiResponseSoftwareSettingsValidationResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareSettingsValidationResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        FieldViolation: {
+            field?: string;
+            messageCode?: string;
+            messageArgs?: Record<string, never>[];
+        };
+        SoftwareSettingsValidationResponse: {
+            valid?: boolean;
+            violations?: components["schemas"]["FieldViolation"][];
+        };
+        SoftwareSettingsRollbackRequest: {
+            /** Format: int64 */
+            fromRevision: number;
+            changeReason: string;
+        };
+        ApiResponseSoftwareInspectionSummaryResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareInspectionSummaryResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareInspectionSummaryResponse: {
+            /** Format: int64 */
+            taskId?: number;
+            /** Format: int64 */
+            packageRevisionId?: number;
+            /** Format: int64 */
+            applicationId?: number;
+            status?: string;
+            /** Format: int32 */
+            attemptCount?: number;
+            /** Format: int32 */
+            maxAttempts?: number;
+            /** Format: int32 */
+            manualRetryCount?: number;
+            /** Format: int64 */
+            policyRevision?: number;
+            format?: string;
+            fileName?: string;
+            originalFullVersion?: string;
+            /** Format: int64 */
+            byteSize?: number;
+            leaseOwner?: string;
+            /** Format: date-time */
+            leaseExpiresAt?: string;
+            /** Format: date-time */
+            nextAttemptNotBefore?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        SoftwareInspectionConfirmMetadataRequest: {
+            rawVersionFields: components["schemas"]["JsonNode"];
+        };
+        SoftwareCategoryCreateRequest: {
+            code: string;
+            name: string;
+            /** Format: int32 */
+            sortOrder?: number;
+        };
+        SoftwareAppCreateRequest: {
+            slug: string;
+            name: string;
+            description?: string;
+            iconObjectKey?: string;
+            categoryCode?: string;
+        };
+        SoftwareReleaseCreateRequest: {
+            displayVersion: string;
+            releaseNotes?: string;
+        };
+        SoftwareAdminGrantRequest: {
+            userId: string;
+        };
+        ApiResponseSoftwareAdminGrantResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareAdminGrantResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareAdminGrantResponse: {
+            userId?: string;
+            displayName?: string;
+            email?: string;
+            allRoles?: string[];
+            /** Format: date-time */
+            grantedAt?: string;
         };
         AdminSkillMutationResponse: {
             /** Format: int64 */
@@ -5046,6 +6164,56 @@ export interface components {
             /** Format: int32 */
             size?: number;
         };
+        ApiResponseListSoftwareCategoryResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareCategoryResponse"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ApiResponsePageResponseSoftwareAppSummaryResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PageResponseSoftwareAppSummaryResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PageResponseSoftwareAppSummaryResponse: {
+            items?: components["schemas"]["SoftwareAppSummaryResponse"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        ApiResponseSoftwareAppDetailResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareAppDetailResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareAppDetailResponse: {
+            /** Format: int64 */
+            id?: number;
+            slug?: string;
+            name?: string;
+            description?: string;
+            iconObjectKey?: string;
+            categoryCode?: string;
+            categoryName?: string;
+            status?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            releases?: components["schemas"]["SoftwareReleaseResponse"][];
+        };
         ClawHubSkillListResponse: {
             items?: components["schemas"]["SkillListItem"][];
             nextCursor?: string;
@@ -5272,6 +6440,170 @@ export interface components {
             page?: number;
             /** Format: int32 */
             size?: number;
+        };
+        ApiResponseSoftwareUploadProgressResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareUploadProgressResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareUploadProgressResponse: {
+            /** Format: int64 */
+            sessionId?: number;
+            status?: string;
+            /** Format: int32 */
+            totalChunks?: number;
+            /** Format: int64 */
+            chunkSizeBytes?: number;
+            /** Format: int64 */
+            uploadedBytes?: number;
+            chunks?: components["schemas"]["UploadedChunk"][];
+            /** Format: date-time */
+            expiresAt?: string;
+        };
+        UploadedChunk: {
+            /** Format: int32 */
+            chunkNo?: number;
+            /** Format: int64 */
+            byteSize?: number;
+            sha256?: string;
+        };
+        ApiResponsePageResponseSoftwarePolicyRevisionResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PageResponseSoftwarePolicyRevisionResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PageResponseSoftwarePolicyRevisionResponse: {
+            items?: components["schemas"]["SoftwarePolicyRevisionResponse"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        SoftwarePolicyRevisionResponse: {
+            /** Format: int64 */
+            revision?: number;
+            /** Format: int32 */
+            schemaVersion?: number;
+            config?: components["schemas"]["SoftwarePolicyConfigDto"];
+            changedBy?: string;
+            changeReason?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        ApiResponseListSoftwarePackageResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwarePackageResponse"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ApiResponsePageResponseSoftwareInspectionSummaryResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PageResponseSoftwareInspectionSummaryResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PageResponseSoftwareInspectionSummaryResponse: {
+            items?: components["schemas"]["SoftwareInspectionSummaryResponse"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        ApiResponseSoftwareInspectionDetailResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareInspectionDetailResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareInspectionAttemptResponse: {
+            /** Format: int32 */
+            attemptNo?: number;
+            trigger?: string;
+            outcome?: string;
+            errorCode?: string;
+            rawVersionFields?: components["schemas"]["JsonNode"];
+            parserName?: string;
+            parserVersion?: string;
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            finishedAt?: string;
+        };
+        SoftwareInspectionDetailResponse: {
+            task?: components["schemas"]["SoftwareInspectionSummaryResponse"];
+            attempts?: components["schemas"]["SoftwareInspectionAttemptResponse"][];
+        };
+        ApiResponsePageResponseSoftwareAppAdminSummaryResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PageResponseSoftwareAppAdminSummaryResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PageResponseSoftwareAppAdminSummaryResponse: {
+            items?: components["schemas"]["SoftwareAppAdminSummaryResponse"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        SoftwareAppAdminSummaryResponse: {
+            /** Format: int64 */
+            id?: number;
+            slug?: string;
+            name?: string;
+            description?: string;
+            iconObjectKey?: string;
+            categoryCode?: string;
+            categoryName?: string;
+            status?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        ApiResponseListSoftwareReleaseResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareReleaseResponse"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ApiResponseListSoftwareAdminGrantResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareAdminGrantResponse"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
         };
         AdminSkillReportSummaryResponse: {
             /** Format: int64 */
@@ -5523,6 +6855,52 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    download: {
+        parameters: {
+            query?: never;
+            header?: {
+                Range?: string;
+                "If-Range"?: string;
+            };
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    download_1: {
+        parameters: {
+            query?: never;
+            header?: {
+                Range?: string;
+                "If-Range"?: string;
+            };
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     checkSubscribed: {
         parameters: {
             query?: never;
@@ -6523,6 +7901,250 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseAdminUserMutationResponse"];
+                };
+            };
+        };
+    };
+    putChunk: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Content-Length"?: number;
+                "X-Chunk-Sha256"?: string;
+            };
+            path: {
+                id: number;
+                chunkNo: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareChunkReceiptResponse"];
+                };
+            };
+        };
+    };
+    getActive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareSettingsResponse"];
+                };
+            };
+        };
+    };
+    update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareSettingsUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareSettingsResponse"];
+                };
+            };
+        };
+    };
+    listRecommendations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                releaseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListSoftwareRecommendationResponse"];
+                };
+            };
+        };
+    };
+    setRecommendations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                releaseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareRecommendationSetRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListSoftwareRecommendationResponse"];
+                };
+            };
+        };
+    };
+    updateRelease: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareReleaseUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareReleaseResponse"];
+                };
+            };
+        };
+    };
+    updatePackageNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwarePackageNoteRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwarePackageResponse"];
+                };
+            };
+        };
+    };
+    updateCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareCategoryUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareCategoryResponse"];
+                };
+            };
+        };
+    };
+    deleteCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMessageResponse"];
+                };
+            };
+        };
+    };
+    updateApp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareAppUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareAppSummaryResponse"];
                 };
             };
         };
@@ -8131,6 +9753,28 @@ export interface operations {
             };
         };
     };
+    createDownloadSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                packageId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareDownloadSessionResponse"];
+                };
+            };
+        };
+    };
     listSkills: {
         parameters: {
             query?: {
@@ -8229,6 +9873,88 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ClawHubPublishResponse"];
+                };
+            };
+        };
+    };
+    submitResult: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareInspectorResultRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: Record<string, never>;
+                    };
+                };
+            };
+        };
+    };
+    heartbeat: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareInspectorHeartbeatRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": {
+                        [key: string]: Record<string, never>;
+                    };
+                };
+            };
+        };
+    };
+    claim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["SoftwareInspectorClaimResponse"];
                 };
             };
         };
@@ -8553,6 +10279,510 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseAdminUserMutationResponse"];
+                };
+            };
+        };
+    };
+    createSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareUploadSessionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUploadSessionResponse"];
+                };
+            };
+        };
+    };
+    complete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUploadCompleteResponse"];
+                };
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUploadSessionResponse"];
+                };
+            };
+        };
+    };
+    validate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareSettingsUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareSettingsValidationResponse"];
+                };
+            };
+        };
+    };
+    rollback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareSettingsRollbackRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareSettingsResponse"];
+                };
+            };
+        };
+    };
+    takeDownPackage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwarePackageResponse"];
+                };
+            };
+        };
+    };
+    restorePackage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwarePackageResponse"];
+                };
+            };
+        };
+    };
+    publishPackage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwarePackageResponse"];
+                };
+            };
+        };
+    };
+    confirmPackage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwarePackageResponse"];
+                };
+            };
+        };
+    };
+    retry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareInspectionSummaryResponse"];
+                };
+            };
+        };
+    };
+    confirmMetadata: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareInspectionConfirmMetadataRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareInspectionSummaryResponse"];
+                };
+            };
+        };
+    };
+    listCategories_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListSoftwareCategoryResponse"];
+                };
+            };
+        };
+    };
+    createCategory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareCategoryCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareCategoryResponse"];
+                };
+            };
+        };
+    };
+    listApps_1: {
+        parameters: {
+            query?: {
+                keyword?: string;
+                category?: string;
+                status?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponseSoftwareAppAdminSummaryResponse"];
+                };
+            };
+        };
+    };
+    createApp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareAppCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareAppSummaryResponse"];
+                };
+            };
+        };
+    };
+    takeDownApp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareAppSummaryResponse"];
+                };
+            };
+        };
+    };
+    restoreApp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareAppSummaryResponse"];
+                };
+            };
+        };
+    };
+    publishApp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareAppSummaryResponse"];
+                };
+            };
+        };
+    };
+    listReleases: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListSoftwareReleaseResponse"];
+                };
+            };
+        };
+    };
+    createRelease: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareReleaseCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareReleaseResponse"];
+                };
+            };
+        };
+    };
+    listGrants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListSoftwareAdminGrantResponse"];
+                };
+            };
+        };
+    };
+    grant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareAdminGrantRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareAdminGrantResponse"];
                 };
             };
         };
@@ -10949,6 +13179,75 @@ export interface operations {
             };
         };
     };
+    listCategories: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListSoftwareCategoryResponse"];
+                };
+            };
+        };
+    };
+    listApps: {
+        parameters: {
+            query?: {
+                keyword?: string;
+                category?: string;
+                os?: string;
+                arch?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponseSoftwareAppSummaryResponse"];
+                };
+            };
+        };
+    };
+    getAppDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareAppDetailResponse"];
+                };
+            };
+        };
+    };
     getSecurityAudits: {
         parameters: {
             query?: {
@@ -11184,6 +13483,26 @@ export interface operations {
             };
         };
     };
+    downloadContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     health: {
         parameters: {
             query?: never;
@@ -11361,6 +13680,140 @@ export interface operations {
             };
         };
     };
+    progress: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUploadProgressResponse"];
+                };
+            };
+        };
+    };
+    history: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponseSoftwarePolicyRevisionResponse"];
+                };
+            };
+        };
+    };
+    listPackages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                releaseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListSoftwarePackageResponse"];
+                };
+            };
+        };
+    };
+    list_5: {
+        parameters: {
+            query?: {
+                status?: string;
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponseSoftwareInspectionSummaryResponse"];
+                };
+            };
+        };
+    };
+    detail_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                taskId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareInspectionDetailResponse"];
+                };
+            };
+        };
+    };
+    getAppDetail_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareAppDetailResponse"];
+                };
+            };
+        };
+    };
     listReports: {
         parameters: {
             query?: {
@@ -11385,7 +13838,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_6: {
         parameters: {
             query?: {
                 status?: string;
@@ -11801,6 +14254,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseSkillDeleteResponse"];
+                };
+            };
+        };
+    };
+    revoke_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMessageResponse"];
                 };
             };
         };

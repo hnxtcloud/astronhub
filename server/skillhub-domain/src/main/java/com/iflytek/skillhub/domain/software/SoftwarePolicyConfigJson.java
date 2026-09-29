@@ -92,6 +92,16 @@ public final class SoftwarePolicyConfigJson {
     private static JsonNode parse(String json) {
         try {
             JsonNode node = MAPPER.readTree(json);
+            if (node == null) {
+                throw new DomainBadRequestException("error.software.settings.corrupt");
+            }
+            if (!node.isObject() && node.isTextual()) {
+                // H2-backed environments store JSON attributes as JSON string
+                // values (H2 never parses character input into a document on
+                // write), so a round-tripped revision reads back wrapped once.
+                // PostgreSQL stores the object directly and never hits this.
+                node = MAPPER.readTree(node.asText());
+            }
             if (node == null || !node.isObject()) {
                 throw new DomainBadRequestException("error.software.settings.corrupt");
             }

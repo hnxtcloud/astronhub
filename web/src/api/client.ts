@@ -49,6 +49,24 @@ import type {
   BatchMemberResponse,
   CapabilityCatalogItem,
   CapabilityCatalogPage,
+  SoftwareCategory,
+  SoftwareAppSummary,
+  SoftwareAppAdminSummary,
+  SoftwareAppDetail,
+  SoftwareRelease,
+  SoftwareUploadSession,
+  SoftwareUploadSessionCreateRequest,
+  SoftwareUploadProgress,
+  SoftwareChunkReceipt,
+  SoftwareUploadComplete,
+  SoftwareInspectionSummary,
+  SoftwareInspectionDetail,
+  SoftwarePolicyConfigDto,
+  SoftwareSettingsResponse,
+  SoftwareSettingsUpdateRequest,
+  SoftwareSettingsValidation,
+  SoftwarePolicyRevisionView,
+  SpringPage,
 } from './types'
 import { ApiError } from '@/shared/lib/api-error'
 import i18n from '@/i18n/config'
@@ -1544,6 +1562,195 @@ export const notificationApi = {
         'Content-Type': 'application/json',
       }),
       body: JSON.stringify({ preferences }),
+    })
+  },
+}
+
+// ---- Software center -------------------------------------------------------
+
+export const softwareApi = {
+  // ---- portal catalog ----
+  async listCategories(): Promise<SoftwareCategory[]> {
+    return fetchJson<SoftwareCategory[]>('/api/v1/software/categories')
+  },
+  async listPublishedApps(params: {
+    keyword?: string
+    categoryCode?: string
+    targetOs?: string
+    targetArch?: string
+    page?: number
+    size?: number
+  }): Promise<SpringPage<SoftwareAppSummary>> {
+    const query = new URLSearchParams()
+    if (params.keyword) query.set('keyword', params.keyword)
+    if (params.categoryCode) query.set('categoryCode', params.categoryCode)
+    if (params.targetOs) query.set('targetOs', params.targetOs)
+    if (params.targetArch) query.set('targetArch', params.targetArch)
+    query.set('page', String(params.page ?? 0))
+    query.set('size', String(params.size ?? 20))
+    return fetchJson<SpringPage<SoftwareAppSummary>>(
+      `/api/v1/software/apps?${query.toString()}`)
+  },
+  async getAppDetail(slug: string): Promise<SoftwareAppDetail> {
+    return fetchJson<SoftwareAppDetail>(`/api/v1/software/apps/${encodeURIComponent(slug)}`)
+  },
+  async createDownloadSession(packageId: number): Promise<{ sessionId: string; downloadUrl: string; expiresAt: string }> {
+    return fetchJson(`/api/v1/software/packages/${packageId}/download-sessions`, {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+    })
+  },
+
+  // ---- admin catalog ----
+  async listAdminApps(params: {
+    keyword?: string
+    status?: string
+    page?: number
+    size?: number
+  }): Promise<SpringPage<SoftwareAppAdminSummary>> {
+    const query = new URLSearchParams()
+    if (params.keyword) query.set('keyword', params.keyword)
+    if (params.status) query.set('status', params.status)
+    query.set('page', String(params.page ?? 0))
+    query.set('size', String(params.size ?? 20))
+    return fetchJson<SpringPage<SoftwareAppAdminSummary>>(
+      `/api/v1/admin/software/apps?${query.toString()}`)
+  },
+  async createApp(request: {
+    slug: string
+    name: string
+    description?: string
+    categoryCode?: string
+  }): Promise<SoftwareAppAdminSummary> {
+    return fetchJson<SoftwareAppAdminSummary>('/api/v1/admin/software/apps', {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(request),
+    })
+  },
+  async setAppStatus(appId: number, action: 'publish' | 'takedown' | 'restore'): Promise<void> {
+    await fetchJson<unknown>(`/api/v1/admin/software/apps/${appId}/${action}`, {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+    })
+  },
+  async listReleases(appId: number): Promise<SoftwareRelease[]> {
+    return fetchJson<SoftwareRelease[]>(`/api/v1/admin/software/apps/${appId}/releases`)
+  },
+  async createRelease(appId: number, request: {
+    displayVersion: string
+    releaseNotes?: string
+  }): Promise<SoftwareRelease> {
+    return fetchJson<SoftwareRelease>(`/api/v1/admin/software/apps/${appId}/releases`, {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(request),
+    })
+  },
+  async setPackageStatus(packageId: number, action: 'confirm' | 'publish' | 'takedown' | 'restore',
+                         rawVersionFields?: Record<string, unknown>): Promise<void> {
+    await fetchJson<unknown>(`/api/v1/admin/software/packages/${packageId}/${action}`, {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(rawVersionFields ? { rawVersionFields } : {}),
+    })
+  },
+
+  // ---- chunked upload ----
+  async createUploadSession(request: SoftwareUploadSessionCreateRequest): Promise<SoftwareUploadSession> {
+    return fetchJson<SoftwareUploadSession>('/api/v1/admin/software/uploads', {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(request),
+    })
+  },
+  async putChunk(sessionId: number, chunkNo: number, bytes: ArrayBuffer,
+                 sha256Hex: string): Promise<SoftwareChunkReceipt> {
+    return fetchJson<SoftwareChunkReceipt>(
+      `/api/v1/admin/software/uploads/${sessionId}/chunks/${chunkNo}`, {
+        method: 'PUT',
+        headers: await ensureCsrfHeaders({
+          'Content-Type': 'application/octet-stream',
+          'X-Chunk-Sha256': sha256Hex,
+        }),
+        body: bytes,
+      })
+  },
+  async uploadProgress(sessionId: number): Promise<SoftwareUploadProgress> {
+    return fetchJson<SoftwareUploadProgress>(`/api/v1/admin/software/uploads/${sessionId}`)
+  },
+  async completeUpload(sessionId: number): Promise<SoftwareUploadComplete> {
+    return fetchJson<SoftwareUploadComplete>(`/api/v1/admin/software/uploads/${sessionId}/complete`, {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+    })
+  },
+  async cancelUpload(sessionId: number): Promise<void> {
+    await fetchJson<unknown>(`/api/v1/admin/software/uploads/${sessionId}/cancel`, {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+    })
+  },
+
+  // ---- inspections ----
+  async listInspections(params: {
+    status?: string
+    page?: number
+    size?: number
+  }): Promise<SpringPage<SoftwareInspectionSummary>> {
+    const query = new URLSearchParams()
+    if (params.status) query.set('status', params.status)
+    query.set('page', String(params.page ?? 0))
+    query.set('size', String(params.size ?? 20))
+    return fetchJson<SpringPage<SoftwareInspectionSummary>>(
+      `/api/v1/admin/software/inspections?${query.toString()}`)
+  },
+  async inspectionDetail(taskId: number): Promise<SoftwareInspectionDetail> {
+    return fetchJson<SoftwareInspectionDetail>(`/api/v1/admin/software/inspections/${taskId}`)
+  },
+  async retryInspection(taskId: number): Promise<SoftwareInspectionSummary> {
+    return fetchJson<SoftwareInspectionSummary>(
+      `/api/v1/admin/software/inspections/${taskId}/retry`, {
+        method: 'POST',
+        headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+      })
+  },
+  async confirmInspectionMetadata(taskId: number,
+                                  rawVersionFields: Record<string, unknown>): Promise<SoftwareInspectionSummary> {
+    return fetchJson<SoftwareInspectionSummary>(
+      `/api/v1/admin/software/inspections/${taskId}/confirm-metadata`, {
+        method: 'POST',
+        headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ rawVersionFields }),
+      })
+  },
+
+  // ---- dynamic policy settings ----
+  async getSettings(): Promise<SoftwareSettingsResponse> {
+    return fetchJson<SoftwareSettingsResponse>('/api/v1/admin/software/settings')
+  },
+  async updateSettings(request: SoftwareSettingsUpdateRequest): Promise<SoftwareSettingsResponse> {
+    return fetchJson<SoftwareSettingsResponse>('/api/v1/admin/software/settings', {
+      method: 'PUT',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(request),
+    })
+  },
+  async validateSettings(config: SoftwarePolicyConfigDto): Promise<SoftwareSettingsValidation> {
+    return fetchJson<SoftwareSettingsValidation>('/api/v1/admin/software/settings/validate', {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ config }),
+    })
+  },
+  async settingsHistory(): Promise<SoftwarePolicyRevisionView[]> {
+    return fetchJson<SoftwarePolicyRevisionView[]>('/api/v1/admin/software/settings/history')
+  },
+  async rollbackSettings(fromRevision: number, changeReason: string): Promise<SoftwareSettingsResponse> {
+    return fetchJson<SoftwareSettingsResponse>('/api/v1/admin/software/settings/rollback', {
+      method: 'POST',
+      headers: await ensureCsrfHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ fromRevision, changeReason }),
     })
   },
 }

@@ -614,3 +614,225 @@ export interface NotificationPreferenceItem {
 export interface NotificationUnreadCount {
   count: number
 }
+
+
+// ---- Software center -------------------------------------------------------
+
+/** Mirrors the backend PageResponse envelope (not Spring's Page). */
+export interface SpringPage<T> {
+  items: T[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface SoftwareCategory {
+  id: number
+  code: string
+  name: string
+  sortOrder: number
+}
+
+export interface SoftwareAppSummary {
+  id: number
+  slug: string
+  name: string
+  description: string | null
+  iconObjectKey: string | null
+  categoryCode: string | null
+  categoryName: string | null
+  createdAt: string
+}
+
+export interface SoftwareAppAdminSummary extends SoftwareAppSummary {
+  status: string
+  updatedAt: string
+}
+
+export interface SoftwarePackage {
+  id: number
+  revisionNo: number
+  status: string
+  targetOs: string
+  targetArch: string
+  targetDistro: string | null
+  format: string
+  originalFullVersion: string
+  fileName: string
+  byteSize: number
+  sha256: string
+  applicabilityNote: string | null
+  confirmedBy: string | null
+  confirmedAt: string | null
+  publishedAt: string | null
+}
+
+export interface SoftwareRelease {
+  id: number
+  displayVersion: string
+  releaseNotes: string | null
+  publishedAt: string | null
+  packageCount: number
+  packages: SoftwarePackage[]
+  recommendations: unknown[]
+}
+
+export interface SoftwareAppDetail {
+  id: number
+  slug: string
+  name: string
+  description: string | null
+  iconObjectKey: string | null
+  categoryCode: string | null
+  categoryName: string | null
+  status: string
+  createdAt: string
+  releases: SoftwareRelease[]
+}
+
+export interface SoftwareUploadSessionCreateRequest {
+  releaseId: number
+  fileName: string
+  format: string
+  targetOs: string
+  targetArch: string
+  targetDistro: string | null
+  applicabilityNote: string | null
+  originalFullVersion: string
+  byteSize: number
+}
+
+export interface SoftwareUploadSession {
+  id: number
+  status: string
+  fileName: string
+  format: string
+  targetOs: string
+  targetArch: string
+  targetDistro: string | null
+  expectedByteSize: number
+  chunkSizeBytes: number
+  totalChunks: number
+  uploadedBytes: number
+  policyRevision: number
+  storageSessionRef: string | null
+  createdAt: string
+  expiresAt: string
+}
+
+export interface SoftwareUploadedChunk {
+  chunkNo: number
+  byteSize: number
+  sha256: string
+}
+
+export interface SoftwareUploadProgress {
+  sessionId: number
+  status: string
+  totalChunks: number
+  chunkSizeBytes: number
+  uploadedBytes: number
+  chunks: SoftwareUploadedChunk[]
+  expiresAt: string
+}
+
+export interface SoftwareChunkReceipt {
+  chunkNo: number
+  byteSize: number
+  sha256: string
+  alreadyPresent: boolean
+}
+
+export interface SoftwareUploadComplete {
+  sessionId: number
+  status: string
+  packageRevisionId: number | null
+  revisionNo: number | null
+  fileName: string
+  sha256: string
+  byteSize: number
+}
+
+export interface SoftwareInspectionSummary {
+  taskId: number
+  packageRevisionId: number
+  applicationId: number
+  status: string
+  attemptCount: number
+  maxAttempts: number
+  manualRetryCount: number
+  policyRevision: number
+  format: string
+  fileName: string
+  originalFullVersion: string
+  byteSize: number
+  leaseOwner: string | null
+  leaseExpiresAt: string | null
+  nextAttemptNotBefore: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SoftwareInspectionAttemptView {
+  attemptNo: number
+  trigger: string
+  outcome: string
+  errorCode: string | null
+  rawVersionFields: Record<string, unknown> | null
+  parserName: string | null
+  parserVersion: string | null
+  startedAt: string | null
+  finishedAt: string | null
+}
+
+export interface SoftwareInspectionDetail {
+  task: SoftwareInspectionSummary
+  attempts: SoftwareInspectionAttemptView[]
+}
+
+export interface SoftwarePolicyConfigDto {
+  maxPackageBytes: number
+  totalQuotaBytes: number
+  maxActiveUploadsPerAdmin: number
+  chunkSizeBytes: number
+  uploadIdleTimeoutMinutes: number
+  failedTempRetentionHours: number
+  cleanupScanIntervalMinutes: number
+  maxConcurrentInspectionsPerWorker: number
+  inspectionTotalTimeoutSeconds: number
+  inspectionSubprocessTimeoutSeconds: number
+  inspectionSoftMemoryLimitBytes: number
+  inspectionMaxExtractedBytes: number
+  inspectionMaxExtractedEntries: number
+  maxAutoInspectionAttempts: number
+  downloadSessionIdleTimeoutMinutes: number
+}
+
+export interface SoftwareSettingsResponse {
+  revision: number
+  schemaVersion: number
+  config: SoftwarePolicyConfigDto
+  deploymentLimits: Record<string, number | boolean>
+  changedBy: string
+  changedAt: string
+}
+
+export interface SoftwareSettingsUpdateRequest {
+  expectedRevision: number
+  changeReason: string
+  config: SoftwarePolicyConfigDto
+}
+
+export interface SoftwareSettingsValidation {
+  valid: boolean
+  violations: { field: string; messageCode: string; messageArgs: unknown[] }[]
+}
+
+export interface SoftwarePolicyRevisionView {
+  revision: number
+  schemaVersion: number
+  config: SoftwarePolicyConfigDto
+  changedBy: string
+  changeReason: string
+  createdAt: string
+}

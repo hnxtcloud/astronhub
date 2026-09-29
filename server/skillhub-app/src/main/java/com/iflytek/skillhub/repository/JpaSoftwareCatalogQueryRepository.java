@@ -45,11 +45,14 @@ import org.springframework.util.StringUtils;
 @Repository
 public class JpaSoftwareCatalogQueryRepository implements SoftwareCatalogQueryRepository {
 
-    private static final String APPS_FROM = """
+    private static final String APPS_JOIN = """
             from SoftwareApplication a
             left join SoftwareCategory c on c.code = a.categoryCode
-            where a.status = com.iflytek.skillhub.domain.software.SoftwareApplicationStatus.PUBLISHED
             """;
+
+    /** Portal visibility rule; admin search must see every status. */
+    private static final String PORTAL_PUBLISHED_WHERE =
+            " where a.status = com.iflytek.skillhub.domain.software.SoftwareApplicationStatus.PUBLISHED";
 
     private final EntityManager entityManager;
     private final SoftwareApplicationRepository applicationRepository;
@@ -81,6 +84,7 @@ public class JpaSoftwareCatalogQueryRepository implements SoftwareCatalogQueryRe
         StringBuilder where = new StringBuilder();
         if (StringUtils.hasText(keyword)) {
             where.append(" and (lower(a.name) like :keywordLike")
+                    .append(" or lower(a.slug) like :keywordLike")
                     .append(" or lower(coalesce(a.description, '')) like :keywordLike)");
         }
         if (StringUtils.hasText(categoryCode)) {
@@ -100,9 +104,9 @@ public class JpaSoftwareCatalogQueryRepository implements SoftwareCatalogQueryRe
         }
 
         TypedQuery<Object[]> query = entityManager.createQuery(
-                "select a, c" + APPS_FROM + where + " order by a.updatedAt desc, a.id desc", Object[].class);
+                "select a, c.name " + APPS_JOIN + PORTAL_PUBLISHED_WHERE + where + " order by a.updatedAt desc, a.id desc", Object[].class);
         TypedQuery<Long> countQuery = entityManager.createQuery(
-                "select count(a)" + APPS_FROM + where, Long.class);
+                "select count(a) " + APPS_JOIN + PORTAL_PUBLISHED_WHERE + where, Long.class);
         for (TypedQuery<?> bindable : List.of(query, countQuery)) {
             if (StringUtils.hasText(keyword)) {
                 bindable.setParameter("keywordLike", "%" + keyword.trim().toLowerCase(Locale.ROOT) + "%");
@@ -169,6 +173,7 @@ public class JpaSoftwareCatalogQueryRepository implements SoftwareCatalogQueryRe
         StringBuilder where = new StringBuilder();
         if (StringUtils.hasText(keyword)) {
             where.append(" and (lower(a.name) like :keywordLike")
+                    .append(" or lower(a.slug) like :keywordLike")
                     .append(" or lower(coalesce(a.description, '')) like :keywordLike)");
         }
         if (StringUtils.hasText(categoryCode)) {
@@ -179,10 +184,14 @@ public class JpaSoftwareCatalogQueryRepository implements SoftwareCatalogQueryRe
                     + "SoftwareApplicationStatus.").append(status.name());
         }
 
+        // fragments start with " and ..." and APPS_JOIN ends with a newline,
+        // so without an explicit " where" leader every filter would silently
+        // become part of the left join's ON clause
+        String predicateSql = where.isEmpty() ? "" : " where" + where.substring(4);
         TypedQuery<Object[]> query = entityManager.createQuery(
-                "select a, c" + APPS_FROM + where + " order by a.updatedAt desc, a.id desc", Object[].class);
+                "select a, c.name " + APPS_JOIN + predicateSql + " order by a.updatedAt desc, a.id desc", Object[].class);
         TypedQuery<Long> countQuery = entityManager.createQuery(
-                "select count(a)" + APPS_FROM + where, Long.class);
+                "select count(a) " + APPS_JOIN + predicateSql, Long.class);
         for (TypedQuery<?> bindable : List.of(query, countQuery)) {
             if (StringUtils.hasText(keyword)) {
                 bindable.setParameter("keywordLike", "%" + keyword.trim().toLowerCase(Locale.ROOT) + "%");

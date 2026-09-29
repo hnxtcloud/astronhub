@@ -5,6 +5,7 @@ import com.iflytek.skillhub.controller.BaseApiController;
 import com.iflytek.skillhub.domain.software.SoftwareInspectionTaskStatus;
 import com.iflytek.skillhub.dto.ApiResponse;
 import com.iflytek.skillhub.dto.ApiResponseFactory;
+import com.iflytek.skillhub.dto.PageResponse;
 import com.iflytek.skillhub.dto.software.SoftwareInspectionConfirmMetadataRequest;
 import com.iflytek.skillhub.dto.software.SoftwareInspectionDetailResponse;
 import com.iflytek.skillhub.dto.software.SoftwareInspectionSummaryResponse;
@@ -12,7 +13,6 @@ import com.iflytek.skillhub.service.AuditRequestContext;
 import com.iflytek.skillhub.service.SoftwareInspectionAppService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,13 +44,13 @@ public class SoftwareInspectionController extends BaseApiController {
     }
 
     @GetMapping
-    public ApiResponse<Page<SoftwareInspectionSummaryResponse>> list(
+    public ApiResponse<PageResponse<SoftwareInspectionSummaryResponse>> list(
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, Math.min(Math.max(size, 1), 100));
         return ok("response.success.retrieved",
-                inspectionAppService.list(parseStatus(status), pageable));
+                PageResponse.from(inspectionAppService.list(parseStatus(status), pageable)));
     }
 
     @GetMapping("/{taskId}")

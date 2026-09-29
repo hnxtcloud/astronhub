@@ -7,7 +7,10 @@
   },
   "common": {
     "expand": "展开详情",
-    "collapse": "收起详情"
+    "collapse": "收起详情",
+    "loading": "加载中…",
+    "cancel": "取消",
+    "save": "保存"
   },
   "catalog": {
     "eyebrow": "星枢能力目录",
@@ -18,7 +21,12 @@
     "loading": "正在加载目录…",
     "error": "目录加载失败，请稍后重试。",
     "empty": "当前筛选下还没有已发布条目。",
-    "types": { "all": "全部", "skill": "Skills", "plugin": "Plugins", "mcp": "MCP" }
+    "types": {
+      "all": "全部",
+      "skill": "Skills",
+      "plugin": "Plugins",
+      "mcp": "MCP"
+    }
   },
   "nav": {
     "landing": "首页",
@@ -32,7 +40,8 @@
     "catalog": "能力目录",
     "plugins": "插件",
     "mcp": "MCP",
-    "login": "登录"
+    "login": "登录",
+    "software": "软件中心"
   },
   "landing": {
     "hero": {
@@ -45,9 +54,15 @@
     "scope": {
       "title": "能力范围",
       "description": "三类能力并列呈现，分别维护各自的协议与生命周期。",
-      "skill": { "description": "可复用的 Agent 指令、脚本与资源包" },
-      "plugin": { "description": "面向 Claude Code、Codex、Pi 等运行时的扩展" },
-      "mcp": { "description": "展示组织内可用的 MCP Server 及连接信息" }
+      "skill": {
+        "description": "可复用的 Agent 指令、脚本与资源包"
+      },
+      "plugin": {
+        "description": "面向 Claude Code、Codex、Pi 等运行时的扩展"
+      },
+      "mcp": {
+        "description": "展示组织内可用的 MCP Server 及连接信息"
+      }
     },
     "features": {
       "secure": {
@@ -1362,7 +1377,10 @@
       "notifications": "通知设置",
       "accounts": "账号合并",
       "logout": "退出登录",
-      "namespacesAdmin": "命名空间管理"
+      "namespacesAdmin": "命名空间管理",
+      "softwareAdmin": "软件管理",
+      "softwareInspections": "软件包检查",
+      "softwareSettings": "软件策略设置"
     }
   },
   "footer": {
@@ -1669,5 +1687,146 @@
     "unfreezeErrorTitle": "解冻命名空间失败",
     "archiveErrorTitle": "归档命名空间失败",
     "restoreErrorTitle": "恢复命名空间失败"
+  },
+  "softwareCatalog": {
+    "title": "软件中心",
+    "subtitle": "下载面向你平台的应用程序",
+    "searchPlaceholder": "搜索软件…",
+    "allCategories": "全部分类",
+    "empty": "暂无软件"
+  },
+  "softwareAppDetail": {
+    "backToCatalog": "返回目录",
+    "notFound": "应用不存在",
+    "noReleases": "暂无已发布版本",
+    "package": "安装包",
+    "platform": "平台",
+    "size": "大小",
+    "actions": "操作",
+    "download": "下载"
+  },
+  "softwareAdmin": {
+    "title": "软件管理",
+    "createApp": "新建应用",
+    "createAppDescription": "在软件目录中登记一个应用。",
+    "searchPlaceholder": "按名称或 slug 搜索…",
+    "allStatuses": "全部状态",
+    "empty": "暂无应用",
+    "app": "应用",
+    "category": "分类",
+    "status": {
+      "DRAFT": "草稿",
+      "PUBLISHED": "已发布",
+      "TAKEN_DOWN": "已下架"
+    },
+    "updatedAt": "更新时间",
+    "actions": "操作",
+    "manage": "版本",
+    "publish": "发布",
+    "takedown": "下架",
+    "restore": "恢复",
+    "slug": "标识（slug）",
+    "name": "名称",
+    "description": "描述",
+    "noCategory": "未分类",
+    "releasesOf": "{{name}} 的版本",
+    "createRelease": "新建版本",
+    "createReleaseDescription": "将多个包构建归入同一个展示版本。",
+    "displayVersion": "展示版本号",
+    "releaseNotes": "发布说明",
+    "noReleases": "暂无版本",
+    "file": "文件",
+    "platform": "平台",
+    "packageStatus": "状态",
+    "noPackages": "该版本尚未上传安装包",
+    "uploadPackage": "上传安装包",
+    "uploadPackageDescription": "文件将分块传输，随后由检查 worker 解析。",
+    "upload": "上传",
+    "format": "格式",
+    "targetOs": "目标操作系统",
+    "targetArch": "处理器架构",
+    "targetDistro": "目标发行版",
+    "originalFullVersion": "原始完整版本号",
+    "applicabilityNote": "适用性说明",
+    "confirmPackage": "确认",
+    "confirmPackageDescription": "确认 {{file}} 的元数据，确认后才能发布。",
+    "rawVersionFields": "原始版本字段（JSON，可选）",
+    "rawFieldsHint": "仅在检查未提取到内容时填写；已有值不会被覆盖。",
+    "rawFieldsInvalid": "必须是 JSON 对象"
+  },
+  "softwareInspections": {
+    "title": "软件包检查",
+    "allStatuses": "全部状态",
+    "empty": "暂无检查任务",
+    "task": "任务",
+    "file": "文件",
+    "status": {
+      "PENDING": "等待中",
+      "LEASED": "检查中",
+      "SUCCEEDED": "已成功",
+      "BASIC_FAILED": "基础校验失败",
+      "METADATA_FAILED": "元数据提取失败",
+      "EXHAUSTED": "已耗尽"
+    },
+    "attempts": "尝试次数",
+    "updatedAt": "更新时间",
+    "actions": "操作",
+    "detail": "详情",
+    "retry": "重试",
+    "confirmMetadata": "确认元数据",
+    "confirmMetadataDescription": "为 {{file}} 补填版本字段并确认安装包。",
+    "detailTitle": "任务 #{{taskId}}",
+    "manualRetries": "手动",
+    "policyRevision": "策略版本",
+    "nextAttempt": "下次尝试",
+    "leaseOwner": "租约持有者",
+    "attemptHistory": "尝试历史",
+    "noAttempts": "暂无尝试记录",
+    "trigger": "触发方式",
+    "outcome": "结果",
+    "errorCode": "错误码"
+  },
+  "softwareSettings": {
+    "title": "软件策略设置",
+    "revision": "修订号",
+    "changedBy": "修改人",
+    "changedAt": "修改时间",
+    "revisionConflict": "策略已被他人修改，请刷新后重新提交。",
+    "changeReason": "变更原因",
+    "changeReasonPlaceholder": "为什么修改此策略？",
+    "validate": "校验",
+    "save": "保存修改",
+    "saveSuccess": "策略已更新",
+    "history": "修订历史",
+    "rollback": "回滚",
+    "rollbackTitle": "回滚到 #{{revision}}",
+    "rollbackDescription": "将创建一个复制所选修订的新修订。",
+    "rollbackSuccess": "策略已回滚",
+    "currentRevision": "当前",
+    "actions": "操作",
+    "fields": {
+      "maxPackageBytes": "单个安装包大小上限",
+      "totalQuotaBytes": "存储总配额",
+      "maxActiveUploadsPerAdmin": "每管理员并发上传数上限",
+      "chunkSizeBytes": "上传分块大小",
+      "uploadIdleTimeoutMinutes": "上传空闲超时",
+      "failedTempRetentionHours": "失败临时文件保留期",
+      "cleanupScanIntervalMinutes": "清理扫描间隔",
+      "maxConcurrentInspectionsPerWorker": "每 worker 并发检查数上限",
+      "inspectionTotalTimeoutSeconds": "检查总超时",
+      "inspectionSubprocessTimeoutSeconds": "子进程超时",
+      "inspectionSoftMemoryLimitBytes": "检查内存上限",
+      "inspectionMaxExtractedBytes": "解压总大小上限",
+      "inspectionMaxExtractedEntries": "解压条目数上限",
+      "maxAutoInspectionAttempts": "自动尝试次数上限",
+      "downloadSessionIdleTimeoutMinutes": "下载会话空闲超时"
+    },
+    "units": {
+      "bytes": "字节",
+      "count": "个",
+      "minutes": "分钟",
+      "hours": "小时",
+      "seconds": "秒"
+    }
   }
 }

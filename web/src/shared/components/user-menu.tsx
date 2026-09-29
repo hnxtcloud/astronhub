@@ -37,6 +37,7 @@ export function UserMenu({ user, triggerClassName }: UserMenuProps) {
   const isSkillAdmin = hasRole('SKILL_ADMIN') || hasRole('SUPER_ADMIN')
   const isUserAdmin = hasRole('USER_ADMIN') || hasRole('SUPER_ADMIN')
   const isAuditor = hasRole('AUDITOR') || hasRole('SUPER_ADMIN')
+  const isSoftwareAdmin = hasRole('SOFTWARE_ADMIN') || hasRole('SUPER_ADMIN')
   const isSuperAdmin = hasRole('SUPER_ADMIN')
   const reviewCenterVisible = canAccessReviewCenter(user.platformRoles, myNamespaces)
   const canChangePassword = user.canChangePassword === true
@@ -179,10 +180,25 @@ export function UserMenu({ user, triggerClassName }: UserMenuProps) {
                 {t('user.menu.reports')}
               </Link>
             ) : null}
-            {isUserAdmin || isAuditor || isSuperAdmin ? <div className="-mx-1 my-1 h-px bg-muted" /> : null}
+            {isUserAdmin || isAuditor || isSoftwareAdmin || isSuperAdmin ? <div className="-mx-1 my-1 h-px bg-muted" /> : null}
             {isUserAdmin ? (
               <Link to="/admin/users" className={menuItemClassName} onClick={closeMenu}>
                 {t('user.menu.users')}
+              </Link>
+            ) : null}
+            {isSoftwareAdmin ? (
+              <Link to="/admin/software" className={menuItemClassName} onClick={closeMenu}>
+                {t('user.menu.softwareAdmin')}
+              </Link>
+            ) : null}
+            {isSoftwareAdmin ? (
+              <Link to="/admin/software/inspections" className={menuItemClassName} onClick={closeMenu}>
+                {t('user.menu.softwareInspections')}
+              </Link>
+            ) : null}
+            {isSoftwareAdmin ? (
+              <Link to="/admin/software/settings" className={menuItemClassName} onClick={closeMenu}>
+                {t('user.menu.softwareSettings')}
               </Link>
             ) : null}
             {isSuperAdmin ? (

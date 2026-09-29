@@ -154,6 +154,29 @@ const AdminNamespacesPage = createRoleProtectedRouteComponent(
   'AdminNamespacesPage',
   ['SUPER_ADMIN'],
 )
+const SoftwareCatalogPage = createLazyRouteComponent(
+  () => import('@/pages/software/catalog'),
+  'SoftwareCatalogPage',
+)
+const SoftwareAppDetailPage = createLazyRouteComponent(
+  () => import('@/pages/software/app-detail'),
+  'SoftwareAppDetailPage',
+)
+const AdminSoftwarePage = createRoleProtectedRouteComponent(
+  () => import('@/pages/admin/software'),
+  'AdminSoftwarePage',
+  ['SOFTWARE_ADMIN', 'SUPER_ADMIN'],
+)
+const SoftwareInspectionsPage = createRoleProtectedRouteComponent(
+  () => import('@/pages/admin/software-inspections'),
+  'SoftwareInspectionsPage',
+  ['SOFTWARE_ADMIN', 'SUPER_ADMIN'],
+)
+const SoftwareSettingsPage = createRoleProtectedRouteComponent(
+  () => import('@/pages/admin/software-settings'),
+  'SoftwareSettingsPage',
+  ['SOFTWARE_ADMIN', 'SUPER_ADMIN'],
+)
 
 function DefaultNotFound() {
   return (
@@ -478,6 +501,44 @@ const adminNamespacesRoute = createRoute({
   component: AdminNamespacesPage,
 })
 
+const softwareCatalogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'software',
+  validateSearch: (search: Record<string, unknown>): { q?: string; category?: string; page?: number } => ({
+    q: typeof search.q === 'string' && search.q ? search.q : undefined,
+    category: typeof search.category === 'string' && search.category ? search.category : undefined,
+    page: Number(search.page) || undefined,
+  }),
+  component: SoftwareCatalogPage,
+})
+
+const softwareAppDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'software/apps/$slug',
+  component: SoftwareAppDetailPage,
+})
+
+const adminSoftwareRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'admin/software',
+  beforeLoad: requireAuth,
+  component: AdminSoftwarePage,
+})
+
+const adminSoftwareInspectionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'admin/software/inspections',
+  beforeLoad: requireAuth,
+  component: SoftwareInspectionsPage,
+})
+
+const adminSoftwareSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'admin/software/settings',
+  beforeLoad: requireAuth,
+  component: SoftwareSettingsPage,
+})
+
 const routeTree = rootRoute.addChildren([
   landingRoute,
   skillsRoute,
@@ -518,6 +579,11 @@ const routeTree = rootRoute.addChildren([
   adminAuditLogRoute,
   adminLabelsRoute,
   adminNamespacesRoute,
+  softwareCatalogRoute,
+  softwareAppDetailRoute,
+  adminSoftwareRoute,
+  adminSoftwareInspectionsRoute,
+  adminSoftwareSettingsRoute,
 ])
 
 export const router = createRouter({

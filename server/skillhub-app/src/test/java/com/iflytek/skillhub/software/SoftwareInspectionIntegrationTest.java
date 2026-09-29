@@ -189,7 +189,8 @@ class SoftwareInspectionIntegrationTest {
         mockMvc.perform(get("/api/v1/admin/software/inspections")
                         .with(authentication(softwareAdmin())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.totalElements").value(1));
+                .andExpect(jsonPath("$.data.total").value(1))
+                .andExpect(jsonPath("$.data.items[0].taskId").value(taskId));
         mockMvc.perform(get("/api/v1/admin/software/inspections/" + taskId)
                         .with(authentication(softwareAdmin())))
                 .andExpect(status().isOk())

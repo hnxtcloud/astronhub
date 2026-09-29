@@ -7,7 +7,10 @@
   },
   "common": {
     "expand": "Expand details",
-    "collapse": "Collapse details"
+    "collapse": "Collapse details",
+    "loading": "Loading…",
+    "cancel": "Cancel",
+    "save": "Save"
   },
   "catalog": {
     "eyebrow": "AstronHub capability catalog",
@@ -18,7 +21,12 @@
     "loading": "Loading catalog…",
     "error": "The catalog could not be loaded. Try again later.",
     "empty": "No published entries match the current filters.",
-    "types": { "all": "All", "skill": "Skills", "plugin": "Plugins", "mcp": "MCP" }
+    "types": {
+      "all": "All",
+      "skill": "Skills",
+      "plugin": "Plugins",
+      "mcp": "MCP"
+    }
   },
   "nav": {
     "landing": "Home",
@@ -32,7 +40,8 @@
     "catalog": "Catalog",
     "plugins": "Plugins",
     "mcp": "MCP",
-    "login": "Login"
+    "login": "Login",
+    "software": "Software"
   },
   "landing": {
     "hero": {
@@ -45,9 +54,15 @@
     "scope": {
       "title": "Capability scope",
       "description": "Three peer domains, each retaining its own protocol and lifecycle.",
-      "skill": { "description": "Reusable instructions, scripts, and resources for Agents" },
-      "plugin": { "description": "Extensions for runtimes such as Claude Code, Codex, and Pi" },
-      "mcp": { "description": "Available MCP Servers and their connection information" }
+      "skill": {
+        "description": "Reusable instructions, scripts, and resources for Agents"
+      },
+      "plugin": {
+        "description": "Extensions for runtimes such as Claude Code, Codex, and Pi"
+      },
+      "mcp": {
+        "description": "Available MCP Servers and their connection information"
+      }
     },
     "features": {
       "secure": {
@@ -1362,7 +1377,10 @@
       "notifications": "Notification Settings",
       "accounts": "Account Merge",
       "logout": "Logout",
-      "namespacesAdmin": "Namespace management"
+      "namespacesAdmin": "Namespace management",
+      "softwareAdmin": "Software management",
+      "softwareInspections": "Package inspections",
+      "softwareSettings": "Software policy settings"
     }
   },
   "footer": {
@@ -1669,5 +1687,146 @@
     "unfreezeErrorTitle": "Failed to unfreeze namespace",
     "archiveErrorTitle": "Failed to archive namespace",
     "restoreErrorTitle": "Failed to restore namespace"
+  },
+  "softwareCatalog": {
+    "title": "Software Center",
+    "subtitle": "Download curated applications for your platform",
+    "searchPlaceholder": "Search software…",
+    "allCategories": "All categories",
+    "empty": "No software found"
+  },
+  "softwareAppDetail": {
+    "backToCatalog": "Back to catalog",
+    "notFound": "Application not found",
+    "noReleases": "No releases published yet",
+    "package": "Package",
+    "platform": "Platform",
+    "size": "Size",
+    "actions": "Actions",
+    "download": "Download"
+  },
+  "softwareAdmin": {
+    "title": "Software management",
+    "createApp": "New application",
+    "createAppDescription": "Register an application in the software catalog.",
+    "searchPlaceholder": "Search by name or slug…",
+    "allStatuses": "All statuses",
+    "empty": "No applications yet",
+    "app": "Application",
+    "category": "Category",
+    "status": {
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "TAKEN_DOWN": "Taken down"
+    },
+    "updatedAt": "Updated",
+    "actions": "Actions",
+    "manage": "Releases",
+    "publish": "Publish",
+    "takedown": "Take down",
+    "restore": "Restore",
+    "slug": "Slug",
+    "name": "Name",
+    "description": "Description",
+    "noCategory": "No category",
+    "releasesOf": "Releases of {{name}}",
+    "createRelease": "New release",
+    "createReleaseDescription": "Group package builds under one displayed version.",
+    "displayVersion": "Displayed version",
+    "releaseNotes": "Release notes",
+    "noReleases": "No releases yet",
+    "file": "File",
+    "platform": "Platform",
+    "packageStatus": "Status",
+    "noPackages": "No packages uploaded for this release",
+    "uploadPackage": "Upload package",
+    "uploadPackageDescription": "The file is transferred in chunks, then parsed by the inspection worker.",
+    "upload": "Upload",
+    "format": "Format",
+    "targetOs": "Target OS",
+    "targetArch": "Architecture",
+    "targetDistro": "Target distro",
+    "originalFullVersion": "Original full version",
+    "applicabilityNote": "Applicability note",
+    "confirmPackage": "Confirm",
+    "confirmPackageDescription": "Confirm metadata for {{file}}. Confirmed revisions can be published.",
+    "rawVersionFields": "Raw version fields (JSON, optional)",
+    "rawFieldsHint": "Fill in only when inspection extracted nothing. Existing values are never overwritten.",
+    "rawFieldsInvalid": "Must be a JSON object"
+  },
+  "softwareInspections": {
+    "title": "Package inspections",
+    "allStatuses": "All statuses",
+    "empty": "No inspection tasks",
+    "task": "Task",
+    "file": "File",
+    "status": {
+      "PENDING": "Pending",
+      "LEASED": "Inspecting",
+      "SUCCEEDED": "Succeeded",
+      "BASIC_FAILED": "Basic validation failed",
+      "METADATA_FAILED": "Metadata extraction failed",
+      "EXHAUSTED": "Exhausted"
+    },
+    "attempts": "Attempts",
+    "updatedAt": "Updated",
+    "actions": "Actions",
+    "detail": "Detail",
+    "retry": "Retry",
+    "confirmMetadata": "Confirm metadata",
+    "confirmMetadataDescription": "Fill in version fields for {{file}} and confirm the package.",
+    "detailTitle": "Task #{{taskId}}",
+    "manualRetries": "manual",
+    "policyRevision": "Policy revision",
+    "nextAttempt": "Next attempt",
+    "leaseOwner": "Lease owner",
+    "attemptHistory": "Attempt history",
+    "noAttempts": "No attempts recorded",
+    "trigger": "Trigger",
+    "outcome": "Outcome",
+    "errorCode": "Error code"
+  },
+  "softwareSettings": {
+    "title": "Software policy settings",
+    "revision": "Revision",
+    "changedBy": "Changed by",
+    "changedAt": "Changed at",
+    "revisionConflict": "The policy was changed by someone else. Reload and re-apply your edit.",
+    "changeReason": "Change reason",
+    "changeReasonPlaceholder": "Why is this policy changing?",
+    "validate": "Validate",
+    "save": "Save changes",
+    "saveSuccess": "Policy updated",
+    "history": "Revision history",
+    "rollback": "Roll back",
+    "rollbackTitle": "Roll back to #{{revision}}",
+    "rollbackDescription": "Creates a new revision copying the selected one.",
+    "rollbackSuccess": "Policy rolled back",
+    "currentRevision": "Current",
+    "actions": "Actions",
+    "fields": {
+      "maxPackageBytes": "Max package size",
+      "totalQuotaBytes": "Total storage quota",
+      "maxActiveUploadsPerAdmin": "Max active uploads per admin",
+      "chunkSizeBytes": "Upload chunk size",
+      "uploadIdleTimeoutMinutes": "Upload idle timeout",
+      "failedTempRetentionHours": "Failed temp retention",
+      "cleanupScanIntervalMinutes": "Cleanup scan interval",
+      "maxConcurrentInspectionsPerWorker": "Max concurrent inspections per worker",
+      "inspectionTotalTimeoutSeconds": "Inspection total timeout",
+      "inspectionSubprocessTimeoutSeconds": "Subprocess timeout",
+      "inspectionSoftMemoryLimitBytes": "Inspection memory limit",
+      "inspectionMaxExtractedBytes": "Max extracted size",
+      "inspectionMaxExtractedEntries": "Max extracted entries",
+      "maxAutoInspectionAttempts": "Max auto attempts",
+      "downloadSessionIdleTimeoutMinutes": "Download session idle timeout"
+    },
+    "units": {
+      "bytes": "bytes",
+      "count": "count",
+      "minutes": "minutes",
+      "hours": "hours",
+      "seconds": "seconds"
+    }
   }
 }

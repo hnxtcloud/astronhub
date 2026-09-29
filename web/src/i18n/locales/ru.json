@@ -7,7 +7,10 @@
   },
   "common": {
     "expand": "Развернуть подробности",
-    "collapse": "Свернуть подробности"
+    "collapse": "Свернуть подробности",
+    "loading": "Загрузка…",
+    "cancel": "Отмена",
+    "save": "Сохранить"
   },
   "catalog": {
     "eyebrow": "Каталог возможностей AstronHub",
@@ -18,7 +21,12 @@
     "loading": "Каталог загружается…",
     "error": "Не удалось загрузить каталог. Повторите попытку позже.",
     "empty": "Опубликованных записей с такими фильтрами нет.",
-    "types": { "all": "Все", "skill": "Skills", "plugin": "Plugins", "mcp": "MCP" }
+    "types": {
+      "all": "Все",
+      "skill": "Skills",
+      "plugin": "Plugins",
+      "mcp": "MCP"
+    }
   },
   "nav": {
     "landing": "Главная",
@@ -32,7 +40,8 @@
     "catalog": "Каталог",
     "plugins": "Плагины",
     "mcp": "MCP",
-    "login": "Вход"
+    "login": "Вход",
+    "software": "Программы"
   },
   "landing": {
     "hero": {
@@ -45,9 +54,15 @@
     "scope": {
       "title": "Область возможностей",
       "description": "Три равноправные области, каждая со своим протоколом и жизненным циклом.",
-      "skill": { "description": "Повторно используемые инструкции, скрипты и ресурсы для Agent" },
-      "plugin": { "description": "Расширения для Claude Code, Codex, Pi и других сред" },
-      "mcp": { "description": "Доступные MCP Servers и сведения о подключении" }
+      "skill": {
+        "description": "Повторно используемые инструкции, скрипты и ресурсы для Agent"
+      },
+      "plugin": {
+        "description": "Расширения для Claude Code, Codex, Pi и других сред"
+      },
+      "mcp": {
+        "description": "Доступные MCP Servers и сведения о подключении"
+      }
     },
     "features": {
       "secure": {
@@ -1662,12 +1677,156 @@
       "profile": "Профиль",
       "notifications": "Уведомления",
       "accounts": "Объединение учётных записей",
-      "logout": "Выйти"
+      "logout": "Выйти",
+      "softwareAdmin": "Управление программами",
+      "softwareInspections": "Проверки пакетов",
+      "softwareSettings": "Настройки политики ПО"
     }
   },
   "routeError": {
     "title": "Что-то пошло не так",
     "description": "На этой странице произошла ошибка. Можно вернуться назад или перезагрузить раздел.",
     "reset": "Попробовать снова"
+  },
+  "softwareCatalog": {
+    "title": "Центр программ",
+    "subtitle": "Загружайте проверенные приложения для вашей платформы",
+    "searchPlaceholder": "Поиск программ…",
+    "allCategories": "Все категории",
+    "empty": "Программы не найдены"
+  },
+  "softwareAppDetail": {
+    "backToCatalog": "Назад в каталог",
+    "notFound": "Приложение не найдено",
+    "noReleases": "Опубликованных версий пока нет",
+    "package": "Пакет",
+    "platform": "Платформа",
+    "size": "Размер",
+    "actions": "Действия",
+    "download": "Скачать"
+  },
+  "softwareAdmin": {
+    "title": "Управление программами",
+    "createApp": "Новое приложение",
+    "createAppDescription": "Зарегистрируйте приложение в каталоге программ.",
+    "searchPlaceholder": "Поиск по названию или slug…",
+    "allStatuses": "Все статусы",
+    "empty": "Приложений пока нет",
+    "app": "Приложение",
+    "category": "Категория",
+    "status": {
+      "DRAFT": "Черновик",
+      "PUBLISHED": "Опубликован",
+      "TAKEN_DOWN": "Снят"
+    },
+    "updatedAt": "Обновлено",
+    "actions": "Действия",
+    "manage": "Версии",
+    "publish": "Опубликовать",
+    "takedown": "Снять",
+    "restore": "Вернуть",
+    "slug": "Слаг",
+    "name": "Название",
+    "description": "Описание",
+    "noCategory": "Без категории",
+    "releasesOf": "Версии «{{name}}»",
+    "createRelease": "Новая версия",
+    "createReleaseDescription": "Объедините сборки пакетов под одной отображаемой версией.",
+    "displayVersion": "Отображаемая версия",
+    "releaseNotes": "Примечания к версии",
+    "noReleases": "Версий пока нет",
+    "file": "Файл",
+    "platform": "Платформа",
+    "packageStatus": "Статус",
+    "noPackages": "Для этой версии пакеты не загружены",
+    "uploadPackage": "Загрузить пакет",
+    "uploadPackageDescription": "Файл передаётся по частям, затем разбирается инспектором.",
+    "upload": "Загрузить",
+    "format": "Формат",
+    "targetOs": "Целевая ОС",
+    "targetArch": "Архитектура",
+    "targetDistro": "Целевой дистрибутив",
+    "originalFullVersion": "Исходная полная версия",
+    "applicabilityNote": "Примечание о применимости",
+    "confirmPackage": "Подтвердить",
+    "confirmPackageDescription": "Подтвердите метаданные для {{file}}. После подтверждения пакет можно опубликовать.",
+    "rawVersionFields": "Исходные поля версии (JSON, необязательно)",
+    "rawFieldsHint": "Заполняйте только если проверка ничего не извлекла. Существующие значения не перезаписываются.",
+    "rawFieldsInvalid": "Должен быть JSON-объектом"
+  },
+  "softwareInspections": {
+    "title": "Проверки пакетов",
+    "allStatuses": "Все статусы",
+    "empty": "Нет задач проверки",
+    "task": "Задача",
+    "file": "Файл",
+    "status": {
+      "PENDING": "Ожидает",
+      "LEASED": "Проверяется",
+      "SUCCEEDED": "Успешно",
+      "BASIC_FAILED": "Ошибка базовой проверки",
+      "METADATA_FAILED": "Ошибка извлечения метаданных",
+      "EXHAUSTED": "Исчерпана"
+    },
+    "attempts": "Попытки",
+    "updatedAt": "Обновлено",
+    "actions": "Действия",
+    "detail": "Детали",
+    "retry": "Повторить",
+    "confirmMetadata": "Подтвердить метаданные",
+    "confirmMetadataDescription": "Заполните поля версии для {{file}} и подтвердите пакет.",
+    "detailTitle": "Задача #{{taskId}}",
+    "manualRetries": "вручную",
+    "policyRevision": "Ревизия политики",
+    "nextAttempt": "Следующая попытка",
+    "leaseOwner": "Владелец аренды",
+    "attemptHistory": "История попыток",
+    "noAttempts": "Попытки не записаны",
+    "trigger": "Триггер",
+    "outcome": "Результат",
+    "errorCode": "Код ошибки"
+  },
+  "softwareSettings": {
+    "title": "Настройки политики ПО",
+    "revision": "Ревизия",
+    "changedBy": "Изменил",
+    "changedAt": "Изменено",
+    "revisionConflict": "Политика изменена другим пользователем. Обновите страницу и повторите правку.",
+    "changeReason": "Причина изменения",
+    "changeReasonPlaceholder": "Почему меняется политика?",
+    "validate": "Проверить",
+    "save": "Сохранить",
+    "saveSuccess": "Политика обновлена",
+    "history": "История ревизий",
+    "rollback": "Откатить",
+    "rollbackTitle": "Откатить к #{{revision}}",
+    "rollbackDescription": "Создаёт новую ревизию, копирующую выбранную.",
+    "rollbackSuccess": "Политика откачена",
+    "currentRevision": "Текущая",
+    "actions": "Действия",
+    "fields": {
+      "maxPackageBytes": "Максимальный размер пакета",
+      "totalQuotaBytes": "Общая квота хранилища",
+      "maxActiveUploadsPerAdmin": "Макс. активных загрузок на администратора",
+      "chunkSizeBytes": "Размер фрагмента загрузки",
+      "uploadIdleTimeoutMinutes": "Тайм-аут простоя загрузки",
+      "failedTempRetentionHours": "Хранение временных файлов после сбоя",
+      "cleanupScanIntervalMinutes": "Интервал сканирования очистки",
+      "maxConcurrentInspectionsPerWorker": "Макс. одновременных проверок на воркера",
+      "inspectionTotalTimeoutSeconds": "Общий тайм-аут проверки",
+      "inspectionSubprocessTimeoutSeconds": "Тайм-аут подпроцесса",
+      "inspectionSoftMemoryLimitBytes": "Лимит памяти проверки",
+      "inspectionMaxExtractedBytes": "Макс. извлечённый объём",
+      "inspectionMaxExtractedEntries": "Макс. число извлечённых записей",
+      "maxAutoInspectionAttempts": "Макс. автоматических попыток",
+      "downloadSessionIdleTimeoutMinutes": "Тайм-аут простоя сессии скачивания"
+    },
+    "units": {
+      "bytes": "байт",
+      "count": "шт.",
+      "minutes": "минут",
+      "hours": "часов",
+      "seconds": "секунд"
+    }
   }
 }

@@ -66,6 +66,7 @@ export function Layout() {
     { label: t('nav.catalog'), to: '/catalog' },
     { label: t('nav.plugins'), to: '/plugins' },
     { label: t('nav.mcp'), to: '/mcp-servers' },
+    { label: t('nav.software'), to: '/software' },
     { label: t('nav.publish'), to: '/dashboard/publish', auth: true },
     { label: t('nav.dashboard'), to: '/dashboard', auth: true },
   ]
