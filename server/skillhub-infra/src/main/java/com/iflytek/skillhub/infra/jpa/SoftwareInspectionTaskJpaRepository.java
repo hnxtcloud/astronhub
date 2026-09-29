@@ -1,5 +1,6 @@
 package com.iflytek.skillhub.infra.jpa;
 
+import java.time.Instant;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,26 +23,26 @@ public interface SoftwareInspectionTaskJpaRepository
             SELECT * FROM software_inspection_task
             WHERE (status = 'PENDING'
                    AND (next_attempt_not_before IS NULL
-                        OR next_attempt_not_before <= CURRENT_TIMESTAMP)
+                        OR next_attempt_not_before <= :now)
                    AND attempt_count < max_attempts)
-               OR (status = 'LEASED' AND lease_expires_at < CURRENT_TIMESTAMP)
+               OR (status = 'LEASED' AND lease_expires_at < :now)
             ORDER BY id
             LIMIT :limit
             FOR UPDATE SKIP LOCKED
             """, nativeQuery = true)
     List<com.iflytek.skillhub.domain.software.SoftwareInspectionTask> findClaimable(
-            @Param("limit") int limit);
+            @Param("limit") int limit, @Param("now") Instant now);
 
     @Override
     @Query(value = """
             SELECT * FROM software_inspection_task
-            WHERE status = 'LEASED' AND lease_expires_at < CURRENT_TIMESTAMP
+            WHERE status = 'LEASED' AND lease_expires_at < :now
             ORDER BY id
             LIMIT :limit
             FOR UPDATE SKIP LOCKED
             """, nativeQuery = true)
     List<com.iflytek.skillhub.domain.software.SoftwareInspectionTask> findExpiredLeases(
-            @Param("limit") int limit);
+            @Param("limit") int limit, @Param("now") Instant now);
 
     Page<com.iflytek.skillhub.domain.software.SoftwareInspectionTask> findByStatus(
             com.iflytek.skillhub.domain.software.SoftwareInspectionTaskStatus status, Pageable pageable);

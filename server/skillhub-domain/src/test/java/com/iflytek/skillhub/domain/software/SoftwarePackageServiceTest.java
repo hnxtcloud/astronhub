@@ -175,14 +175,77 @@ class SoftwarePackageServiceTest {
         SoftwarePackageRevision revision = revision(10L, 1, SoftwareTargetOs.WINDOWS,
                 SoftwareTargetArch.X86_64, null, "1.0.0");
         when(packageRepository.findById(10L)).thenReturn(Optional.of(revision));
-        SoftwareInspectionTask failedTask = new SoftwareInspectionTask(10L, 1L, 3,
-                new SoftwarePolicySnapshot(1, 1, SoftwarePolicyConfig.defaults(), "a", Instant.EPOCH),
-                "sw/obj", SoftwarePackageFormat.MSI);
-        failedTask.applyOutcome(SoftwareInspectionOutcome.BASIC_FAILED, Instant.EPOCH, null);
+        SoftwareInspectionTask failedTask = task(10L, SoftwareInspectionTaskStatus.BASIC_FAILED);
         when(inspectionTaskRepository.findByPackageRevisionId(10L)).thenReturn(Optional.of(failedTask));
 
         assertThrows(DomainConflictException.class, () -> service.confirm(10L, "admin-1"));
         assertThat(revision.isConfirmed()).isFalse();
+    }
+
+    @Test
+    void confirm_blockedUntilMetadataFailureIsFilledIn() {
+        SoftwarePackageRevision revision = revision(10L, 1, SoftwareTargetOs.WINDOWS,
+                SoftwareTargetArch.X86_64, null, "1.0.0");
+        when(packageRepository.findById(10L)).thenReturn(Optional.of(revision));
+        when(inspectionTaskRepository.findByPackageRevisionId(10L))
+                .thenReturn(Optional.of(task(10L, SoftwareInspectionTaskStatus.METADATA_FAILED)));
+
+        var ex = assertThrows(DomainConflictException.class, () -> service.confirm(10L, "admin-1"));
+        assertThat(ex.messageCode()).isEqualTo("error.software.package.metadataNotResolved");
+        assertThat(revision.isConfirmed()).isFalse();
+
+        // the manual fill-in travels with the confirmation and resolves the failure
+        when(packageRepository.save(any(SoftwarePackageRevision.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        service.confirm(10L, "admin-1", "{\"ProductVersion\":\"9.9.9\"}");
+        assertThat(revision.getRawVersionFields()).contains("9.9.9");
+        assertThat(revision.isConfirmed()).isTrue();
+
+        // re-confirm without fields stays allowed once a human has confirmed
+        service.confirm(10L, "admin-1");
+        assertThat(revision.isConfirmed()).isTrue();
+    }
+
+    @Test
+    void confirm_blockedWhileRequiredInspectionIncomplete() {
+        for (SoftwareInspectionTaskStatus incomplete : List.of(
+                SoftwareInspectionTaskStatus.PENDING, SoftwareInspectionTaskStatus.LEASED,
+                SoftwareInspectionTaskStatus.EXHAUSTED)) {
+            SoftwarePackageRevision revision = revision(10L, 1, SoftwareTargetOs.WINDOWS,
+                    SoftwareTargetArch.X86_64, null, "1.0.0");
+            when(packageRepository.findById(10L)).thenReturn(Optional.of(revision));
+            when(inspectionTaskRepository.findByPackageRevisionId(10L))
+                    .thenReturn(Optional.of(task(10L, incomplete)));
+
+            // even a manual fill-in must not bypass unfinished validation
+            var ex = assertThrows(DomainConflictException.class,
+                    () -> service.confirm(10L, "admin-1", "{\"ProductVersion\":\"1.0.0\"}"));
+            assertThat(ex.messageCode()).isEqualTo("error.software.package.inspectionIncomplete");
+            assertThat(revision.isConfirmed()).isFalse();
+        }
+    }
+
+    /** Builds an unclaimed task for {@code packageRevisionId} and drives it to {@code status}. */
+    private SoftwareInspectionTask task(Long packageRevisionId, SoftwareInspectionTaskStatus status) {
+        SoftwarePolicySnapshot snapshot =
+                new SoftwarePolicySnapshot(1, 1, SoftwarePolicyConfig.defaults(), "a", Instant.EPOCH);
+        SoftwareInspectionTask t = new SoftwareInspectionTask(
+                packageRevisionId, 1L, 3, snapshot, "sw/obj", SoftwarePackageFormat.MSI);
+        switch (status) {
+            case BASIC_FAILED -> t.applyOutcome(SoftwareInspectionOutcome.BASIC_FAILED, Instant.EPOCH, null);
+            case METADATA_FAILED ->
+                    t.applyOutcome(SoftwareInspectionOutcome.METADATA_FAILED, Instant.EPOCH, null);
+            case SUCCEEDED -> t.applyOutcome(SoftwareInspectionOutcome.SUCCEEDED, Instant.EPOCH, null);
+            case LEASED -> t.claim("w", "tok", snapshot, Instant.EPOCH, Instant.EPOCH.plusSeconds(60));
+            case EXHAUSTED -> {
+                t.claim("w", "tok", snapshot, Instant.EPOCH, Instant.EPOCH.plusSeconds(60));
+                t.exhaustFromExpiredLease(Instant.EPOCH);
+            }
+            case PENDING -> {
+                // fresh task is born pending
+            }
+        }
+        return t;
     }
 
     @Test

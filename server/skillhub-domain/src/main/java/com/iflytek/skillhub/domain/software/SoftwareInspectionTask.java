@@ -206,13 +206,17 @@ public class SoftwareInspectionTask {
     }
 
     /**
-     * Administrator-triggered controlled retry: resets the task to PENDING
-     * with a fresh auto-retry budget. Manual retries have their own budget.
+     * Administrator-triggered controlled retry: returns the task to PENDING
+     * with a fresh auto-retry budget. Attempt numbering stays monotonic —
+     * recorded attempts are audit evidence, so the budget horizon extends
+     * instead of resetting the counter (resetting would collide with the
+     * unique (task_id, attempt_no) attempt history). Manual retries have
+     * their own budget capped by MAX_MANUAL_RETRIES in the task service.
      */
     public void manualRetry(Instant now) {
         this.status = SoftwareInspectionTaskStatus.PENDING;
         this.nextAttemptNotBefore = null;
-        this.attemptCount = 0;
+        this.maxAttempts = this.attemptCount + this.maxAttempts;
         this.manualRetryCount++;
         clearLease();
         this.updatedAt = now;

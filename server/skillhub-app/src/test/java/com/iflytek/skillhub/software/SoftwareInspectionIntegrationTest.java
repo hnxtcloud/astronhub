@@ -206,6 +206,12 @@ class SoftwareInspectionIntegrationTest {
         Long revisionId = completeUpload(releaseId, "installer.msi", "MSI");
         long taskId = claimAndReport(revisionId, "METADATA_FAILED", "parser.msiinfoMissing", null);
 
+        // plain confirmation must not silently waive the metadata failure
+        mockMvc.perform(post("/api/v1/admin/software/packages/" + revisionId + "/confirm")
+                        .with(authentication(softwareAdmin()))
+                        .with(csrf()))
+                .andExpect(status().isConflict());
+
         mockMvc.perform(post("/api/v1/admin/software/inspections/" + taskId + "/confirm-metadata")
                         .with(authentication(softwareAdmin()))
                         .with(csrf())
@@ -216,6 +222,24 @@ class SoftwareInspectionIntegrationTest {
         SoftwarePackageRevision revision = packageRepository.findById(revisionId).orElseThrow();
         assertThat(revision.getRawVersionFields()).contains("9.9.9");
         assertThat(revision.isConfirmed()).isTrue();
+    }
+
+    @Test
+    void pendingInspection_blocksConfirmationAndManualFillIn() throws Exception {
+        seedPolicyAndAccount();
+        Long releaseId = createRelease(createPublishedApp());
+        Long revisionId = completeUpload(releaseId, "installer.msi", "MSI");
+
+        // the task exists and no worker has reported: required validation is incomplete
+        mockMvc.perform(post("/api/v1/admin/software/packages/" + revisionId + "/confirm")
+                        .with(authentication(softwareAdmin()))
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"rawVersionFields\":{\"Version\":\"1.0.0\"}}"))
+                .andExpect(status().isConflict());
+
+        SoftwarePackageRevision revision = packageRepository.findById(revisionId).orElseThrow();
+        assertThat(revision.isConfirmed()).isFalse();
     }
 
     @Test
@@ -267,19 +291,23 @@ class SoftwareInspectionIntegrationTest {
                 .andExpect(jsonPath("$.data.task.status").value("EXHAUSTED"))
                 .andExpect(jsonPath("$.data.attempts.length()").value(3));
 
-        // manual retry grants a fresh auto budget: claimable again immediately
+        // manual retry grants a fresh auto budget: claimable again immediately.
+        // Attempt numbering stays monotonic (audit history), so the retried
+        // physical attempt is number 4 and the budget horizon extends to 6.
         mockMvc.perform(post("/api/v1/admin/software/inspections/" + taskId + "/retry")
                         .with(authentication(softwareAdmin()))
                         .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.status").value("PENDING"));
+                .andExpect(jsonPath("$.data.status").value("PENDING"))
+                .andExpect(jsonPath("$.data.attemptCount").value(3))
+                .andExpect(jsonPath("$.data.maxAttempts").value(6));
         mockMvc.perform(post("/api/v1/internal/software/inspector/tasks/claim")
                         .header("X-Inspector-Token", INSPECTOR_TOKEN)
                         .contentType("application/json")
                         .content("{\"workerId\":\"worker-a\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.claimed").value(true))
-                .andExpect(jsonPath("$.attemptNo").value(1));
+                .andExpect(jsonPath("$.attemptNo").value(4));
     }
 
     @Test
@@ -290,12 +318,15 @@ class SoftwareInspectionIntegrationTest {
         long taskId = inspectionTaskRepository.findByPackageRevisionId(revisionId).orElseThrow().getId();
 
         claimViaServiceShifted(taskId, 1);
-        // force the lease into the past and spend the auto budget
-        // binding an Instant is fine for writes; the tz pitfall only affects
-        // naive-bound parameters on the comparison side of a query
+        // force the lease into the past through the domain (Hibernate's own
+        // Instant binding) and spend the auto budget with a plain int update;
+        // a raw Instant bind would use different JDBC semantics than the
+        // timezone-aware comparison on the query side
+        var leased = inspectionTaskRepository.findById(taskId).orElseThrow();
+        leased.heartbeat("worker-a", leased.getAttemptToken(), Instant.now().minusSeconds(3600));
+        inspectionTaskRepository.save(leased);
         jdbcTemplate.update("UPDATE software_inspection_task "
-                + "SET lease_expires_at = ?, attempt_count = max_attempts WHERE id = ?",
-                Instant.now().minusSeconds(3600), taskId);
+                + "SET attempt_count = max_attempts WHERE id = ?", taskId);
 
         reclaimTask.reclaimExpiredLeases();
 

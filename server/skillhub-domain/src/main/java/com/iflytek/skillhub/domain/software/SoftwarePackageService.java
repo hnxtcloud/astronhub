@@ -68,10 +68,13 @@ public class SoftwarePackageService {
 
     /**
      * Records the administrator confirmation required before publishing.
-     * Confirmation is rejected while static inspection reports an unresolved
-     * basic validation failure — that verdict cannot be waived by confirming
-     * metadata manually. An optional JSON metadata fill-in is accepted only
-     * for revisions whose extraction produced nothing.
+     * The static-inspection gate mirrors the confirmed product rules: a basic
+     * validation failure can never be confirmed away; a metadata-only failure
+     * requires the manual fill-in to travel with the confirmation; and an
+     * inspection that has not completed (pending, leased, or exhausted retry
+     * budget) blocks confirmation outright so unfinished validation cannot be
+     * bypassed with hand-typed metadata. Re-confirming an already confirmed
+     * revision stays allowed — human confirmation wins over extraction.
      */
     @Transactional
     public SoftwarePackageRevision confirm(Long packageId, String actorId, String rawVersionFieldsJson) {
@@ -80,11 +83,26 @@ public class SoftwarePackageService {
             throw new DomainBadRequestException("error.software.package.invalidTransition",
                     revision.getStatus(), revision.getStatus());
         }
-        inspectionTaskRepository.findByPackageRevisionId(packageId)
-                .filter(task -> task.getStatus() == SoftwareInspectionTaskStatus.BASIC_FAILED)
-                .ifPresent(task -> {
-                    throw new DomainConflictException("error.software.package.inspectionFailed", packageId);
-                });
+        if (!revision.isConfirmed()) {
+            inspectionTaskRepository.findByPackageRevisionId(packageId).ifPresent(task -> {
+                switch (task.getStatus()) {
+                    case BASIC_FAILED ->
+                            throw new DomainConflictException("error.software.package.inspectionFailed", packageId);
+                    case METADATA_FAILED -> {
+                        if (rawVersionFieldsJson == null) {
+                            throw new DomainConflictException(
+                                    "error.software.package.metadataNotResolved", packageId);
+                        }
+                    }
+                    case PENDING, LEASED, EXHAUSTED ->
+                            throw new DomainConflictException(
+                                    "error.software.package.inspectionIncomplete", packageId);
+                    case SUCCEEDED -> {
+                        // extraction complete; confirmation may proceed
+                    }
+                }
+            });
+        }
         if (rawVersionFieldsJson != null) {
             revision.fillInRawVersionFields(rawVersionFieldsJson);
         }

@@ -71,7 +71,7 @@ public class SoftwareInspectionTaskService {
     /** Claims one due task for a worker; returns null when nothing is due. */
     @Transactional
     public ClaimedTask claim(String workerId, Instant now) {
-        List<SoftwareInspectionTask> due = taskRepository.findClaimable(1);
+        List<SoftwareInspectionTask> due = taskRepository.findClaimable(1, now);
         if (due.isEmpty()) {
             return null;
         }
@@ -149,7 +149,7 @@ public class SoftwareInspectionTaskService {
      */
     @Transactional
     public int reclaimExpiredLeases(Instant now, int limit) {
-        List<SoftwareInspectionTask> expired = taskRepository.findExpiredLeases(limit);
+        List<SoftwareInspectionTask> expired = taskRepository.findExpiredLeases(limit, now);
         int exhausted = 0;
         for (SoftwareInspectionTask task : expired) {
             if (!task.exhaustedByExpiredLease()) {

@@ -73,14 +73,14 @@ class SoftwareInspectionTaskServiceTest {
 
     @Test
     void claim_returnsNullWhenNothingDue() {
-        when(taskRepository.findClaimable(1)).thenReturn(List.of());
+        when(taskRepository.findClaimable(1, NOW)).thenReturn(List.of());
         assertThat(service.claim("worker-1", NOW)).isNull();
     }
 
     @Test
     void claim_allocatesTokenLeaseAndRefreshesPolicy() {
         SoftwareInspectionTask task = pendingTask(7L);
-        when(taskRepository.findClaimable(1)).thenReturn(List.of(task));
+        when(taskRepository.findClaimable(1, NOW)).thenReturn(List.of(task));
 
         SoftwareInspectionTaskService.ClaimedTask claimed = service.claim("worker-1", NOW);
 
@@ -202,7 +202,7 @@ class SoftwareInspectionTaskServiceTest {
                         org.assertj.core.api.Assertions.within(15, java.time.temporal.ChronoUnit.SECONDS));
 
         // second failure at attempt 2 still within budget
-        when(taskRepository.findClaimable(1)).thenReturn(List.of(task));
+        when(taskRepository.findClaimable(1, NOW.plusSeconds(60))).thenReturn(List.of(task));
         service.claim("worker-1", NOW.plusSeconds(60));
         service.submitResult(7L, "worker-1", task.getAttemptToken(),
                 new SoftwareInspectionTaskService.ResultSubmission(
@@ -210,7 +210,7 @@ class SoftwareInspectionTaskServiceTest {
         assertThat(task.getStatus()).isEqualTo(SoftwareInspectionTaskStatus.PENDING);
 
         // attempt 3 (== max) exhausts the budget
-        when(taskRepository.findClaimable(1)).thenReturn(List.of(task));
+        when(taskRepository.findClaimable(1, NOW.plusSeconds(120))).thenReturn(List.of(task));
         service.claim("worker-1", NOW.plusSeconds(120));
         service.submitResult(7L, "worker-1", task.getAttemptToken(),
                 new SoftwareInspectionTaskService.ResultSubmission(
@@ -229,16 +229,36 @@ class SoftwareInspectionTaskServiceTest {
         SoftwareInspectionTask failed = new SoftwareInspectionTask(10L, 1L, 3, POLICY, "k", SoftwarePackageFormat.MSI);
         failed.applyOutcome(SoftwareInspectionOutcome.BASIC_FAILED, NOW, null);
         when(taskRepository.findById(8L)).thenReturn(Optional.of(failed));
+        int attemptsBeforeRetry = failed.getAttemptCount();
         service.manualRetry(8L);
         assertThat(failed.getStatus()).isEqualTo(SoftwareInspectionTaskStatus.PENDING);
         assertThat(failed.getManualRetryCount()).isEqualTo(1);
-        assertThat(failed.getAttemptCount()).isZero();
+        // attempt numbering is monotonic audit evidence; the retry extends
+        // the auto-budget horizon instead of resetting the counter
+        assertThat(failed.getAttemptCount()).isEqualTo(attemptsBeforeRetry);
+        assertThat(failed.getMaxAttempts()).isEqualTo(attemptsBeforeRetry + 3);
         assertThat(failed.getNextAttemptNotBefore()).isNull();
 
         failed.manualRetry(NOW);
         failed.manualRetry(NOW);
         assertThatThrownBy(() -> service.manualRetry(8L))
                 .hasMessageContaining("error.software.inspection.retryBudgetExhausted");
+    }
+
+    @Test
+    void manualRetry_resultSubmissionKeepsAttemptNumbersUnique() {
+        SoftwareInspectionTask failed = new SoftwareInspectionTask(10L, 1L, 3, POLICY, "k", SoftwarePackageFormat.MSI);
+        failed.claim("worker-1", "tok-1", POLICY, NOW, NOW.plusSeconds(120));
+        failed.applyOutcome(SoftwareInspectionOutcome.BASIC_FAILED, NOW, null);
+        assertThat(failed.getAttemptCount()).isEqualTo(1);
+
+        failed.manualRetry(NOW);
+        failed.claim("worker-1", "tok-2", POLICY, NOW, NOW.plusSeconds(120));
+        // the retried physical attempt is numbered 2 — colliding attempt rows
+        // would violate the unique (task_id, attempt_no) history
+        assertThat(failed.getAttemptCount()).isEqualTo(2);
+        failed.applyOutcome(SoftwareInspectionOutcome.SUCCEEDED, NOW, null);
+        assertThat(failed.getStatus()).isEqualTo(SoftwareInspectionTaskStatus.SUCCEEDED);
     }
 
     @Test
@@ -255,7 +275,7 @@ class SoftwareInspectionTaskServiceTest {
         withBudget.claim("worker-1", "t", POLICY, NOW.minusSeconds(600), NOW.minusSeconds(480));
         assignId(withBudget, 22L);
 
-        when(taskRepository.findExpiredLeases(20)).thenReturn(List.of(spent, withBudget));
+        when(taskRepository.findExpiredLeases(20, NOW)).thenReturn(List.of(spent, withBudget));
 
         int exhausted = service.reclaimExpiredLeases(NOW, 20);
 
