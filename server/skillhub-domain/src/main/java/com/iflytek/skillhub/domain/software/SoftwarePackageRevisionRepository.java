@@ -20,5 +20,7 @@ public interface SoftwarePackageRevisionRepository {
 
     boolean existsByApplicationIdAndSha256(Long applicationId, String sha256);
 
+    Optional<SoftwarePackageRevision> findByApplicationIdAndSha256(Long applicationId, String sha256);
+
     long countByApplicationId(Long applicationId);
 }

@@ -24,5 +24,8 @@ public interface SoftwarePackageRevisionJpaRepository
     boolean existsByApplicationIdAndSha256(Long applicationId, String sha256);
 
     @Override
+    Optional<SoftwarePackageRevision> findByApplicationIdAndSha256(Long applicationId, String sha256);
+
+    @Override
     long countByApplicationId(Long applicationId);
 }

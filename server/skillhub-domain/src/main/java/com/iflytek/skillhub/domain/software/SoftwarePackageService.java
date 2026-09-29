@@ -4,6 +4,7 @@ import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
 import com.iflytek.skillhub.domain.shared.exception.DomainConflictException;
 import com.iflytek.skillhub.domain.shared.exception.DomainNotFoundException;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -126,6 +127,11 @@ public class SoftwarePackageService {
     public SoftwarePackageRevision requirePackage(Long packageId) {
         return packageRepository.findById(packageId)
                 .orElseThrow(() -> new DomainNotFoundException("error.software.package.notFound", packageId));
+    }
+
+    /** Looks up an existing revision by exact content hash within one application. */
+    public Optional<SoftwarePackageRevision> findByApplicationIdAndSha256(Long applicationId, String sha256) {
+        return packageRepository.findByApplicationIdAndSha256(applicationId, sha256);
     }
 
     private void requireRelease(Long releaseId) {
