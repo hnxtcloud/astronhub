@@ -38,6 +38,7 @@ public class AdminUserAppService {
 
     private static final Set<UserStatus> MANAGEABLE_STATUSES = Set.of(UserStatus.ACTIVE, UserStatus.DISABLED);
     private static final String SUPER_ADMIN_ROLE = "SUPER_ADMIN";
+    private static final String SOFTWARE_ADMIN_ROLE = "SOFTWARE_ADMIN";
     private static final String USER_ROLE = "USER";
 
     private final AdminUserSearchRepository adminUserSearchRepository;
@@ -85,7 +86,8 @@ public class AdminUserAppService {
         UserAccount user = loadUser(userId);
         rejectSystemAccountMutation(user);
         String normalizedRoleCode = normalizeRoleCode(roleCode);
-        boolean targetHasSuperAdminRole = userRoleBindingRepository.findByUserId(user.getId()).stream()
+        List<UserRoleBinding> existingBindings = userRoleBindingRepository.findByUserId(user.getId());
+        boolean targetHasSuperAdminRole = existingBindings.stream()
                 .anyMatch(binding -> SUPER_ADMIN_ROLE.equals(binding.getRole().getCode()));
 
         if ((SUPER_ADMIN_ROLE.equals(normalizedRoleCode) || targetHasSuperAdminRole)
@@ -93,7 +95,15 @@ public class AdminUserAppService {
             throw new DomainForbiddenException("error.admin.user.role.superAdmin.assignDenied");
         }
 
-        userRoleBindingRepository.deleteByUserId(user.getId());
+        // SOFTWARE_ADMIN is an additive duty managed exclusively through the
+        // dedicated grants API: the legacy single-role editor can neither
+        // assign it nor silently wipe it while replacing the other roles.
+        if (SOFTWARE_ADMIN_ROLE.equals(normalizedRoleCode)) {
+            throw new DomainForbiddenException("error.admin.user.role.softwareAdmin.useGrantApi");
+        }
+
+        userRoleBindingRepository.deleteByUserIdAndRole_CodeNot(user.getId(), SOFTWARE_ADMIN_ROLE);
+        userRoleBindingRepository.flush();
 
         if (!USER_ROLE.equals(normalizedRoleCode)) {
             Role role = roleRepository.findByCode(normalizedRoleCode)

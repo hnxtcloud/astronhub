@@ -17,4 +17,5 @@ public interface UserRoleBindingRepository extends JpaRepository<UserRoleBinding
     List<UserRoleBinding> findByRole_Code(String roleCode);
     List<UserRoleBinding> findByRole_CodeIn(Collection<String> roleCodes);
     long deleteByUserId(String userId);
+    long deleteByUserIdAndRole_CodeNot(String userId, String roleCode);
 }

@@ -86,6 +86,10 @@ public class RouteSecurityPolicyRegistry {
             RouteAuthorizationPolicy.authenticated(HttpMethod.GET, "/api/v1/namespaces/*"),
             RouteAuthorizationPolicy.authenticated(HttpMethod.GET, "/api/web/namespaces"),
             RouteAuthorizationPolicy.authenticated(HttpMethod.GET, "/api/web/namespaces/*"),
+            // Software center: catalog browsing and downloads require login;
+            // admin routes additionally enforce SOFTWARE_ADMIN via @PreAuthorize.
+            RouteAuthorizationPolicy.authenticated(null, "/api/v1/software/**"),
+            RouteAuthorizationPolicy.authenticated(null, "/api/v1/admin/software/**"),
             RouteAuthorizationPolicy.authenticated(null, "/api/v1/admin/**"),
             RouteAuthorizationPolicy.authenticated(HttpMethod.GET, "/api/cli/v1/auth/whoami"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/cli/v1/skills/search"),
@@ -167,6 +171,9 @@ public class RouteSecurityPolicyRegistry {
             "ANY /api/v1/auth/direct/login",
             "ANY /api/v1/auth/local/**",
             "ANY /api/v1/admin/**",
+            // Software center is an intranet browser surface: session only.
+            "ANY /api/v1/software/**",
+            "ANY /api/v1/admin/software/**",
             "DELETE /api/web/skills/id/*",
             "DELETE /api/web/skills/*/*"
     );

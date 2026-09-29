@@ -99,7 +99,7 @@ class AdminUserAppServiceTest {
         assertThrows(DomainForbiddenException.class,
                 () -> service.updateUserRole("user-1", "USER", Set.of("USER_ADMIN")));
 
-        verify(userRoleBindingRepository, never()).deleteByUserId(any());
+        verify(userRoleBindingRepository, never()).deleteByUserIdAndRole_CodeNot(any(), any());
         verify(userRoleBindingRepository, never()).save(any(UserRoleBinding.class));
     }
 
@@ -111,7 +111,7 @@ class AdminUserAppServiceTest {
         assertThrows(DomainForbiddenException.class,
                 () -> service.updateUserRole("builtin-skill-publisher", "AUDITOR", Set.of("SUPER_ADMIN")));
 
-        verify(userRoleBindingRepository, never()).deleteByUserId(any());
+        verify(userRoleBindingRepository, never()).deleteByUserIdAndRole_CodeNot(any(), any());
         verify(userRoleBindingRepository, never()).save(any(UserRoleBinding.class));
     }
 
@@ -123,7 +123,8 @@ class AdminUserAppServiceTest {
 
         var response = service.updateUserRole("user-1", "AUDITOR", Set.of("SUPER_ADMIN"));
 
-        verify(userRoleBindingRepository).deleteByUserId("user-1");
+        verify(userRoleBindingRepository).deleteByUserIdAndRole_CodeNot("user-1", "SOFTWARE_ADMIN");
+        verify(userRoleBindingRepository).flush();
         verify(userRoleBindingRepository).save(any(UserRoleBinding.class));
         assertThat(response.userId()).isEqualTo("user-1");
         assertThat(response.role()).isEqualTo("AUDITOR");
@@ -137,9 +138,50 @@ class AdminUserAppServiceTest {
 
         var response = service.updateUserRole("user-1", "USER", Set.of("SUPER_ADMIN"));
 
-        verify(userRoleBindingRepository).deleteByUserId("user-1");
+        verify(userRoleBindingRepository).deleteByUserIdAndRole_CodeNot("user-1", "SOFTWARE_ADMIN");
         verify(userRoleBindingRepository, never()).save(any(UserRoleBinding.class));
         assertThat(response.role()).isEqualTo("USER");
+    }
+
+    @Test
+    void updateUserRole_preservesSoftwareAdminDutyWhileReplacingOtherRoles() {
+        when(userAccountRepository.findById("user-1"))
+                .thenReturn(Optional.of(user("user-1", "alice", "alice@example.com", UserStatus.ACTIVE)));
+        when(userRoleBindingRepository.findByUserId("user-1"))
+                .thenReturn(List.of(new UserRoleBinding("user-1", role("SOFTWARE_ADMIN"))));
+        when(roleRepository.findByCode("AUDITOR")).thenReturn(Optional.of(role("AUDITOR")));
+
+        var response = service.updateUserRole("user-1", "AUDITOR", Set.of("SUPER_ADMIN"));
+
+        // Only non-SOFTWARE_ADMIN bindings are replaced; the additive duty survives.
+        verify(userRoleBindingRepository).deleteByUserIdAndRole_CodeNot("user-1", "SOFTWARE_ADMIN");
+        verify(userRoleBindingRepository, never()).deleteByUserId("user-1");
+        verify(userRoleBindingRepository).save(any(UserRoleBinding.class));
+        assertThat(response.role()).isEqualTo("AUDITOR");
+    }
+
+    @Test
+    void updateUserRole_rejectsSoftwareAdminTargetAndDirectsToGrantApi() {
+        when(userAccountRepository.findById("user-1"))
+                .thenReturn(Optional.of(user("user-1", "alice", "alice@example.com", UserStatus.ACTIVE)));
+
+        DomainForbiddenException ex = assertThrows(DomainForbiddenException.class,
+                () -> service.updateUserRole("user-1", "SOFTWARE_ADMIN", Set.of("SUPER_ADMIN")));
+
+        assertThat(ex.messageCode()).isEqualTo("error.admin.user.role.softwareAdmin.useGrantApi");
+        verify(userRoleBindingRepository, never()).deleteByUserIdAndRole_CodeNot(any(), any());
+        verify(userRoleBindingRepository, never()).save(any(UserRoleBinding.class));
+    }
+
+    @Test
+    void updateUserRole_nonSuperAdminCannotGrantSoftwareAdminEvenWithUserAdminRole() {
+        when(userAccountRepository.findById("user-1"))
+                .thenReturn(Optional.of(user("user-1", "alice", "alice@example.com", UserStatus.ACTIVE)));
+
+        assertThrows(DomainForbiddenException.class,
+                () -> service.updateUserRole("user-1", "SOFTWARE_ADMIN", Set.of("USER_ADMIN")));
+
+        verify(userRoleBindingRepository, never()).save(any(UserRoleBinding.class));
     }
 
     @Test
