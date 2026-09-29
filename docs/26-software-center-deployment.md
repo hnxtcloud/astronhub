@@ -69,6 +69,16 @@ docker run --rm \
   `STORAGE_BASE_PATH`; single-node deployments only.
 - `SKILLHUB_STORAGE_PROVIDER=s3` — S3/MinIO via the existing `skillhub.storage.s3.*`
   keys (endpoint, bucket, access/secret key, force-path-style for MinIO).
+- **Bucket prerequisite**: the software transfer storage does not create the bucket.
+  Pre-create it before the first software upload:
+
+  ```bash
+  mc alias set skillhub-s3 https://<s3-endpoint> <access-key> <secret-key>
+  mc mb skillhub-s3/skillhub
+  ```
+
+  (`SKILLHUB_STORAGE_S3_AUTO_CREATE_BUCKET=true` covers the skill-storage path only;
+  do not rely on it for a software-center-only deployment.)
 - S3 multipart rules already enforced by policy validation: `chunkSizeBytes` must be
   ≥ 5 MiB (`S3_MIN_PART_SIZE`) and ≤ `maxPackageBytes`.
 
@@ -193,19 +203,54 @@ completion.** Verified locally vs. what still requires docker/MinIO staging:
 - Frontend: typecheck + lint + Vitest suite green (phase 4; no frontend changes in
   phase 5).
 
-### 5.2 Requires staging (docker + PostgreSQL + MinIO) — not yet run
+### 5.2 Verified against a real S3 server (native MinIO, no docker)
 
-1. **Dual-storage staging regression**: repeat the happy-path E2E twice with
-   `SKILLHUB_STORAGE_PROVIDER=local` and `=s3` against real MinIO — chunk PUT,
-   multipart completion, Range download, delete, and quota release on each backend.
-2. **Inspector container E2E**: boot the real `skillhub-inspector` image (msitools/
+The dual-storage regression was executed locally against a **real MinIO server**
+(`minio.exe` `RELEASE.2025-09-07T16-13-09Z`, the last tag published with binaries on
+GitHub releases — dl.min.io now returns 410 Gone for community downloads; the same
+version should be pinned for any repeat run). Backend booted with
+`SKILLHUB_STORAGE_PROVIDER=s3` + path-style MinIO endpoint; the `skillhub` bucket was
+pre-created with `mc` (see §2.3 — the software transfer storage does **not**
+auto-create the bucket).
+
+On the S3-backed backend, all three suites passed:
+
+- happy-path E2E (`.scratch/e2e.sh`): multipart chunk PUT → `CompleteMultipartUpload`
+  → inspector content streamed out of S3 → confirm/publish → Range (206) and full
+  download with matching SHA-256, object verified present in the bucket via `mc ls`;
+- fault/policy/load E2E (`.scratch/e2e-faults.sh`): all steps green against S3,
+  including 6 parallel multipart uploads and 10/10 Range 206 responses;
+- delete/quota regression (`.scratch/e2e-s3-delete.sh`): a cancelled session aborts
+  its S3 multipart upload (`mc ls --incomplete` clean) and releases its reservation;
+  used/reserved accounting rejects reservations beyond the quota; a duplicate-SHA-256
+  completion returns 409 **and deletes the merged object from the bucket** (verified
+  by object absence in `mc ls`) while the first upload's object remains; the account
+  stays consistent afterwards.
+
+Note: the global quota account is persistent state — the delete/quota suite needs a
+fresh database for its arithmetic baseline.
+
+### 5.3 Inspector worker loop — verified natively; parsing toolchain needs Linux
+
+`python -m inspector.worker` (from `inspector/`, the same module the container runs)
+was pointed at the S3-backed backend on Windows. The full worker loop verified live:
+claim → stream package content from the backend → attempt parsing → report. MSI
+parsing stopped where expected on Windows — no `msiinfo`/`rpm`/`dpkg-deb` — and the
+worker reported an honest `INFRA_FAILED parser.toolMissing`; the task returned to
+`PENDING` with retry backoff and both attempts are visible in the inspection audit
+trail. The extraction toolchain itself (msitools/rpm in the container image) therefore
+still requires the Linux container/staging for end-to-end metadata extraction.
+
+### 5.4 Still requires staging (docker + PostgreSQL)
+
+1. **Inspector container E2E**: boot the real `skillhub-inspector` image (msitools/
    rpm toolchain) against a staging backend and drive MSI/DEB/RPM/EXE and a broken
-   package through the full task lifecycle.
-3. **PostgreSQL Flyway path**: apply V47–V49 to a real PostgreSQL instance
+   package through the full task lifecycle to `SUCCEEDED`/`BASIC_FAILED`.
+2. **PostgreSQL Flyway path**: apply V47–V49 to a real PostgreSQL instance
    (including the policy/account seeds) and run the E2E against it; local runs used
    H2 in PostgreSQL mode with an equivalent seed.
-4. **Proxy constraint check**: verify Nginx `client_max_body_size` vs
+3. **Proxy constraint check**: verify Nginx `client_max_body_size` vs
    `chunkSizeBytes` in the containerized path (a chunk larger than the proxy limit
    must fail at the proxy, not corrupt a session).
-5. **Staging-scale load**: larger parallel upload/inspection load than the local
+4. **Staging-scale load**: larger parallel upload/inspection load than the local
    6-worker sample.
