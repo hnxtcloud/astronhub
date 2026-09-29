@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
 import com.iflytek.skillhub.domain.shared.exception.DomainConflictException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -23,8 +24,10 @@ class SoftwarePackageServiceTest {
     private final SoftwareRecommendationRepository recommendationRepository =
             mock(SoftwareRecommendationRepository.class);
     private final SoftwareReleaseRepository releaseRepository = mock(SoftwareReleaseRepository.class);
+    private final SoftwareInspectionTaskRepository inspectionTaskRepository =
+            mock(SoftwareInspectionTaskRepository.class);
     private final SoftwarePackageService service = new SoftwarePackageService(
-            packageRepository, recommendationRepository, releaseRepository);
+            packageRepository, recommendationRepository, releaseRepository, inspectionTaskRepository);
 
     @Test
     void register_assignsRevisionNoWithinSameTargetScope() {
@@ -165,5 +168,42 @@ class SoftwarePackageServiceTest {
         return new SoftwarePackageRevision(releaseId, 1L, revisionNo, os, arch, distro, null,
                 SoftwarePackageFormat.MSI, fullVersion, null, "setup.msi",
                 "a".repeat(64), 1024L, "sw/obj", "admin-1");
+    }
+
+    @Test
+    void confirm_blockedWhileBasicInspectionFailed() {
+        SoftwarePackageRevision revision = revision(10L, 1, SoftwareTargetOs.WINDOWS,
+                SoftwareTargetArch.X86_64, null, "1.0.0");
+        when(packageRepository.findById(10L)).thenReturn(Optional.of(revision));
+        SoftwareInspectionTask failedTask = new SoftwareInspectionTask(10L, 1L, 3,
+                new SoftwarePolicySnapshot(1, 1, SoftwarePolicyConfig.defaults(), "a", Instant.EPOCH),
+                "sw/obj", SoftwarePackageFormat.MSI);
+        failedTask.applyOutcome(SoftwareInspectionOutcome.BASIC_FAILED, Instant.EPOCH, null);
+        when(inspectionTaskRepository.findByPackageRevisionId(10L)).thenReturn(Optional.of(failedTask));
+
+        assertThrows(DomainConflictException.class, () -> service.confirm(10L, "admin-1"));
+        assertThat(revision.isConfirmed()).isFalse();
+    }
+
+    @Test
+    void confirm_acceptsFillInOnlyWhenExtractionProducedNothing() {
+        SoftwarePackageRevision empty = revision(10L, 1, SoftwareTargetOs.WINDOWS,
+                SoftwareTargetArch.X86_64, null, "1.0.0");
+        when(packageRepository.findById(10L)).thenReturn(Optional.of(empty));
+        when(inspectionTaskRepository.findByPackageRevisionId(10L)).thenReturn(Optional.empty());
+        when(packageRepository.save(any(SoftwarePackageRevision.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.confirm(10L, "admin-1", "{\"Version\":\"2.0\"}");
+        assertThat(empty.getRawVersionFields()).contains("2.0");
+        assertThat(empty.isConfirmed()).isTrue();
+
+        SoftwarePackageRevision extracted = revision(11L, 1, SoftwareTargetOs.WINDOWS,
+                SoftwareTargetArch.X86_64, null, "1.0.0");
+        // simulate already-extracted fields: fill-in must be rejected
+        extracted.fillInRawVersionFields("{\"From\":\"worker\"}");
+        when(packageRepository.findById(11L)).thenReturn(Optional.of(extracted));
+        assertThrows(DomainConflictException.class,
+                () -> service.confirm(11L, "admin-1", "{\"Version\":\"3.0\"}"));
     }
 }

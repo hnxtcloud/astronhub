@@ -103,6 +103,12 @@ skillhub:
     service-environment: ${SKILLHUB_SERVICE_ENVIRONMENT:local}
   builtin-skills:
     enabled: ${SKILLHUB_BUILTIN_SKILLS_ENABLED:true}
+  software:
+    inspector:
+      # Shared token for the internal inspector task API. Empty fails every
+      # internal request closed; set SKILLHUB_SOFTWARE_INSPECTOR_TOKEN in
+      # deployments that run the inspector worker.
+      token: ${SKILLHUB_SOFTWARE_INSPECTOR_TOKEN:}
   redis:
     sentinel:
       check-sentinels-list: ${SKILLHUB_REDIS_SENTINEL_CHECK_SENTINELS_LIST:true}

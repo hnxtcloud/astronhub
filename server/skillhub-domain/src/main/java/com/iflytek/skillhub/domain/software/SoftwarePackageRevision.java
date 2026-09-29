@@ -166,6 +166,19 @@ public class SoftwarePackageRevision {
         this.confirmedAt = Instant.now(Clock.systemUTC());
     }
 
+    /**
+     * Administrator metadata fill-in for revisions whose extraction produced
+     * nothing (manual formats or METADATA_FAILED tasks). Extracted raw fields
+     * are never replaced through this path.
+     */
+    public void fillInRawVersionFields(String rawVersionFieldsJson) {
+        if (this.rawVersionFields != null) {
+            throw new com.iflytek.skillhub.domain.shared.exception.DomainConflictException(
+                    "error.software.package.rawFieldsPresent");
+        }
+        this.rawVersionFields = rawVersionFieldsJson;
+    }
+
     /** Supplemental description edit; never touches target/version/file facts. */
     public void updateApplicabilityNote(String applicabilityNote) {
         this.applicabilityNote = applicabilityNote;

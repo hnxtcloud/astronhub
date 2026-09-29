@@ -1,5 +1,6 @@
 package com.iflytek.skillhub.service;
 
+import com.iflytek.skillhub.domain.software.SoftwareInspectionTaskService;
 import com.iflytek.skillhub.domain.software.SoftwarePackageRevision;
 import com.iflytek.skillhub.domain.software.SoftwarePackageService;
 import com.iflytek.skillhub.domain.software.SoftwareQuotaService;
@@ -14,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
  * confirmation and session completion either all land or none do. Idempotent:
  * a retry after a crash finds the revision created by the previous attempt
  * (same object key) and finishes the remaining steps without double-charging
- * the quota.
+ * the quota. Auto-inspected formats additionally get a persistent
+ * static-inspection task in the same transaction.
  */
 @Service
 public class SoftwareUploadCompletionService {
@@ -22,13 +24,16 @@ public class SoftwareUploadCompletionService {
     private final SoftwarePackageService packageService;
     private final SoftwareQuotaService quotaService;
     private final SoftwareUploadSessionService sessionService;
+    private final SoftwareInspectionTaskService inspectionTaskService;
 
     public SoftwareUploadCompletionService(SoftwarePackageService packageService,
                                            SoftwareQuotaService quotaService,
-                                           SoftwareUploadSessionService sessionService) {
+                                           SoftwareUploadSessionService sessionService,
+                                           SoftwareInspectionTaskService inspectionTaskService) {
         this.packageService = packageService;
         this.quotaService = quotaService;
         this.sessionService = sessionService;
+        this.inspectionTaskService = inspectionTaskService;
     }
 
     /**
@@ -59,6 +64,7 @@ public class SoftwareUploadCompletionService {
         }
         quotaService.confirmReservation(session.getReservedBytes(), actualByteSize);
         sessionService.markCompleted(session.getId(), revision.getId());
+        inspectionTaskService.createForRevision(revision);
         return revision.getId();
     }
 }

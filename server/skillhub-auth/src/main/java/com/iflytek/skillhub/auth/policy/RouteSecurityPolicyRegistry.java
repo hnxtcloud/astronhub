@@ -91,6 +91,11 @@ public class RouteSecurityPolicyRegistry {
             RouteAuthorizationPolicy.authenticated(null, "/api/v1/software/**"),
             RouteAuthorizationPolicy.authenticated(null, "/api/v1/admin/software/**"),
             RouteAuthorizationPolicy.authenticated(null, "/api/v1/admin/**"),
+            // Internal inspector task API: no user session exists here. The
+            // SoftwareInspectorAuthFilter enforces the deployment-scoped shared
+            // token (fail-closed); the security chain deliberately lets the
+            // anonymous request through so the filter's 401 is authoritative.
+            RouteAuthorizationPolicy.permitAll(null, "/api/v1/internal/software/**"),
             RouteAuthorizationPolicy.authenticated(HttpMethod.GET, "/api/cli/v1/auth/whoami"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/cli/v1/skills/search"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/cli/v1/skills/*/*/resolve"),
@@ -160,11 +165,12 @@ public class RouteSecurityPolicyRegistry {
      * Authorization routes that intentionally have no API-token counterpart, keyed as
      * {@code "<METHOD|ANY> <pattern>"} to match {@link #routeKey(HttpMethod, String)}.
      *
-     * <p>These are browser-session surfaces: the interactive login flows, the admin console,
-     * and skill deletion through the web surface, which goes through {@code /api/v1} or
-     * {@code /api/cli/v1} with the {@code skill:delete} scope instead. Bearer tokens are
-     * deliberately rejected on exactly these routes and nowhere else &mdash; anything else the
-     * authorization list opens must also be reachable with a token holding the required scope.</p>
+     * <p>These are non-token surfaces: browser-session routes (the interactive login flows,
+     * the admin console, skill deletion through the web surface) plus the internal
+     * service-to-service inspector API, which authenticates with its own deployment-scoped
+     * token header instead. Bearer tokens are deliberately rejected on exactly these routes
+     * and nowhere else &mdash; anything else the authorization list opens must also be
+     * reachable with a token holding the required scope.</p>
      */
     private static final Set<String> SESSION_ONLY_ROUTES = Set.of(
             "ANY /api/v1/auth/session/bootstrap",
@@ -174,6 +180,8 @@ public class RouteSecurityPolicyRegistry {
             // Software center is an intranet browser surface: session only.
             "ANY /api/v1/software/**",
             "ANY /api/v1/admin/software/**",
+            // Internal inspector API: shared secret header, never a user token.
+            "ANY /api/v1/internal/software/**",
             "DELETE /api/web/skills/id/*",
             "DELETE /api/web/skills/*/*"
     );
@@ -222,6 +230,11 @@ public class RouteSecurityPolicyRegistry {
     }
 
     public boolean shouldIgnoreCsrf(String method, String path, String authorizationHeader, boolean hasSessionCookie) {
+        // Internal service-to-service APIs carry no browser cookie, so CSRF is
+        // inapplicable; the inspector filter authenticates those requests.
+        if (path != null && path.startsWith("/api/v1/internal/")) {
+            return true;
+        }
         if (!hasSessionCookie && authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             return true;
         }

@@ -20,13 +20,16 @@ public class SoftwarePackageService {
     private final SoftwarePackageRevisionRepository packageRepository;
     private final SoftwareRecommendationRepository recommendationRepository;
     private final SoftwareReleaseRepository releaseRepository;
+    private final SoftwareInspectionTaskRepository inspectionTaskRepository;
 
     public SoftwarePackageService(SoftwarePackageRevisionRepository packageRepository,
                                   SoftwareRecommendationRepository recommendationRepository,
-                                  SoftwareReleaseRepository releaseRepository) {
+                                  SoftwareReleaseRepository releaseRepository,
+                                  SoftwareInspectionTaskRepository inspectionTaskRepository) {
         this.packageRepository = packageRepository;
         this.recommendationRepository = recommendationRepository;
         this.releaseRepository = releaseRepository;
+        this.inspectionTaskRepository = inspectionTaskRepository;
     }
 
     /** Registers a manually reviewed package revision (upload flow lands in the transfer phase). */
@@ -63,16 +66,51 @@ public class SoftwarePackageService {
                 originalFullVersion, rawVersionFields, fileName, sha256, byteSize, objectKey, actorId));
     }
 
-    /** Records the administrator confirmation required before publishing. */
+    /**
+     * Records the administrator confirmation required before publishing.
+     * Confirmation is rejected while static inspection reports an unresolved
+     * basic validation failure — that verdict cannot be waived by confirming
+     * metadata manually. An optional JSON metadata fill-in is accepted only
+     * for revisions whose extraction produced nothing.
+     */
     @Transactional
-    public SoftwarePackageRevision confirm(Long packageId, String actorId) {
+    public SoftwarePackageRevision confirm(Long packageId, String actorId, String rawVersionFieldsJson) {
         SoftwarePackageRevision revision = requirePackage(packageId);
         if (revision.getStatus() != SoftwarePackageStatus.DRAFT) {
             throw new DomainBadRequestException("error.software.package.invalidTransition",
                     revision.getStatus(), revision.getStatus());
         }
+        inspectionTaskRepository.findByPackageRevisionId(packageId)
+                .filter(task -> task.getStatus() == SoftwareInspectionTaskStatus.BASIC_FAILED)
+                .ifPresent(task -> {
+                    throw new DomainConflictException("error.software.package.inspectionFailed", packageId);
+                });
+        if (rawVersionFieldsJson != null) {
+            revision.fillInRawVersionFields(rawVersionFieldsJson);
+        }
         revision.confirm(actorId);
         return packageRepository.save(revision);
+    }
+
+    /** Confirmation without metadata fill-in (extraction already produced fields). */
+    @Transactional
+    public SoftwarePackageRevision confirm(Long packageId, String actorId) {
+        return confirm(packageId, actorId, null);
+    }
+
+    /**
+     * Writes inspector-extracted raw metadata onto a not-yet-confirmed
+     * revision. Once an administrator has confirmed the package, inspection
+     * results never override the human-confirmed state.
+     */
+    @Transactional
+    public void applyInspectionExtractedFields(Long packageRevisionId, String rawVersionFieldsJson) {
+        SoftwarePackageRevision revision = requirePackage(packageRevisionId);
+        if (revision.isConfirmed()) {
+            return;
+        }
+        revision.fillInRawVersionFields(rawVersionFieldsJson);
+        packageRepository.save(revision);
     }
 
     @Transactional
