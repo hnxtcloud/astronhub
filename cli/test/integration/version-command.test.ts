@@ -24,6 +24,15 @@ describe('version command', () => {
     })
   })
 
+  test.each(['--version', '-v'])('%s prints the same human-readable version', async flag => {
+    const shortcut = await runCli([flag])
+    const command = await runCli(['version'])
+
+    expect(shortcut.exitCode).toBe(0)
+    expect(shortcut.stdout).toBe(command.stdout)
+    expect(shortcut.stderr).toBe('')
+  })
+
   test('built npm artifact runs on node without Bun runtime', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'skillhub-node-build-'))
     const outfile = join(dir, 'index.js')
@@ -39,19 +48,22 @@ describe('version command', () => {
     })
     expect(await build.exited).toBe(0)
 
-    const node = Bun.spawn({
-      cmd: ['node', outfile, 'version'],
-      stdout: 'pipe',
-      stderr: 'pipe'
-    })
-    const [stdout, stderr, exitCode] = await Promise.all([
-      new Response(node.stdout).text(),
-      new Response(node.stderr).text(),
-      node.exited
-    ])
+    for (const args of [['version'], ['--version'], ['-v']]) {
+      const node = Bun.spawn({
+        cmd: ['node', outfile, ...args],
+        stdout: 'pipe',
+        stderr: 'pipe'
+      })
+      const [stdout, stderr, exitCode] = await Promise.all([
+        new Response(node.stdout).text(),
+        new Response(node.stderr).text(),
+        node.exited
+      ])
 
-    expect(exitCode).toBe(0)
-    expect(stdout).toContain('SkillHub CLI')
-    expect(stderr).toBe('')
+      expect(exitCode).toBe(0)
+      expect(stdout).toContain('SkillHub CLI')
+      expect(stdout).toContain(CLI_VERSION)
+      expect(stderr).toBe('')
+    }
   })
 })

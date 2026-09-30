@@ -1,6 +1,7 @@
 package com.iflytek.skillhub.service;
 
 import com.iflytek.skillhub.auth.rbac.RbacService;
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.audit.AuditLogService;
 import com.iflytek.skillhub.domain.label.LabelDefinition;
 import com.iflytek.skillhub.domain.label.LabelDefinitionService;
@@ -62,7 +63,7 @@ public class LabelAdminAppService {
                 userId,
                 platformRoles(userId)
         );
-        recordAudit("LABEL_CREATE", userId, labelDefinition.getId(), auditContext, "{\"slug\":\"" + labelDefinition.getSlug() + "\"}");
+        recordAudit("LABEL_CREATE", userId, labelDefinition.getId(), auditContext, AuditDetail.of("slug", labelDefinition.getSlug()));
         return toResponse(labelDefinition);
     }
 
@@ -87,7 +88,7 @@ public class LabelAdminAppService {
         if (!affectedSkillIds.isEmpty()) {
             afterCommit(() -> labelSearchSyncService.rebuildSkills(affectedSkillIds));
         }
-        recordAudit("LABEL_UPDATE", userId, updated.getId(), auditContext, "{\"slug\":\"" + updated.getSlug() + "\"}");
+        recordAudit("LABEL_UPDATE", userId, updated.getId(), auditContext, AuditDetail.of("slug", updated.getSlug()));
         return toResponse(updated);
     }
 
@@ -102,7 +103,7 @@ public class LabelAdminAppService {
         if (!affectedSkillIds.isEmpty()) {
             afterCommit(() -> labelSearchSyncService.rebuildSkills(affectedSkillIds));
         }
-        recordAudit("LABEL_DELETE", userId, existing.getId(), auditContext, "{\"slug\":\"" + slug + "\"}");
+        recordAudit("LABEL_DELETE", userId, existing.getId(), auditContext, AuditDetail.of("slug", slug));
     }
 
     @Transactional
@@ -118,7 +119,7 @@ public class LabelAdminAppService {
         List<LabelDefinitionResponse> responses = labelDefinitionService.updateSortOrders(updates, platformRoles(userId)).stream()
                 .map(this::toResponse)
                 .toList();
-        recordAudit("LABEL_SORT_ORDER_UPDATE", userId, null, auditContext, "{\"count\":" + request.items().size() + "}");
+        recordAudit("LABEL_SORT_ORDER_UPDATE", userId, null, auditContext, AuditDetail.of("count", request.items().size()));
         return responses;
     }
 

@@ -40,6 +40,21 @@ spec:
                   name: skillhub-secret
                   key: skill-scanner-llm-model
                   optional: true
+            - name: SKILLHUB_SCANNER_MAX_CONCURRENT_SCANS
+              valueFrom:
+                configMapKeyRef:
+                  name: skillhub-config
+                  key: skill-scanner-max-concurrent-scans
+            - name: SKILLHUB_SCANNER_HARD_TIMEOUT_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: skillhub-config
+                  key: skill-scanner-hard-timeout-seconds
+            - name: SKILLHUB_SCANNER_MAX_UPLOAD_SIZE_BYTES
+              valueFrom:
+                configMapKeyRef:
+                  name: skillhub-config
+                  key: skill-scanner-max-upload-size-bytes
           readinessProbe:
             httpGet:
               path: /health

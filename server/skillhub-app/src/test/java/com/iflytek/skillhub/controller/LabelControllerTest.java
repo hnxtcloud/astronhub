@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,5 +60,11 @@ class LabelControllerTest {
                 .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data[0].slug").value("code-generation"))
                 .andExpect(jsonPath("$.data[0].displayName").value("Code Generation"));
+    }
+
+    @Test
+    void labelMutationShouldNotUseThePublicGetOnlySecurityChain() throws Exception {
+        mockMvc.perform(post("/api/v1/labels"))
+                .andExpect(status().isUnauthorized());
     }
 }

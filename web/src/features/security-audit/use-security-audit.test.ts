@@ -12,12 +12,22 @@ import { describe, expect, it, vi } from 'vitest'
 
 // Capture the options passed to useQuery so we can assert on them.
 let capturedOptions: Record<string, unknown> | undefined
+let capturedMutationOptions: Record<string, unknown> | undefined
+const apiMocks = vi.hoisted(() => ({
+  fetchJson: vi.fn(),
+  getCsrfHeaders: vi.fn(() => ({ 'X-XSRF-TOKEN': 'csrf-token' })),
+}))
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: (options: Record<string, unknown>) => {
     capturedOptions = options
     return { data: undefined, isLoading: false }
   },
+  useMutation: (options: Record<string, unknown>) => {
+    capturedMutationOptions = options
+    return { mutate: vi.fn(), isPending: false }
+  },
+  useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }))
 
 // Mock fetchJson to avoid actual network calls.  The hook's queryFn
@@ -30,11 +40,12 @@ vi.mock('@/api/client', () => ({
       this.status = status
     }
   },
-  fetchJson: vi.fn(),
+  fetchJson: apiMocks.fetchJson,
+  getCsrfHeaders: apiMocks.getCsrfHeaders,
 }))
 
 // Dynamic import to ensure mocks are established first.
-const { useSecurityAudits } = await import('./use-security-audit')
+const { useRetrySecurityScan, useSecurityAudits } = await import('./use-security-audit')
 
 describe('useSecurityAudits', () => {
   it('uses the correct query key structure', () => {
@@ -77,5 +88,18 @@ describe('useSecurityAudits', () => {
     useSecurityAudits(1, 2)
 
     expect(capturedOptions?.retry).toBe(false)
+  })
+
+  it('sends the CSRF header when retrying a security scan', async () => {
+    apiMocks.fetchJson.mockResolvedValueOnce({ status: 'SCANNING' })
+    useRetrySecurityScan(42, 100)
+
+    await (capturedMutationOptions?.mutationFn as () => Promise<unknown>)()
+
+    expect(apiMocks.getCsrfHeaders).toHaveBeenCalledOnce()
+    expect(apiMocks.fetchJson).toHaveBeenCalledWith(
+      '/api/v1/skills/42/versions/100/security-audit/retry',
+      { method: 'POST', headers: { 'X-XSRF-TOKEN': 'csrf-token' } },
+    )
   })
 })

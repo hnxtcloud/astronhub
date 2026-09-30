@@ -34,6 +34,36 @@
         }
       }
     },
+    "oauth2": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["feishu", "dingtalk"],
+      "properties": {
+        "feishu": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["protocolVersion", "tokenUri"],
+          "properties": {
+            "authorizationUri": { "type": "string", "format": "uri" },
+            "protocolVersion": { "type": "string", "enum": ["v2", "v3"] },
+            "tokenUri": { "type": "string", "format": "uri" },
+            "userInfoUri": { "type": "string", "format": "uri" },
+            "redirectUri": { "type": "string" }
+          }
+        },
+        "dingtalk": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["authorizeBaseUri", "apiBaseUri", "redirectUri", "displayName"],
+          "properties": {
+            "authorizeBaseUri": { "type": "string", "format": "uri" },
+            "apiBaseUri": { "type": "string", "format": "uri" },
+            "redirectUri": { "type": "string" },
+            "displayName": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
     "builtinSkills": {
       "type": "object",
       "additionalProperties": false,
@@ -156,6 +186,10 @@
         "downloadAnonCookieSecret": { "type": "string" },
         "oauth2GithubClientId": { "type": "string" },
         "oauth2GithubClientSecret": { "type": "string" },
+        "oauth2FeishuClientId": { "type": "string" },
+        "oauth2FeishuClientSecret": { "type": "string" },
+        "oauth2DingtalkClientId": { "type": "string" },
+        "oauth2DingtalkClientSecret": { "type": "string" },
         "scannerLlmApiKey": { "type": "string" },
         "scannerLlmBaseUrl": { "type": "string" },
         "scannerLlmModel": { "type": "string" }
@@ -370,10 +404,11 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["enabled", "replicaCount", "image", "dependencyWait", "service", "storage", "podSecurityContext", "resources", "javaOpts", "extraEnv", "podAnnotations", "imagePullSecrets", "nodeSelector", "tolerations", "affinity", "probes", "autoscaling", "podDisruptionBudget"],
+          "required": ["enabled", "replicaCount", "suiteReviewWritesEnabled", "image", "dependencyWait", "service", "storage", "podSecurityContext", "resources", "javaOpts", "extraEnv", "podAnnotations", "imagePullSecrets", "nodeSelector", "tolerations", "affinity", "probes", "autoscaling", "podDisruptionBudget"],
           "properties": {
             "enabled": { "type": "boolean" },
             "replicaCount": { "type": "integer", "minimum": 1 },
+            "suiteReviewWritesEnabled": { "type": "boolean" },
             "image": { "$ref": "#/definitions/image" },
             "dependencyWait": {
               "type": "object",
@@ -461,10 +496,11 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["enabled", "replicaCount", "image", "service", "resources", "extraEnv", "podAnnotations", "imagePullSecrets", "nodeSelector", "tolerations", "affinity", "probes", "autoscaling", "podDisruptionBudget"],
+          "required": ["enabled", "replicaCount", "maxUploadSizeBytes", "image", "service", "resources", "extraEnv", "podAnnotations", "imagePullSecrets", "nodeSelector", "tolerations", "affinity", "probes", "autoscaling", "podDisruptionBudget"],
           "properties": {
             "enabled": { "type": "boolean" },
             "replicaCount": { "type": "integer", "minimum": 1 },
+            "maxUploadSizeBytes": { "type": "integer", "minimum": 110100480 },
             "image": { "$ref": "#/definitions/image" },
             "service": {
               "type": "object",

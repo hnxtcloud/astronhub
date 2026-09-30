@@ -96,7 +96,7 @@ if [ "$SKILLHUB_WEB_BASE_PATH" = / ]; then
     >"$routing_config"
 else
   base_path_without_trailing_slash=${SKILLHUB_WEB_BASE_PATH%/}
-  printf 'set $skillhub_forwarded_prefix %s;\n\nlocation = %s {\n    return 301 %s/;\n}\n\nlocation ^~ %s {\n    rewrite ^%s(.*)$ /$1 last;\n}\n' \
+  printf 'set $skillhub_forwarded_prefix %s;\n\nlocation = %s {\n    absolute_redirect off;\n    return 301 %s/;\n}\n\nlocation ^~ %s {\n    rewrite ^%s(.*)$ /$1 last;\n}\n' \
     "$base_path_without_trailing_slash" \
     "$base_path_without_trailing_slash" \
     "$base_path_without_trailing_slash" \

@@ -133,6 +133,38 @@ class CliSkillControllerTest {
     }
 
     @Test
+    void namespaceSyncReturnsCursorResponseForValidBearer() throws Exception {
+        ApiToken token = new ApiToken("sync-user", "cli", "sk_test", "hash", "[]");
+        UserAccount user = new UserAccount("sync-user", "Sync User", "sync@example.com", "");
+        var response = new com.iflytek.skillhub.dto.cli.CliNamespaceSyncResponse(
+                List.of(new com.iflytek.skillhub.dto.cli.CliNamespaceSyncItemResponse(
+                        "team-a", "demo", "1.0.0", 42L, "sha256:fingerprint",
+                        java.time.Instant.parse("2026-08-20T00:00:00Z"), "NAMESPACE_ONLY",
+                        "/api/v1/skills/team-a/demo/versions/1.0.0/download"
+                )),
+                "2"
+        );
+
+        given(apiTokenService.validateToken("sync-token")).willReturn(Optional.of(token));
+        given(userAccountRepository.findById("sync-user")).willReturn(Optional.of(user));
+        given(userRoleBindingRepository.findByUserId("sync-user")).willReturn(List.of());
+        given(cliSkillAppService.listNamespaceSkills("team-a", 1, 25, "sync-user", Map.of()))
+                .willReturn(response);
+
+        mockMvc.perform(get("/api/cli/v1/namespaces/team-a/skills")
+                        .param("cursor", "1")
+                        .param("limit", "25")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer sync-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items[0].namespace").value("team-a"))
+                .andExpect(jsonPath("$.data.items[0].slug").value("demo"))
+                .andExpect(jsonPath("$.data.items[0].version").value("1.0.0"))
+                .andExpect(jsonPath("$.data.nextCursor").value("2"));
+
+        verify(cliSkillAppService).listNamespaceSkills("team-a", 1, 25, "sync-user", Map.of());
+    }
+
+    @Test
     void resolveReturnsCliResolveResponse() throws Exception {
         given(cliSkillAppService.resolve("global", "demo", null, null, null)).willReturn(
                 new com.iflytek.skillhub.dto.cli.CliResolveResponse(

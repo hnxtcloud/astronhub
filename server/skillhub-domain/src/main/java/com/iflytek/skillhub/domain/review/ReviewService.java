@@ -1,6 +1,7 @@
 package com.iflytek.skillhub.domain.review;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.namespace.Namespace;
 import com.iflytek.skillhub.domain.namespace.NamespaceRepository;
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
@@ -110,7 +111,8 @@ public class ReviewService {
         skillVersion.setStatus(SkillVersionStatus.PENDING_REVIEW);
         skillVersionRepository.save(skillVersion);
 
-        ReviewTask task = new ReviewTask(skillVersionId, skill.getNamespaceId(), userId);
+        ReviewTask task = new ReviewTask(
+                skillVersionId, skill.getId(), skill.getNamespaceId(), skillVersion.getVersion(), userId);
         try {
             ReviewTask saved = reviewTaskRepository.save(task);
             eventPublisher.publishEvent(new ReviewSubmittedEvent(
@@ -152,7 +154,8 @@ public class ReviewService {
         skillVersion.setStatus(SkillVersionStatus.PENDING_REVIEW);
         skillVersionRepository.save(skillVersion);
 
-        ReviewTask task = new ReviewTask(skillVersionId, skill.getNamespaceId(), userId);
+        ReviewTask task = new ReviewTask(
+                skillVersionId, skill.getId(), skill.getNamespaceId(), skillVersion.getVersion(), userId);
         try {
             ReviewTask saved = reviewTaskRepository.save(task);
             eventPublisher.publishEvent(new ReviewSubmittedEvent(
@@ -241,7 +244,7 @@ public class ReviewService {
                 "REVIEW_TASK",
                 reviewTaskId,
                 "Review approved",
-                "{\"status\":\"APPROVED\"}"
+                AuditDetail.of("status", "APPROVED")
         );
 
         return task;
@@ -294,7 +297,7 @@ public class ReviewService {
                 "REVIEW_TASK",
                 reviewTaskId,
                 "Review rejected",
-                "{\"status\":\"REJECTED\"}"
+                AuditDetail.of("status", "REJECTED")
         );
 
         return task;

@@ -37,6 +37,34 @@ fi
 grep -Fq 'fsGroup: 101' "$TMP_DIR/default.yaml"
 grep -Fq 'fsGroupChangePolicy: OnRootMismatch' "$TMP_DIR/default.yaml"
 grep -Fq 'type: Recreate' "$TMP_DIR/default.yaml"
+grep -A1 -F 'name: SKILLHUB_SUITE_REVIEW_WRITES_ENABLED' "$TMP_DIR/default.yaml" \
+  | grep -Fq 'value: "false"'
+if grep -Fq 'name: OAUTH2_FEISHU_REDIRECT_URI' "$TMP_DIR/default.yaml"; then
+  fail "default Helm rendering must omit an empty Feishu redirect URI so Spring can derive baseUrl"
+fi
+if grep -Fq 'name: OAUTH2_DINGTALK_REDIRECT_URI' "$TMP_DIR/default.yaml"; then
+  fail "default Helm rendering must omit an empty DingTalk redirect URI so Spring can derive baseUrl"
+fi
+
+render feishu-redirect "$CHART_DIR" \
+  --set-string oauth2.feishu.redirectUri=https://skills.example.com/login/oauth2/code/feishu \
+  --show-only templates/server-deployment.yaml >"$TMP_DIR/feishu-redirect.yaml"
+grep -A1 -F 'name: OAUTH2_FEISHU_REDIRECT_URI' "$TMP_DIR/feishu-redirect.yaml" \
+  | grep -Fq 'value: "https://skills.example.com/login/oauth2/code/feishu"' \
+  || fail "Helm must inject an explicitly configured Feishu redirect URI"
+
+render dingtalk-redirect "$CHART_DIR" \
+  --set-string oauth2.dingtalk.redirectUri=https://skills.example.com/login/oauth2/code/dingtalk \
+  --show-only templates/server-deployment.yaml >"$TMP_DIR/dingtalk-redirect.yaml"
+grep -A1 -F 'name: OAUTH2_DINGTALK_REDIRECT_URI' "$TMP_DIR/dingtalk-redirect.yaml" \
+  | grep -Fq 'value: "https://skills.example.com/login/oauth2/code/dingtalk"' \
+  || fail "Helm must inject an explicitly configured DingTalk redirect URI"
+
+render suite-review-enabled "$CHART_DIR" \
+  --set server.suiteReviewWritesEnabled=true \
+  --show-only templates/server-deployment.yaml >"$TMP_DIR/suite-review-enabled.yaml"
+grep -A1 -F 'name: SKILLHUB_SUITE_REVIEW_WRITES_ENABLED' "$TMP_DIR/suite-review-enabled.yaml" \
+  | grep -Fq 'value: "true"'
 
 render custom-server-fsgroup "$CHART_DIR" \
   --set server.podSecurityContext.fsGroup=2000 \
@@ -55,6 +83,17 @@ stable_args=(
 render stable "$CHART_DIR" "${stable_args[@]}" >"$TMP_DIR/stable-a.yaml"
 render stable "$CHART_DIR" "${stable_args[@]}" >"$TMP_DIR/stable-b.yaml"
 cmp "$TMP_DIR/stable-a.yaml" "$TMP_DIR/stable-b.yaml"
+
+render dingtalk "$CHART_DIR" "${stable_args[@]}" \
+  --set-string secrets.oauth2DingtalkClientId=ding-test \
+  --set-string secrets.oauth2DingtalkClientSecret=dingtalk-test-secret \
+  >"$TMP_DIR/dingtalk.yaml"
+grep -Fq 'oauth2-dingtalk-client-id: "ding-test"' "$TMP_DIR/dingtalk.yaml" \
+  || fail "Helm must render the configured DingTalk client id"
+grep -Fq 'oauth2-dingtalk-client-secret: "dingtalk-test-secret"' "$TMP_DIR/dingtalk.yaml" \
+  || fail "Helm must render the configured DingTalk client secret"
+grep -Fq 'name: OAUTH2_DINGTALK_CLIENT_ID' "$TMP_DIR/dingtalk.yaml" \
+  || fail "server deployment must inject the DingTalk client id"
 
 render private-registry "$CHART_DIR" \
   --set server.dependencyWait.image.registry=registry.example.com \

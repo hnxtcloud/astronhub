@@ -2,6 +2,7 @@ package com.iflytek.skillhub.controller;
 
 import com.iflytek.skillhub.auth.device.DeviceAuthService;
 import com.iflytek.skillhub.auth.rbac.PlatformPrincipal;
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.audit.AuditLogService;
 import com.iflytek.skillhub.dto.ApiResponse;
 import com.iflytek.skillhub.dto.ApiResponseFactory;
@@ -51,7 +52,7 @@ public class DeviceAuthWebController extends BaseApiController {
             requestIdAccessor.current(),
             httpRequest.getRemoteAddr(),
             httpRequest.getHeader("User-Agent"),
-            "{\"userCode\":\"" + request.userCode() + "\"}"
+            AuditDetail.of("userCode", request.userCode())
         );
         return ok("response.success.updated", new MessageResponse("Device authorized successfully"));
     }

@@ -21,6 +21,7 @@ skillhub:
       enabled: ${SKILLHUB_SECURITY_SCANNER_ENABLED:true}
       base-url: ${SKILLHUB_SECURITY_SCANNER_URL:http://localhost:8000}
       mode: ${SKILLHUB_SECURITY_SCANNER_MODE:local}
+      read-timeout-ms: ${SKILLHUB_SECURITY_SCANNER_READ_TIMEOUT:900000}
 
       # 分析器配置
       analyzers:
@@ -39,6 +40,10 @@ skillhub:
         preset: ${SKILLHUB_SCANNER_POLICY_PRESET:balanced}
         custom-policy-path: ${SKILLHUB_SCANNER_CUSTOM_POLICY_PATH:}
         fail-on-severity: ${SKILLHUB_SCANNER_FAIL_ON_SEVERITY:high}
+
+    stream:
+      # Keep this greater than scanner.read-timeout-ms.
+      reclaim-min-idle: ${SKILLHUB_SCAN_STREAM_RECLAIM_MIN_IDLE:PT16M}
 ```
 
 ## 配置项详解
@@ -109,6 +114,15 @@ mode: upload
 # Kubernetes 环境（独立 Pod）
 mode: upload
 ```
+
+#### 扫描超时与并发
+
+- `SKILLHUB_SECURITY_SCANNER_READ_TIMEOUT`：服务端等待单次扫描的毫秒数，默认 15 分钟。
+- `SKILLHUB_SCAN_STREAM_RECLAIM_MIN_IDLE`：未确认任务允许被恢复的等待时间，应大于扫描超时，默认 16 分钟。
+- `SKILLHUB_SCANNER_MAX_CONCURRENT_SCANS`：Scanner 容器内的最大并发扫描数，默认 `1`；超出的请求返回 HTTP 503，由待处理消息稍后重试。
+- `SKILLHUB_SCANNER_HARD_TIMEOUT_SECONDS`：Scanner 单次工作的硬上限，默认 930 秒。超时后进程以状态码 `124` 退出，由 Compose/Kubernetes 重启；默认关系为服务端等待 900 秒 < Scanner 硬上限 930 秒 < Redis 恢复等待 960 秒。进程退出会使同容器内其他扫描稍后重试，因此建议保持默认并发数 `1`。
+
+Scanner 超时或暂时不可用（包括 429、5xx）时，版本不会进入 `SCAN_FAILED`。任务保留为待处理，版本保持 `SCANNING`，待 Scanner 恢复后自动继续。确定性的 4xx 包校验错误仍采用有限次数重试，最终可以进入 `SCAN_FAILED`。某个包若稳定触发 Scanner 内部 500，会保持 `SCANNING` 等待 Scanner 修复，而不会被误判为包本身不合格。
 
 ---
 

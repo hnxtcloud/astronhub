@@ -94,7 +94,8 @@ astron:
 - `DENY`：抛出 `OAuth2AccessDeniedException`，由 `failureHandler` 重定向到 `/access-denied` 页面。不创建用户，不建立 Session。
 - `PENDING_APPROVAL`：创建 `user_account`（status=`PENDING`），但不建立业务 Session。抛出 `AccountPendingException`，由 `failureHandler` 重定向到 `/pending-approval` 页面（纯静态提示页，无需登录态）。管理员在后台审批后状态变为 `ACTIVE`，用户下次 OAuth 登录才会正常建立 Session。
 
-安全边界：PENDING / DISABLED 用户绝不会拥有有效的业务 Session，从根源上杜绝"待审批账号已认证"的风险。
+安全边界：PENDING / DISABLED / MERGED 用户和 system account 绝不会通过交互式登录获得
+业务 Session。外部身份命中这些账号时，在更新用户资料或加载角色前直接拒绝。
 
 ### 2.3 扩展性
 
@@ -270,18 +271,99 @@ spring:
             client-id: ${OAUTH2_GITHUB_CLIENT_ID}
             client-secret: ${OAUTH2_GITHUB_CLIENT_SECRET}
             scope: read:user,user:email
-          # 二期扩展示例:
-          # gitlab:
-          #   client-id: ...
-          #   authorization-grant-type: authorization_code
-          # google:
-          #   client-id: ...
+          gitlab:
+            client-id: ${OAUTH2_GITLAB_CLIENT_ID}
+            client-secret: ${OAUTH2_GITLAB_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+          feishu:
+            provider: feishu
+            client-id: ${OAUTH2_FEISHU_CLIENT_ID}
+            client-secret: ${OAUTH2_FEISHU_CLIENT_SECRET}
+            # 飞书的 scope 配在开放平台应用上，不在这里传
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+          dingtalk:
+            client-id: ${OAUTH2_DINGTALK_CLIENT_ID}
+            client-secret: ${OAUTH2_DINGTALK_CLIENT_SECRET}
+            # 故意不声明 scope：钉钉的授权端点要 scope=openid，但在这里声明会让
+            # Spring 把该注册当成 OIDC 客户端并附加 nonce，而钉钉不接受 nonce。
+            # scope=openid 与 prompt=consent 由 DingTalkAuthorizationRequestCustomizer
+            # 在请求阶段补上。
+            # 钉钉是 confidential client，只是由自定义 token client 把 secret 放进 JSON body。
+            # 不使用 none，避免 Spring 自动添加本实现无法应答的 PKCE challenge。
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+        provider:
+          feishu:
+            # Full endpoints are configurable for Lark, private deployments, and gateways.
+            authorization-uri: ${OAUTH2_FEISHU_AUTHORIZATION_URI:${OAUTH2_FEISHU_AUTHORIZE_URI:https://accounts.feishu.cn}/open-apis/authen/v1/authorize}
+            # OAUTH2_FEISHU_PROTOCOL_VERSION supports v2 and v3; default is v3.
+            token-uri: ${OAUTH2_FEISHU_TOKEN_URI:https://accounts.feishu.cn/oauth/v3/token}
+            user-info-uri: ${OAUTH2_FEISHU_USER_INFO_URI:${OAUTH2_FEISHU_BASE_URI:https://open.feishu.cn}/open-apis/authen/v1/user_info}
 ```
 
 Spring Security OAuth2 Client 原生支持多 Provider 并存，新增 Provider 只需：
-1. `application.yml` 添加 registration 配置
-2. `CustomOAuth2UserService` 中按 `registrationId` 分支处理用户属性映射
-3. 前端登录页增加对应按钮（通过 `/api/v1/auth/providers` 自动发现）
+1. `application.yml` 添加 registration 与 provider 配置
+2. 实现一个 `OAuthClaimsExtractor`，把该 Provider 的属性映射成统一的 `OAuthClaims`
+3. 登录页无需改代码：`/api/v1/auth/methods` 只返回配置了真实 client id 的注册，
+   图标按 provider 名解析为 `/{provider}-logo.svg`
+
+第 2 步是按 Provider 注册一个 Bean，而不是在某个类里按 `registrationId` 分支。
+账号匹配、建号、资料权威和账号守卫都在 `OAuthClaims` 之后共享，Provider 自己不做这些决策。
+
+如果该 Provider 的协议有偏离标准之处，按偏离的环节实现对应的策略接口，
+每个接口都声明自己负责哪个 `registrationId`，由框架分发，不需要在共享类里写分支：
+
+| 偏离环节 | 策略接口 | 现有实现 |
+|---|---|---|
+| 授权请求参数 | `ProviderAuthorizationRequestCustomizer` | 钉钉补 `scope=openid` 与 `prompt=consent` |
+| token 交换 | `ProviderTokenResponseClient` | 钉钉用 JSON body 而非表单 |
+| userinfo 加载 | `ProviderOAuth2UserService` | 飞书拆信封；钉钉用自定义 token header |
+
+以 userinfo 为例：飞书用 `{code, msg, data}` 信封且以 HTTP 200 返回错误，
+钉钉则把 token 放在 `x-acs-dingtalk-access-token` 而不是 `Authorization: Bearer`。
+两者都只接管加载步骤，其余流程不变。该覆盖运行在
+`RemoteIdentityIoExecutor` 边界内，因此 Provider 的 HTTP 调用不会持有数据库事务。
+
+Provider 的实现**不得**自己做账号决策 —— 不建号、不绑定、不建 session。
+这些一律交给统一身份核心，否则每个 Provider 都会长出一套账号逻辑，
+正是统一身份认证要消除的问题。
+
+Provider 侧还需遵守：subject 必须稳定（不要用可能在两次登录间变化的字段做
+fallback，否则同一个人会被拆成两个平台账号）、只有在 Provider 真正证明了邮箱
+所有权时才置 `emailVerified=true`、远程调用要有超时与响应大小上限、
+claims 提取过程不记录 subject/email/token。
+
+钉钉公共 Provider 的主 subject 固定为 `unionId`。`openId` 是应用作用域，`userId`
+是组织作用域，都不能作为登录时的自动 fallback；否则一次字段缺失或连接变化就可能让
+同一用户生成新的平台账号。当前版本不执行别名迁移。后续如果要兼容历史 `openId` /
+`userId` 绑定、切换 subject，或把协议代码复用到企业钉钉连接，必须走显式迁移：
+先离线生成候选 alias 与冲突报告，再经管理员确认写入 alias/binding 记录；运行时
+不得静默改键，也不得仅凭邮箱或昵称合并账号。
+
+#### 飞书 token 协议版本
+
+飞书 token client 支持显式选择 `v2` 或 `v3`，默认值为 `v3`：
+
+```bash
+OAUTH2_FEISHU_PROTOCOL_VERSION=v3
+OAUTH2_FEISHU_AUTHORIZATION_URI=https://accounts.feishu.cn/open-apis/authen/v1/authorize
+OAUTH2_FEISHU_TOKEN_URI=https://accounts.feishu.cn/oauth/v3/token
+OAUTH2_FEISHU_USER_INFO_URI=https://open.feishu.cn/open-apis/authen/v1/user_info
+OAUTH2_FEISHU_REDIRECT_URI=
+
+# 历史 v2 应用可显式切换：
+# OAUTH2_FEISHU_PROTOCOL_VERSION=v2
+# OAUTH2_FEISHU_TOKEN_URI=https://open.feishu.cn/open-apis/authen/v2/oauth/token
+```
+
+两个版本都使用 JSON authorization-code exchange，当前实现会根据协议版本
+选择对应的标准 token endpoint；如需代理、区域或私有化 endpoint，可通过
+`OAUTH2_FEISHU_TOKEN_URI` 覆盖。授权和 userinfo endpoint 也分别通过
+`OAUTH2_FEISHU_AUTHORIZATION_URI`、`OAUTH2_FEISHU_USER_INFO_URI` 配置。协议版本不合法
+时发布配置校验失败，应用也会拒绝启动。不会在 v3 失败后自动使用 v2，因为 authorization code 只能使用一次，
+自动重试可能造成重复请求并掩盖配置错误。旧的 `OAUTH2_FEISHU_AUTHORIZE_URI` 和
+`OAUTH2_FEISHU_BASE_URI` 仍作为 base-URI 兼容回退，但新部署应使用完整 endpoint 变量。
 
 ## 4. 核心接口设计
 
@@ -361,7 +443,8 @@ public class OAuthClaimsExtractor {
 合并操作规则：
 - 合并操作写入审计日志
 - 合并后原 user_account 标记为 `MERGED`，保留记录不物理删除
-- 预留扩展位：未来可配置 `astron.identity.auto-merge-on-verified-email=true` 开启基于已验证邮箱的自动合并
+- 不提供按 email 自动合并；即使 Provider 声明 email 已验证，也不能替代对两个账号控制权
+  的分别证明。未来绑定/合并必须使用显式、可审计的重新认证流程。
 
 ## 5. CLI 认证（OAuth Device Flow + 平台凭证）
 
@@ -379,6 +462,7 @@ API Token 仍保留，但定位从“CLI 唯一认证方式”调整为“平台
 - 校验：从 `Authorization: Bearer <token>` 提取 → 哈希比对 → 加载关联用户 → 检查用户状态
 - 失败闭合与身份优先级：共享认证过滤器只识别 Bearer scheme。有效 Bearer 覆盖已加载的 Web Session 身份；Bearer 为空、格式错误、未知、过期、已吊销、用户缺失或用户禁用时立即返回 401，即使存在有效 Session 也不得回退。缺少 `Authorization` 头或使用 Basic/其他非 Bearer scheme 时保留有效 Session；若无 Session，公共读接口按匿名访问，`whoami` 返回 401
 - 作用域：`skill:read`, `skill:publish`, `skill:delete`, `token:manage`
+- 默认权限：Web 自助创建和 CLI Device Flow 均签发 `skill:read`、`skill:publish`、`skill:delete`；`token:manage` 仅在调用方显式请求时授予
 - 拒绝原因：API Token 缺少作用域或不能访问某个接口时，403 响应返回本地化的安全原因和 `requestId`；其他授权失败仍返回通用信息，避免暴露内部异常
 
 > **一期作用域说明（非最小权限）**：一期 Token 作用域为粗粒度动作级别，不与 namespace 绑定。Token 继承用户的全部权限——如果用户是某个 namespace 的 MEMBER，则该用户的任何 Token（只要包含 `skill:publish` scope）都可以向该 namespace 发布技能。这是有意的一期简化，不满足最小权限原则。后续版本计划引入 namespace 级别的 Token 作用域限定（如 `namespace:ai-team:skill:publish`），或通过 `api_token_scope` 子表实现 Token 与 namespace 的绑定。
@@ -619,6 +703,7 @@ window.location.href = '/oauth2/authorization/github'
 | `POST /api/v1/skills/{ns}/{slug}/archive` | namespace ADMIN 以上 或 owner | `namespace_member.role` 或 `skill.owner_id` |
 | `POST .../versions/{ver}/rerelease` | namespace ADMIN 以上 或 owner；源版本必须 `PUBLISHED` | `namespace_member.role` 或 `skill.owner_id` + `skill_version.status` |
 | `DELETE .../versions/{ver}` | namespace ADMIN 以上 或 owner（仅 `DRAFT` / `REJECTED`） | `namespace_member.role` 或 `skill.owner_id` + `skill_version.status` |
+| `POST .../versions/{ver}/yank` | namespace ADMIN 以上 或 owner；版本必须 `PUBLISHED`；API Token 需 `skill:publish` | `namespace_member.role` 或 `skill.owner_id` + `skill_version.status` |
 
 ### 10.3 CLI API
 

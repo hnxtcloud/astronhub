@@ -23,11 +23,12 @@ RUN ./mvnw package -DskipTests -B
 # The Noble variant publishes a linux/riscv64 image; the Alpine JRE currently
 # used by this project is limited to amd64 and arm64.
 FROM eclipse-temurin:21-jre-noble
+# Keep the Alpine image's numeric IDs so existing storage volumes remain writable.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends wget && \
     rm -rf /var/lib/apt/lists/* && \
-    groupadd --system app && \
-    useradd --system --gid app --create-home app
+    groupadd --system --gid 101 app && \
+    useradd --system --uid 100 --gid app --create-home app
 WORKDIR /app
 
 COPY --from=build /app/skillhub-app/target/*.jar app.jar

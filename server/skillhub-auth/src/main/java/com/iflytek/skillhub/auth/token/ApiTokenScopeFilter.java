@@ -1,6 +1,7 @@
 package com.iflytek.skillhub.auth.token;
 
 import com.iflytek.skillhub.auth.rbac.PlatformPrincipal;
+import com.iflytek.skillhub.auth.policy.RouteSecurityPolicyRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,9 +48,10 @@ public class ApiTokenScopeFilter extends OncePerRequestFilter {
             .map(authority -> authority.substring("SCOPE_".length()))
             .collect(Collectors.toSet());
 
+        String requestPath = RouteSecurityPolicyRegistry.requestPath(request);
         ApiTokenScopeService.AuthorizationDecision decision = apiTokenScopeService.authorize(
             request.getMethod(),
-            request.getRequestURI(),
+            requestPath,
             tokenScopes
         );
 
@@ -60,13 +62,13 @@ public class ApiTokenScopeFilter extends OncePerRequestFilter {
 
         ApiTokenAccessDeniedException exception = decision.requiredScope() != null
                 ? ApiTokenAccessDeniedException.missingScope(decision.requiredScope())
-                : ApiTokenAccessDeniedException.unsupportedEndpoint(request.getRequestURI());
+                : ApiTokenAccessDeniedException.unsupportedEndpoint(requestPath);
         accessDeniedHandler.handle(request, response, exception);
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
+        String path = RouteSecurityPolicyRegistry.requestPath(request);
         return path == null || (!path.startsWith("/api/v1/")
                 && !path.startsWith("/api/web/")
                 && !path.startsWith("/api/cli/"));

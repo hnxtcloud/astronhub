@@ -18,8 +18,8 @@ bun add -g @astron-team/skillhub
 ## 🚀 Quick Start
 
 ```bash
-# Login
-skillhub login --token sk_xxx
+# Log in interactively with OAuth Device Flow
+skillhub login
 
 # Search skills
 skillhub search pdf
@@ -32,6 +32,9 @@ skillhub list
 
 # Publish skill
 skillhub publish ./my-skill --namespace myspace
+
+# Synchronize a team workspace
+skillhub sync pull --namespace myspace
 ```
 
 ## 🌐 Registry Configuration
@@ -65,7 +68,8 @@ set SKILLHUB_REGISTRY=https://skillhub.example.com
 
 ## 🔐 Authentication
 
-Token resolution priority:
+`skillhub login` uses OAuth Device Flow when no API token is supplied. Token resolution priority for
+explicit token-based login and all other authenticated commands is:
 
 1. `--token <token>` command-line argument
 2. `SKILLHUB_TOKEN` environment variable
@@ -74,14 +78,27 @@ Token resolution priority:
 ### Login
 
 ```bash
-# Login with API token
-skillhub login --token sk_xxx
+# Interactive login: opens the registry's verification page and displays a user code
+skillhub login
 
-# Login to specific registry
+# Interactive login on a remote/headless terminal
+skillhub login --no-open --registry https://skillhub.example.com
+
+# Non-interactive login with an API token
 skillhub login --token sk_xxx --registry https://skillhub.example.com
 ```
 
-`login` validates the token, stores it in `~/.skillhub/credentials.json`, and writes the registry to `~/.skillhub/config.json`.
+During interactive login, complete authentication in the browser and enter the displayed user code.
+The CLI polls only until the server-provided expiry. It then validates the issued token, stores it in
+`~/.skillhub/credentials.json`, and writes the registry to `~/.skillhub/config.json`. `--no-open`
+suppresses automatic browser launch while retaining the verification URL and code in the terminal.
+
+Token-based login remains available for CI and other non-interactive automation. In both modes,
+credentials are persisted only after `whoami` succeeds.
+
+Both files are updated non-destructively: SkillHub CLI changes only its own `tokens` and `registry`
+fields and preserves unknown fields written by other compatible tools. This allows tools that share
+the `~/.skillhub` directory to keep independently named state in the same JSON documents.
 
 ### Check Current Identity
 
@@ -162,13 +179,22 @@ skillhub install pdf-parser --version 1.2.0
 # Install to specific Agent
 skillhub install pdf-parser --agent codex
 
+# Install to AStudio's fixed user-level directory
+skillhub install pdf-parser --agent astudio
+
+# Install to Pi's user-level directory (use --scope project for the project directory)
+skillhub install pdf-parser --agent pi
+
+# Install to DeepSeek Harness (use --scope project from the repository root for project skills)
+skillhub install pdf-parser --agent dsh
+
 # Install to multiple Agents
 skillhub install pdf-parser --agent codex --agent claude-code
 
 # Install to custom directory
 skillhub install pdf-parser --dir ~/.claude/skills
 
-# Force overwrite existing installation
+# Reinstall a SkillHub-managed installation from the same source
 skillhub install pdf-parser --force
 ```
 
@@ -190,13 +216,15 @@ The CLI determines the installation location using the following logic:
 
 ### Install Paths
 
-Each Agent has both project-level and user-level skills directories. Use `--scope user|project` to control which one is used.
+Most Agents have both project-level and user-level skills directories. Use `--scope user|project` to control which one is used. AStudio uses its fixed user-level directory only.
 
 | Agent | Project-level Path | User-level Path |
 |-------|-------------------|-----------------|
+| `astudio` (AStudio) | Not supported | `~/.acode/skills/` |
 | `claude-code` | `<project>/.claude/skills/` | `~/.claude/skills/` |
 | `codex` | `<project>/.codex/skills/` | `~/.codex/skills/` |
 | `cursor` | `<project>/.cursor/skills/` | `~/.cursor/skills/` |
+| `dsh` (DeepSeek Harness) | `<project>/.dsh/skills/` | `~/.dsh/skills/` |
 | `github-copilot` | `<project>/.github-copilot/skills/` | `~/.github-copilot/skills/` |
 | `gemini-cli` | `<project>/.gemini/skills/` | `~/.gemini/skills/` |
 | `windsurf` | `<project>/.windsurf/skills/` | `~/.windsurf/skills/` |
@@ -208,9 +236,12 @@ Each Agent has both project-level and user-level skills directories. Use `--scop
 | `openclaw` | `<project>/.openclaw/skills/` | `~/.openclaw/skills/` |
 | `opencode` | `<project>/.opencode/skills/` | `~/.opencode/skills/` |
 | `kilo` | `<project>/.kilo/skills/` | `~/.kilo/skills/` |
+| `pi` (Pi) | `<project>/.pi/skills/` | `~/.pi/agent/skills/` |
 | _fallback_ | `<project>/.agents/skills/` | `~/.agents/skills/` |
 
-For a custom path or an unsupported Agent directory, use `--dir` to specify the installation path. In interactive user scope, the `generic` target is offered alongside detected Agent targets. When `--scope user|project` finds no matching agent directory, the CLI falls back to the `_fallback_` row above.
+For a custom path or an unsupported Agent directory, use `--dir` to specify the installation path. In interactive user scope, the `generic` target is offered alongside detected Agent targets. AStudio appears in that selector when `~/.acode/skills/` exists. When `--scope user|project` finds no matching agent directory, the CLI falls back to the `_fallback_` row above.
+
+DeepSeek Harness resolves project skills from the nearest Git repository root, while SkillHub CLI uses the current directory for project-scoped profiles. Run `--scope project --agent dsh` from the repository root. If `DSH_HOME` overrides the default `~/.dsh`, install with `--dir "$DSH_HOME/skills"`.
 
 ### File Structure After Installation
 
@@ -225,14 +256,98 @@ For a custom path or an unsupported Agent directory, use `--dir` to specify the 
 
 ```json
 {
+  "schemaVersion": 1,
   "registry": "https://skill.xfyun.cn",
   "namespace": "global",
   "slug": "pdf-parser",
   "version": "1.0.0",
+  "versionId": 123,
+  "fingerprint": "sha256:...",
+  "files": { "SKILL.md": "sha256..." },
+  "source": "skillhub",
   "agent": "codex",
   "installedAt": "2026-04-28T06:00:00.000Z"
 }
 ```
+
+The CLI creates `.skillhub/metadata.json` after extracting a downloaded package. It is not part of
+the published ZIP and is excluded when a managed directory is published again.
+
+## ⬆️ Upgrade Installed Skills
+
+`upgrade` only operates on explicitly selected, SkillHub-managed local installations. It never
+installs a missing Skill and has no implicit upgrade-all mode.
+
+```bash
+# Preview without changing files
+skillhub upgrade @global/skillhub-cli --check
+
+# Upgrade one or a bounded list of installed Skills
+skillhub upgrade @global/skillhub-cli
+skillhub upgrade @team/code-review @team/java-guide
+
+# Machine-readable plan
+skillhub upgrade @team/code-review --check --json
+```
+
+The source identity is `registry + namespace + slug`. `--force` may replace local changes only when
+that full identity matches the installation metadata; it never overwrites an unmanaged directory or
+a Skill installed from another source.
+
+All targets in one inventory entry are upgraded together. A filter that selects only part of that
+entry is rejected because the current inventory format stores one shared version for all targets.
+The command also keeps the local files when the registry resolves to an older version.
+If a multi-Skill run fails after an earlier upgrade commits, execution stops and reports each item
+as `upgraded`, `failed`, or `not-attempted`; a committed upgrade is never rolled back implicitly.
+New installations store absolute target paths. An older inventory entry with relative target paths
+must be reinstalled before upgrade because its original working directory cannot be recovered safely.
+
+## 🔄 Namespace Workspaces
+
+Use namespace synchronization to maintain explicitly selected skills from one team space. Every sync action requires
+`--namespace`; `global` is not a valid sync target because it has no namespace membership.
+
+```bash
+# Interactively select new or updated skills in a TTY
+skillhub sync pull --namespace team-a
+
+# Non-interactive/CI pull: repeat --skill for every explicit target
+skillhub sync pull --namespace team-a --skill code-review --skill java-guide
+
+# Use an explicit workspace directory and target
+skillhub sync pull --namespace team-a --skill code-review --dir ./.claude/skills
+
+# Check without downloading
+skillhub sync pull --namespace team-a --check
+
+# Show local edits and remote updates
+skillhub sync status --namespace team-a --json
+skillhub sync diff --namespace team-a
+
+# Remove only an explicitly selected, unchanged managed skill that no longer exists remotely
+skillhub sync pull --namespace team-a --skill retired-guide --prune
+
+# Validate and upload every local skill for review
+skillhub sync push --all --namespace team-a --dry-run
+skillhub sync push --all --namespace team-a --submit-review
+```
+
+The default workspace is `<cwd>/.agents/skills`. In an interactive TTY, pull presents a multi-select list; an empty
+selection changes nothing. Outside a TTY, and always with `--json`, pull requires one or more repeatable
+`--skill <slug>` options and never prompts. `sync pull --check` is the exception: it checks the entire namespace and
+never writes local files. Pull never overwrites local changes unless `--force` is supplied, and `--force` applies only
+to explicitly selected skills. Remote removals are reported as `orphaned` and are retained unless both `--prune` and
+the matching `--skill` are supplied.
+
+Sync compares both the published version and package fingerprint. An exact match is `up-to-date`,
+while a newer version is `update-available` even when its content is unchanged. An older remote
+version, an unorderable version pair, or changed remote content without a version bump is `blocked`.
+`--force` cannot bypass these release-safety checks; verify the release and use an explicit
+`skillhub install` when replacement is intentional.
+
+Workspace push is non-overwriting: an existing namespace/slug/version is reported as a conflict, including versions that are still uploaded or pending review. Other skills in the same `--all` run continue processing.
+
+Namespace sync writes `.skillhub/namespace-sync.json` in the workspace and per-skill `.skillhub/metadata.json` files. These files contain the registry coordinate, published version, aggregate fingerprint, and file hashes used by `status` and `diff`.
 
 ## 📋 Local Management
 
@@ -320,7 +435,9 @@ Visibility options:
 - `namespace-only` — Visible to namespace members only
 - `private` — Visible to yourself only
 
-After successful publication, the skill detail page URL will be displayed.
+After the server accepts a submission, the CLI displays the server's current status and the skill detail page URL.
+Statuses such as `SCANNING` and `PENDING_REVIEW` are successful asynchronous submissions, not confirmation that the
+skill is finally published. Check the Web page for the final publish or review state.
 
 ## ⬆️ Self-Update
 
@@ -359,16 +476,19 @@ Update mechanism:
 | Command | Description |
 |---------|-------------|
 | `skillhub help [command]` | Display help information |
-| `skillhub version [--json]` | Display CLI version |
-| `skillhub login --token <token> [--registry <url>] [--json]` | Save token and registry configuration |
+| `skillhub version [--json]`, `skillhub --version`, `skillhub -v` | Display CLI version |
+| `skillhub login [--no-open] [--token <token>] [--registry <url>] [--json]` | Log in with OAuth Device Flow or an API token |
 | `skillhub logout [--registry <url>] [--json]` | Remove token for specified registry |
 | `skillhub whoami [--registry <url>] [--token <token>] [--json]` | Validate current token and display user information |
 | `skillhub search <query> [--registry <url>] [--token <token>] [--limit <n>] [--json]` | Search published skills |
 | `skillhub install <coordinate> [--scope <user\|project>] [--namespace <slug>] [--version <v>] [--agent <profile>] [--dir <path>] [--force] [--registry <url>] [--token <token>] [--json]` | Install a skill |
+| `skillhub upgrade <coordinate...> [--namespace <slug>] [--agent <profile>] [--dir <path>] [--registry <url>] [--check] [--force] [--json]` | Upgrade explicitly selected installed skills |
 | `skillhub list [--agent <profile>] [--dir <path>] [--registry <url>] [--json]` | List installed skills |
 | `skillhub remove <coordinate> [--agent <profile>] [--all] [--remote] [--hard] [--namespace <slug>] [--registry <url>] [--token <token>] [--json]` | Remove a skill |
 | `skillhub doctor [--json]` | Scan project directory and rebuild local inventory |
 | `skillhub publish <path> [--namespace <slug>] [--visibility <v>] [--registry <url>] [--token <token>] [--json]` | Publish a skill |
+| `skillhub sync pull --namespace <slug> [--skill <slug>]... [options]` | Pull explicitly selected skills from a non-global namespace |
+| `skillhub sync <status\|diff\|push> --namespace <slug> [options]` | Inspect or push a non-global namespace workspace |
 | `skillhub update [--check] [--json]` | Check or execute CLI self-update |
 
 ## 🔒 Security Notes
@@ -387,7 +507,10 @@ Update mechanism:
 # Verify token validity
 skillhub whoami
 
-# Re-login
+# Re-login interactively
+skillhub login
+
+# Or use a token for non-interactive automation
 skillhub login --token sk_xxx
 ```
 
@@ -410,12 +533,15 @@ skillhub search test --registry https://skillhub.example.com
 
 ```bash
 # Use --force to overwrite
-skillhub install pdf-parser --force
+skillhub install pdf-parser --force # same SkillHub source only
 
 # Or remove first then install
 skillhub remove pdf-parser
 skillhub install pdf-parser
 ```
+
+`--force` does not bypass source ownership. Move or explicitly remove an unmanaged or different-source
+directory before installing another Skill with the same visible slug.
 
 ### Corrupted Inventory
 

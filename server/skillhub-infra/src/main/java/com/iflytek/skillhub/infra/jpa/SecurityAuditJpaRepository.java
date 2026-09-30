@@ -21,6 +21,9 @@ public interface SecurityAuditJpaRepository extends JpaRepository<SecurityAudit,
     Optional<SecurityAudit> findByScanId(String scanId);
 
     @Override
+    Optional<SecurityAudit> findByTaskId(String taskId);
+
+    @Override
     boolean existsBySkillVersionId(Long skillVersionId);
 
     @Override

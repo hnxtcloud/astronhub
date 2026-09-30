@@ -46,6 +46,8 @@ services:
       SKILLHUB_SECURITY_SCANNER_ENABLED: "true"
       SKILLHUB_SECURITY_SCANNER_URL: http://skill-scanner:8000
       SKILLHUB_SECURITY_SCANNER_MODE: upload
+      # Local staging needs typed Suite review writes so public Suite market fixtures can be submitted and approved.
+      SKILLHUB_SUITE_REVIEW_WRITES_ENABLED: "true"
     depends_on:
       postgres:
         condition: service_healthy
@@ -68,6 +70,7 @@ services:
       - ./web/dist:/usr/share/nginx/html:ro
       - ./web/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
     environment:
+      NGINX_ENTRYPOINT_LOCAL_RESOLVERS: "1"
       SKILLHUB_API_UPSTREAM: http://server:8080
       SKILLHUB_WEB_API_BASE_URL: ""
       SKILLHUB_PUBLIC_BASE_URL: ""

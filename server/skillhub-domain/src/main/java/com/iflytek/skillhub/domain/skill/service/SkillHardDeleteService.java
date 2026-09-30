@@ -107,9 +107,8 @@ public class SkillHardDeleteService {
         skillRepository.save(skill);
         skillRepository.flush();
 
-        if (!versionIds.isEmpty()) {
-            reviewTaskRepository.deleteBySkillVersionIdIn(versionIds);
-        }
+        // Also removes detached historical attempts whose replaced skill version no longer exists.
+        reviewTaskRepository.deleteBySkillId(skill.getId());
         promotionRequestRepository.deleteBySourceSkillIdOrTargetSkillId(skill.getId(), skill.getId());
         skillTagRepository.deleteBySkillId(skill.getId());
         skillStarRepository.deleteBySkillId(skill.getId());

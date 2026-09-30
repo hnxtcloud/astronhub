@@ -86,6 +86,12 @@ function ScannerCard({ audit, versionStatus }: { audit: SecurityAuditRecord; ver
         </div>
       </div>
 
+      {audit.failureReason && (
+        <p className="text-sm text-destructive">
+          {t('securityAudit.failureReason', { reason: audit.failureReason })}
+        </p>
+      )}
+
       {sortedFindings.length > 0 && (
         <>
           <Button

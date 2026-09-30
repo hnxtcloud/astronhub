@@ -65,8 +65,10 @@ npx clawhub search email
 # 安装技能包
 npx clawhub install my-skill
 
-# 发布技能包
-npx clawhub publish ./my-skill
+# 发布技能包（ClawHub CLI 的发布协议不兼容 SkillHub）
+export SKILLHUB_REGISTRY=http://your-skillhub-host:8080
+export SKILLHUB_TOKEN=YOUR_API_TOKEN
+npx @astron-team/skillhub@latest publish ./my-skill
 ```
 
 ## Q: 如何配置 HTTPS？
@@ -138,7 +140,13 @@ A: 使用 OpenClaw CLI 命令行工具时，可以通过 `<namespace>--<skill-na
 
 ## Q: 推荐的部署方式是什么？可以自己拉镜像手动部署吗？
 
-A: 推荐使用官方一键部署脚本，不建议自己拉取镜像手动部署（手动部署容易出现登录后跳回登录页等初始化问题）：
+A: 推荐使用官方一键部署脚本，不建议自己拉取镜像手动部署（手动部署容易出现数据库初始化、依赖顺序或登录后跳回登录页等问题）。默认从公共镜像仓库拉取依赖，其中 SkillHub 应用镜像来自 GHCR：
+
+```bash
+curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- up --public-url https://skillhub.your-company.com
+```
+
+国内网络无法访问 GHCR 时，使用阿里云镜像：
 
 ```bash
 curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- up --aliyun --public-url https://skillhub.your-company.com --version latest
@@ -182,9 +190,17 @@ A: skill name 一般使用英文，目前不支持中文名（在 OpenClaw 中�
 
 A: 只要拥有可查看的权限，一般都可以下载。
 
-## Q: 如何隐藏或删除登录页的 GitHub / GitLab SSO 登录方式？
+## Q: 如何隐藏或删除登录页的第三方 SSO 登录方式？
 
-A: 修改 `application.yml`，注释或删除 `spring.security.oauth2.client.registration` 下的 `github` 和 `gitlab` 两块，并删除对应的 `provider` 段。Spring Boot 启动时便不会创建这两个注册，登录页也不会再显示对应入口。
+A: 登录入口是配置驱动的：`/api/v1/auth/methods` 只返回配置了真实 client id 的
+注册，client id 为空或包含 `placeholder` 时该入口不会出现在登录页。
+
+所以隐藏某个入口有两种方式：
+
+- 留空对应的环境变量即可（例如不设置 `OAUTH2_FEISHU_CLIENT_ID`），无需改动配置文件。
+- 或修改 `application.yml`，注释/删除 `spring.security.oauth2.client.registration`
+  下对应的注册块（`github`、`gitlab`、`feishu`、`dingtalk`）以及对应的 `provider` 段，
+  Spring Boot 启动时便不会创建该注册。
 
 ## Q: SkillHub 的安全扫描（Skill Scanner）是讯飞自研的吗？使用什么协议？
 
@@ -192,7 +208,23 @@ A: SkillHub 内置安全扫描能力。其中扫描接入、任务编排、审�
 
 ## Q: SkillHub 使用的 cisco-ai-skill-scanner 是哪个版本？
 
-A: `scanner/Dockerfile` 中直接执行 `pip install cisco-ai-skill-scanner`，未锁定版本，因此构建镜像时会拉取 PyPI 上的最新版本。如需固定版本，可在二次开发时自行锁定。
+A: `scanner/Dockerfile` 已固定使用 `cisco-ai-skill-scanner==2.1.0`。Scanner 镜像基于 glibc Linux，支持 `linux/amd64` 和 `linux/arm64`。
+
+## Q: Scanner 应该使用 upload mode 还是 local mode？
+
+A: 官方 Compose 和 Kubernetes 部署使用 `upload` mode，通过 `POST /scan-upload` 上传技能包。上传大小上限由 `SKILLHUB_SCANNER_MAX_UPLOAD_SIZE_BYTES` 控制，默认是 `110100480` 字节（105 MiB）。
+
+`local` mode 仅适用于 Server 与 Scanner 能在**相同路径**看到同一目录的部署。双方需要共享挂载路径，并在 Scanner 中设置允许的根目录；使用标准路径时配置 `SKILL_SCANNER_ALLOWED_ROOTS=/tmp/skillhub-scans`。
+
+## Q: 安全审计显示“未发现高风险问题”，是否代表没有任何 findings？
+
+A: 不是。Scanner 返回 `is_safe=true`、UI 显示“未发现高风险问题”，仅表示没有发现高风险问题；低等级 findings 仍可能存在，`findingsCount` 也可能大于 0。请继续查看 findings 明细，而不要把该状态理解为无条件安全保证。
+
+## Q: 如何滚动升级到 Scanner 2.1.0？
+
+A: 必须先部署兼容 2.1.0 协议的 Server，在旧 Scanner 仍运行时排空并下线所有旧 Server 实例及其进行中的扫描，然后再升级 Scanner，最后验证 `/health` 和一次 upload mode 扫描。不要让旧 Server 连接 Scanner 2.1.0。
+
+混合版本期间，upload 和 local mode 都应保持 AI Defense 关闭（默认 `SKILLHUB_SCANNER_USE_AI_DEFENSE=false`）。如果升级前必须继续使用 AI Defense，应按旧 Scanner 版本支持的环境变量把凭据直接配置到旧 Scanner 环境中；不要把 AI Defense key 放入 URL query 参数或请求体。
 
 ## Q: 使用 CLI `skillhub publish` 报错 `registry returned 400` 怎么排查？
 
@@ -298,6 +330,17 @@ docker compose --env-file .env.release -f compose.release.yml up -d --force-recr
 A: 必需 PostgreSQL 和 Redis；对象存储支持 `local` 与 S3 两种模式，由 `SKILLHUB_STORAGE_PROVIDER` 控制。`.env.release.example` 显式配置为 `local`，但如果使用 `compose.release.yml` 时完全没有设置该变量，Compose 的回退值是 `s3`。建议始终显式设置；生产环境推荐使用 S3（通过 `SKILLHUB_STORAGE_S3_*` 配置）。数据库仅支持 PostgreSQL，暂不支持 MySQL。
 
 发布版 Compose 已内置 PostgreSQL 与 Redis，默认只绑定在 `127.0.0.1`。
+
+## Q: PostgreSQL 容器写入 `postmaster.pid` 或 `pg_wal` 时报告 `operation not permitted` 怎么办？
+
+A: SkillHub 默认的 Compose 和 `runtime.sh` 使用 Docker named volume（`postgres_data`），通常不需要手工处理宿主机目录权限。这个错误更常见于将 PostgreSQL 数据目录改成宿主机 bind mount，例如 `/data/skillhub/postgres:/var/lib/postgresql/data`。
+
+按以下顺序排查：
+
+1. 优先恢复为 Docker named volume，或使用官方 `runtime.sh`，避免手写 Compose 时漏配权限。
+2. 如果必须使用 bind mount，先确认 `.env.release` 或 `runtime.sh` 参数最终选择的 `POSTGRES_IMAGE`，将该值导出到当前 shell 后运行 `docker run --rm "$POSTGRES_IMAGE" id postgres`。再按输出的实际 UID/GID 调整数据目录属主，例如 `chown -R <uid>:<gid> <数据目录>`。不要固定假设镜像是 `postgres:16-alpine`，也不要假设所有环境都是 `999:999`。
+3. 在 RHEL/CentOS 上检查 SELinux；使用 AppArmor、rootless Docker、NFS、CIFS 或 NAS 时，也要确认宿主文件系统允许 PostgreSQL 写入、加锁和更改权限。
+4. 不建议把 PostgreSQL `PGDATA` 放在缺少完整 POSIX 权限语义的网络文件系统上。生产环境优先使用本地盘、Docker named volume、块存储或外部 PostgreSQL。
 
 ## Q: 通过 OAuth（GitHub / GitLab 等）登录的账号，如何取得管理员权限？
 

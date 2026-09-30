@@ -160,6 +160,16 @@ spec:
                 configMapKeyRef:
                   name: skillhub-config
                   key: skill-scanner-mode
+            - name: SKILLHUB_SECURITY_SCANNER_READ_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  name: skillhub-config
+                  key: skill-scanner-read-timeout
+            - name: SKILLHUB_SCAN_STREAM_RECLAIM_MIN_IDLE
+              valueFrom:
+                configMapKeyRef:
+                  name: skillhub-config
+                  key: skill-scan-reclaim-min-idle
 
             # Session
             - name: SESSION_COOKIE_SECURE
@@ -217,6 +227,47 @@ spec:
                   key: oauth2-github-client-secret
                   optional: true
 
+            # OAuth2 Feishu (optional)
+            - name: OAUTH2_FEISHU_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: skillhub-secret
+                  key: oauth2-feishu-client-id
+                  optional: true
+            - name: OAUTH2_FEISHU_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: skillhub-secret
+                  key: oauth2-feishu-client-secret
+                  optional: true
+            - name: OAUTH2_FEISHU_AUTHORIZATION_URI
+              value: "https://accounts.feishu.cn/open-apis/authen/v1/authorize"
+            - name: OAUTH2_FEISHU_PROTOCOL_VERSION
+              value: "v3"
+            - name: OAUTH2_FEISHU_TOKEN_URI
+              value: "https://accounts.feishu.cn/oauth/v3/token"
+            - name: OAUTH2_FEISHU_USER_INFO_URI
+              value: "https://open.feishu.cn/open-apis/authen/v1/user_info"
+
+            # OAuth2 DingTalk (optional)
+            - name: OAUTH2_DINGTALK_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: skillhub-secret
+                  key: oauth2-dingtalk-client-id
+                  optional: true
+            - name: OAUTH2_DINGTALK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: skillhub-secret
+                  key: oauth2-dingtalk-client-secret
+                  optional: true
+            - name: OAUTH2_DINGTALK_AUTHORIZE_URI
+              value: "https://login.dingtalk.com"
+            - name: OAUTH2_DINGTALK_BASE_URI
+              value: "https://api.dingtalk.com"
+            - name: OAUTH2_DINGTALK_DISPLAY_NAME
+              value: "钉钉"
           volumeMounts:
             - name: skillhub-storage
               mountPath: /var/lib/skillhub/storage

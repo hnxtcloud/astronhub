@@ -30,11 +30,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.context.support.StaticMessageSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +68,7 @@ class AuthContextFilterTest {
     }
 
     @Test
-    void disabledSessionUser_shouldInvalidateSessionAndBlockRequest() throws Exception {
+    void disabledSessionUser_shouldClearAuthenticationWithoutInvalidatingSession() throws Exception {
         PlatformPrincipal principal = new PlatformPrincipal("user-1", "Alice", "alice@example.com", null, "local", Set.of("USER"));
         UserAccount user = new UserAccount("user-1", "Alice", "alice@example.com", null);
         user.setStatus(UserStatus.DISABLED);
@@ -88,9 +90,70 @@ class AuthContextFilterTest {
 
         assertEquals(401, response.getStatus());
         assertTrue(response.getContentAsString().contains("\"code\":401"));
-        assertTrue(session.isInvalid());
+        assertFalse(session.isInvalid());
+        assertNull(session.getAttribute("platformPrincipal"));
+        assertNull(session.getAttribute("SPRING_SECURITY_CONTEXT"));
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain, never()).doFilter(request, response);
+    }
+
+    @Test
+    void disabledSessionUser_shouldContinuePublicGetAsAnonymous() throws Exception {
+        PlatformPrincipal principal = principal("user-public");
+        UserAccount user = disabledUser("user-public");
+        MockHttpServletRequest request = authenticatedRequest("GET", "/api/v1/skills", principal);
+        MockHttpSession session = (MockHttpSession) request.getSession(false);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+        when(userAccountRepository.findById("user-public")).thenReturn(java.util.Optional.of(user));
+
+        filter.doFilter(request, response, filterChain);
+
+        assertEquals(200, response.getStatus());
+        assertFalse(session.isInvalid());
+        assertNull(session.getAttribute("platformPrincipal"));
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(filterChain).doFilter(request, response);
+    }
+
+    @Test
+    void disabledSessionUser_shouldBlockProtectedMethodOnOtherwisePublicPath() throws Exception {
+        PlatformPrincipal principal = principal("user-protected");
+        MockHttpServletRequest request = authenticatedRequest("POST", "/api/v1/skills", principal);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+        when(userAccountRepository.findById("user-protected"))
+                .thenReturn(java.util.Optional.of(disabledUser("user-protected")));
+
+        filter.doFilter(request, response, filterChain);
+
+        assertEquals(401, response.getStatus());
+        verify(filterChain, never()).doFilter(request, response);
+    }
+
+    @Test
+    void missingSessionUser_shouldBeClearedOnceAndNotResurrectedOnNextPublicRequest() throws Exception {
+        PlatformPrincipal principal = principal("deleted-user");
+        MockHttpServletRequest firstRequest = authenticatedRequest("GET", "/api/v1/search", principal);
+        MockHttpSession session = (MockHttpSession) firstRequest.getSession(false);
+        FilterChain firstChain = mock(FilterChain.class);
+        when(userAccountRepository.findById("deleted-user")).thenReturn(java.util.Optional.empty());
+
+        filter.doFilter(firstRequest, new MockHttpServletResponse(), firstChain);
+        SecurityContextHolder.clearContext();
+
+        MockHttpServletRequest secondRequest = new MockHttpServletRequest();
+        secondRequest.setMethod("GET");
+        secondRequest.setRequestURI("/api/v1/search");
+        secondRequest.setSession(session);
+        FilterChain secondChain = mock(FilterChain.class);
+        filter.doFilter(secondRequest, new MockHttpServletResponse(), secondChain);
+
+        assertFalse(session.isInvalid());
+        assertNull(session.getAttribute("platformPrincipal"));
+        verify(firstChain).doFilter(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(secondChain).doFilter(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(userAccountRepository, times(1)).findById("deleted-user");
     }
 
     @Test
@@ -162,5 +225,27 @@ class AuthContextFilterTest {
         verify(filterChain).doFilter(same(request), same(response));
         verify(userAccountRepository, never()).findById(org.mockito.ArgumentMatchers.anyString());
         verify(namespaceMemberRepository, never()).findByUserId(org.mockito.ArgumentMatchers.anyString());
+    }
+
+    private static PlatformPrincipal principal(String userId) {
+        return new PlatformPrincipal(userId, "Test User", userId + "@example.com", null, "local", Set.of("USER"));
+    }
+
+    private static UserAccount disabledUser(String userId) {
+        UserAccount user = new UserAccount(userId, "Test User", userId + "@example.com", null);
+        user.setStatus(UserStatus.DISABLED);
+        return user;
+    }
+
+    private static MockHttpServletRequest authenticatedRequest(
+            String method, String path, PlatformPrincipal principal) {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setMethod(method);
+        request.setRequestURI(path);
+        request.getSession(true).setAttribute("platformPrincipal", principal);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(principal, null, List.of())
+        );
+        return request;
     }
 }

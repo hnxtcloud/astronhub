@@ -83,6 +83,9 @@ skillhub login --token sk_xxx --registry https://skillhub.example.com
 
 `login` validates the token, stores it in `~/.skillhub/credentials.json`, and writes the registry to `~/.skillhub/config.json`.
 
+Both files are updated non-destructively: SkillHub CLI changes only its own `tokens` and `registry`
+fields and preserves unknown fields written by other compatible tools.
+
 When an API-token request is denied, the CLI shows the safe reason returned by the server and its `Request ID`. Use that ID to correlate the failure with server logs. Other authorization failures continue to use a generic message.
 
 ### Check Current Identity
@@ -151,13 +154,22 @@ skillhub install pdf-parser --version 1.2.0
 # Install to specific Agent
 skillhub install pdf-parser --agent codex
 
+# Install to AStudio's fixed user-level directory
+skillhub install pdf-parser --agent astudio
+
+# Install to Pi's user-level directory (use --scope project for the project directory)
+skillhub install pdf-parser --agent pi
+
+# Install to DeepSeek Harness (use --scope project from the repository root for project skills)
+skillhub install pdf-parser --agent dsh
+
 # Install to multiple Agents
 skillhub install pdf-parser --agent codex --agent claude-code
 
 # Install to custom directory
 skillhub install pdf-parser --dir ~/.claude/skills
 
-# Force overwrite existing installation
+# Reinstall a SkillHub-managed installation from the same source
 skillhub install pdf-parser --force
 ```
 
@@ -179,13 +191,15 @@ The CLI determines the installation location using the following logic:
 
 ### Install Paths
 
-Each Agent has both project-level and user-level skills directories. Use `--scope user|project` to control which one is used.
+Most Agents have both project-level and user-level skills directories. Use `--scope user|project` to control which one is used. AStudio uses its fixed user-level directory only.
 
 | Agent | Project-level Path | User-level Path |
 |-------|-------------------|-----------------|
+| `astudio` (AStudio) | Not supported | `~/.acode/skills/` |
 | `claude-code` | `<project>/.claude/skills/` | `~/.claude/skills/` |
 | `codex` | `<project>/.codex/skills/` | `~/.codex/skills/` |
 | `cursor` | `<project>/.cursor/skills/` | `~/.cursor/skills/` |
+| `dsh` (DeepSeek Harness) | `<project>/.dsh/skills/` | `~/.dsh/skills/` |
 | `github-copilot` | `<project>/.github-copilot/skills/` | `~/.github-copilot/skills/` |
 | `gemini-cli` | `<project>/.gemini/skills/` | `~/.gemini/skills/` |
 | `windsurf` | `<project>/.windsurf/skills/` | `~/.windsurf/skills/` |
@@ -197,9 +211,12 @@ Each Agent has both project-level and user-level skills directories. Use `--scop
 | `openclaw` | `<project>/.openclaw/skills/` | `~/.openclaw/skills/` |
 | `opencode` | `<project>/.opencode/skills/` | `~/.opencode/skills/` |
 | `kilo` | `<project>/.kilo/skills/` | `~/.kilo/skills/` |
+| `pi` (Pi) | `<project>/.pi/skills/` | `~/.pi/agent/skills/` |
 | _fallback_ | `<project>/.agents/skills/` | `~/.agents/skills/` |
 
-For a custom path or an unsupported Agent directory, use `--dir` to specify the installation path. In interactive user scope, the `generic` target is offered alongside detected Agent targets. When `--scope user|project` finds no matching agent directory, the CLI falls back to the `_fallback_` row above.
+For a custom path or an unsupported Agent directory, use `--dir` to specify the installation path. In interactive user scope, the `generic` target is offered alongside detected Agent targets. AStudio appears in that selector when `~/.acode/skills/` exists. When `--scope user|project` finds no matching agent directory, the CLI falls back to the `_fallback_` row above.
+
+DeepSeek Harness resolves project skills from the nearest Git repository root, while SkillHub CLI uses the current directory for project-scoped profiles. Run `--scope project --agent dsh` from the repository root. If `DSH_HOME` overrides the default `~/.dsh`, install with `--dir "$DSH_HOME/skills"`.
 
 ### File Structure After Installation
 
@@ -214,14 +231,47 @@ For a custom path or an unsupported Agent directory, use `--dir` to specify the 
 
 ```json
 {
+  "schemaVersion": 1,
   "registry": "https://skill.xfyun.cn",
   "namespace": "global",
   "slug": "pdf-parser",
   "version": "1.0.0",
+  "versionId": 123,
+  "fingerprint": "sha256:...",
+  "files": { "SKILL.md": "sha256..." },
   "agent": "codex",
   "installedAt": "2026-04-28T06:00:00.000Z"
 }
 ```
+
+The CLI creates this file after extracting the registry package. It is not included in the downloaded
+ZIP, and `.skillhub/` is excluded when an installed directory is published again.
+
+## Upgrade Installed Skills
+
+```bash
+# Preview without changing files
+skillhub upgrade @global/skillhub-cli --check
+
+# Upgrade one or a bounded list of installed Skills
+skillhub upgrade @global/skillhub-cli
+skillhub upgrade @team/code-review @team/java-guide
+
+# Deterministic machine-readable plan
+skillhub upgrade @team/code-review --check --json
+```
+
+`upgrade` never installs a missing Skill and has no implicit upgrade-all mode. Local changes require
+`--force`; it only replaces a managed installation whose full `registry + namespace + slug` source
+matches.
+
+All targets in one inventory entry are upgraded together. A filter that selects only part of that
+entry is rejected because the current inventory format stores one shared version for all targets.
+The command also keeps the local files when the registry resolves to an older version.
+If a multi-Skill run fails after an earlier upgrade commits, execution stops and reports each item
+as `upgraded`, `failed`, or `not-attempted`; a committed upgrade is never rolled back implicitly.
+New installations store absolute target paths. Reinstall an older entry that still contains relative
+target paths before upgrading it; the CLI cannot safely infer the original working directory.
 
 ## Local Management
 
@@ -462,6 +512,9 @@ skillhub login --token <token> [--registry <url>] [--json]
 
 Save token and registry configuration.
 
+The CLI preserves unknown fields in the shared configuration and credentials documents when it
+updates its own `registry` and `tokens` fields.
+
 ### logout
 
 ```bash
@@ -504,9 +557,24 @@ Options:
 - `--version <v>` — Version (default: latest)
 - `--agent <profile>` — Agent profile (repeatable)
 - `--dir <path>` — Custom installation directory (mutually exclusive with `--scope` and `--agent`)
-- `--force` — Overwrite existing installation
+- `--force` — Replace an existing SkillHub-managed installation from the same source
 - `--registry <url>` — Registry URL
 - `--token <token>` — API token
+- `--json` — JSON output
+
+### upgrade
+
+```bash
+skillhub upgrade <coordinate...> [options]
+```
+
+Options:
+- `--namespace <slug>` — Filter a bare slug by namespace
+- `--agent <profile>` — Filter installed targets by Agent (repeatable)
+- `--dir <path>` — Filter installed targets by directory
+- `--registry <url>` — Filter by installation source registry
+- `--check` — Print the exact plan without modifying files
+- `--force` — Replace local changes only for the same full source identity
 - `--json` — JSON output
 
 ### list
@@ -604,13 +672,16 @@ skillhub search test --registry https://skillhub.example.com
 ### Installation Directory Conflict
 
 ```bash
-# Use --force to overwrite
+# Reinstall only when the existing directory has matching SkillHub source metadata
 skillhub install pdf-parser --force
 
 # Or remove first then install
 skillhub remove pdf-parser
 skillhub install pdf-parser
 ```
+
+`--force` never overwrites an unmanaged directory or a Skill installed from another registry,
+namespace, or slug. Move or explicitly remove that directory first.
 
 ### Corrupted Inventory
 

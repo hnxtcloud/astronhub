@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+  AUTH_MAIN_CLASS_NAME,
   CENTERED_DASHBOARD_CONTENT_CLASS_NAME,
   CENTERED_MAIN_CLASS_NAME,
   CENTERED_SEARCH_CONTENT_CLASS_NAME,
   DEFAULT_MAIN_CLASS_NAME,
+  SPLIT_AUTH_MAIN_CLASS_NAME,
   getAppMainContentLayout,
   resolveAppMainContentPathname,
 } from './layout-main-content'
@@ -33,7 +35,25 @@ describe('getAppMainContentLayout', () => {
       mainClassName: CENTERED_MAIN_CLASS_NAME,
       contentClassName: CENTERED_DASHBOARD_CONTENT_CLASS_NAME,
     })
-    expect(layout.contentClassName).toContain('max-w-[1200px]')
+    expect(layout.contentClassName).toContain('max-w-[1100px]')
+  })
+
+  it('uses the full-bleed split layout for login and registration', () => {
+    for (const pathname of ['/login', '/register']) {
+      expect(getAppMainContentLayout(pathname)).toEqual({
+        mainClassName: SPLIT_AUTH_MAIN_CLASS_NAME,
+        contentClassName: '',
+      })
+    }
+  })
+
+  it('keeps the compact entry layout for password reset', () => {
+    for (const pathname of ['/reset-password']) {
+      expect(getAppMainContentLayout(pathname)).toEqual({
+        mainClassName: AUTH_MAIN_CLASS_NAME,
+        contentClassName: '',
+      })
+    }
   })
 
   it('leaves other non-landing routes on the default full-width app content layout', () => {

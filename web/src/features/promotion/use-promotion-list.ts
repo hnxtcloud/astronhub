@@ -11,8 +11,8 @@ export interface PromotionListParams {
 }
 
 /**
- * Returns the promotion queue for a given status. The hook unwraps the backend
- * page object because promotion screens currently consume the item list only.
+ * Returns a promotion page for a given status, preserving pagination metadata
+ * so queue screens can navigate beyond the first backend page.
  */
 export function usePromotionList(params: PromotionListParams = { status: 'PENDING' }) {
   const normalizedParams = {
@@ -25,10 +25,7 @@ export function usePromotionList(params: PromotionListParams = { status: 'PENDIN
 
   return useQuery({
     queryKey: ['promotions', normalizedParams],
-    queryFn: async () => {
-      const page = await promotionApi.list(normalizedParams)
-      return page.items
-    },
+    queryFn: () => promotionApi.list(normalizedParams),
     staleTime: 30_000,
   })
 }

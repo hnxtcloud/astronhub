@@ -32,6 +32,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -220,6 +222,30 @@ class CliSkillAppServiceTest {
         assertEquals("2.0.0", response.version());
         assertEquals(42L, response.versionId());
         assertEquals("abc123", response.fingerprint());
+    }
+
+    @Test
+    void listNamespaceSkills_mapsInstallableVersionsToCliManifest() {
+        Skill skill = new Skill(7L, "demo", "user-1", SkillVisibility.NAMESPACE_ONLY);
+        setField(skill, "id", 10L);
+        skill.setLatestVersionId(42L);
+        skill.setUpdatedBy("user-1");
+
+        given(skillQueryService.listInstallableSkillsByNamespace(
+                eq("team-a"), eq("user-1"), eq(Map.of()), eq(PageRequest.of(0, 100))))
+                .willReturn(new PageImpl<>(List.of(skill), PageRequest.of(0, 100), 1));
+        given(skillQueryService.resolveVersion("team-a", "demo", null, null, null, "user-1", Map.of()))
+                .willReturn(new SkillQueryService.ResolvedVersionDTO(
+                        10L, "team-a", "demo", "1.0.0", 42L, "sha256:fingerprint", null,
+                        "/api/v1/skills/team-a/demo/versions/1.0.0/download"));
+
+        var result = service.listNamespaceSkills("team-a", 0, 100, "user-1", Map.of());
+
+        assertEquals(1, result.items().size());
+        assertEquals("demo", result.items().getFirst().slug());
+        assertEquals("1.0.0", result.items().getFirst().version());
+        assertEquals("sha256:fingerprint", result.items().getFirst().fingerprint());
+        assertNull(result.nextCursor());
     }
 
     @Test

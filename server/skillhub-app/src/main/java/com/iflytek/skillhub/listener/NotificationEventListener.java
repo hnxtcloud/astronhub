@@ -10,7 +10,7 @@ import com.iflytek.skillhub.domain.skill.SkillVersionRepository;
 import com.iflytek.skillhub.domain.social.SkillSubscriptionService;
 import com.iflytek.skillhub.domain.social.SubscriptionRecipientEligibility;
 import com.iflytek.skillhub.notification.domain.NotificationCategory;
-import com.iflytek.skillhub.notification.service.NotificationDispatcher;
+import com.iflytek.skillhub.notification.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -31,7 +31,7 @@ public class NotificationEventListener {
     private final SkillVersionRepository skillVersionRepository;
     private final NamespaceRepository namespaceRepository;
     private final RecipientResolver recipientResolver;
-    private final NotificationDispatcher dispatcher;
+    private final NotificationService notificationService;
     private final SkillSubscriptionService skillSubscriptionService;
     private final ObjectMapper objectMapper;
     private final SubscriptionRecipientEligibility subscriptionEligibility;
@@ -40,7 +40,7 @@ public class NotificationEventListener {
                                       SkillVersionRepository skillVersionRepository,
                                       NamespaceRepository namespaceRepository,
                                       RecipientResolver recipientResolver,
-                                      NotificationDispatcher dispatcher,
+                                      NotificationService notificationService,
                                       SkillSubscriptionService skillSubscriptionService,
                                       ObjectMapper objectMapper,
                                       SubscriptionRecipientEligibility subscriptionEligibility) {
@@ -48,7 +48,7 @@ public class NotificationEventListener {
         this.skillVersionRepository = skillVersionRepository;
         this.namespaceRepository = namespaceRepository;
         this.recipientResolver = recipientResolver;
-        this.dispatcher = dispatcher;
+        this.notificationService = notificationService;
         this.skillSubscriptionService = skillSubscriptionService;
         this.objectMapper = objectMapper;
         this.subscriptionEligibility = subscriptionEligibility;
@@ -65,7 +65,7 @@ public class NotificationEventListener {
             Map<String, Object> body = bodyWithSkill(skill);
             versionLabel(event.versionId(), body);
             String json = toJson(body);
-            dispatcher.dispatch(event.publisherId(), NotificationCategory.PUBLISH,
+            notificationService.create(event.publisherId(), NotificationCategory.PUBLISH,
                     "SKILL_PUBLISHED", title, json, "SKILL", event.skillId());
         });
     }
@@ -88,7 +88,7 @@ public class NotificationEventListener {
                 if (subscriberId.equals(event.publisherId())) {
                     continue; // skip the publisher
                 }
-                dispatcher.dispatch(subscriberId, NotificationCategory.PUBLISH,
+                notificationService.create(subscriberId, NotificationCategory.PUBLISH,
                         "SUBSCRIPTION_NEW_VERSION", title, json, "SKILL", event.skillId());
             }
         });
@@ -112,7 +112,7 @@ public class NotificationEventListener {
                 if (subscriberId.equals(event.actorUserId())) {
                     continue; // skip the actor
                 }
-                dispatcher.dispatch(subscriberId, NotificationCategory.PUBLISH,
+                notificationService.create(subscriberId, NotificationCategory.PUBLISH,
                         "SUBSCRIPTION_VERSION_YANKED", title, json, "SKILL", event.skillId());
             }
         });
@@ -130,7 +130,7 @@ public class NotificationEventListener {
             String json = toJson(body);
             List<String> admins = recipientResolver.resolveNamespaceAdmins(event.namespaceId());
             for (String admin : admins.stream().distinct().toList()) {
-                dispatcher.dispatch(admin, NotificationCategory.REVIEW,
+                notificationService.create(admin, NotificationCategory.REVIEW,
                         "REVIEW_SUBMITTED", title, json, "REVIEW", event.reviewId());
             }
         });
@@ -147,7 +147,7 @@ public class NotificationEventListener {
         String json = toJson(body);
         List<String> admins = recipientResolver.resolvePlatformUserAdmins();
         for (String admin : admins.stream().distinct().toList()) {
-            dispatcher.dispatch(admin, NotificationCategory.REVIEW,
+            notificationService.create(admin, NotificationCategory.REVIEW,
                     "PROFILE_REVIEW_SUBMITTED", title, json, "PROFILE_REVIEW", event.profileReviewId());
         }
     }
@@ -162,7 +162,7 @@ public class NotificationEventListener {
             body.put("reviewerId", event.reviewerId());
             versionLabel(event.versionId(), body);
             String json = toJson(body);
-            dispatcher.dispatch(event.submitterId(), NotificationCategory.REVIEW,
+            notificationService.create(event.submitterId(), NotificationCategory.REVIEW,
                     "REVIEW_APPROVED", title, json, "SKILL", event.skillId());
         });
     }
@@ -178,7 +178,7 @@ public class NotificationEventListener {
             body.put("reason", event.reason());
             versionLabel(event.versionId(), body);
             String json = toJson(body);
-            dispatcher.dispatch(event.submitterId(), NotificationCategory.REVIEW,
+            notificationService.create(event.submitterId(), NotificationCategory.REVIEW,
                     "REVIEW_REJECTED", title, json, "SKILL", event.skillId());
         });
     }
@@ -195,7 +195,7 @@ public class NotificationEventListener {
             String json = toJson(body);
             List<String> admins = recipientResolver.resolvePlatformSkillAdmins();
             for (String admin : admins.stream().distinct().toList()) {
-                dispatcher.dispatch(admin, NotificationCategory.PROMOTION,
+                notificationService.create(admin, NotificationCategory.PROMOTION,
                         "PROMOTION_SUBMITTED", title, json, "PROMOTION", event.promotionId());
             }
         });
@@ -210,7 +210,7 @@ public class NotificationEventListener {
             body.put("promotionId", event.promotionId());
             body.put("reviewerId", event.reviewerId());
             String json = toJson(body);
-            dispatcher.dispatch(event.submitterId(), NotificationCategory.PROMOTION,
+            notificationService.create(event.submitterId(), NotificationCategory.PROMOTION,
                     "PROMOTION_APPROVED", title, json, "SKILL", event.skillId());
         });
     }
@@ -225,7 +225,7 @@ public class NotificationEventListener {
             body.put("reviewerId", event.reviewerId());
             body.put("reason", event.reason());
             String json = toJson(body);
-            dispatcher.dispatch(event.submitterId(), NotificationCategory.PROMOTION,
+            notificationService.create(event.submitterId(), NotificationCategory.PROMOTION,
                     "PROMOTION_REJECTED", title, json, "SKILL", event.skillId());
         });
     }
@@ -241,7 +241,7 @@ public class NotificationEventListener {
             String json = toJson(body);
             List<String> admins = recipientResolver.resolvePlatformSkillAdmins();
             for (String admin : admins.stream().distinct().toList()) {
-                dispatcher.dispatch(admin, NotificationCategory.REPORT,
+                notificationService.create(admin, NotificationCategory.REPORT,
                         "REPORT_SUBMITTED", title, json, "REPORT", event.reportId());
             }
         });
@@ -257,7 +257,7 @@ public class NotificationEventListener {
             body.put("handlerId", event.handlerId());
             body.put("action", event.action());
             String json = toJson(body);
-            dispatcher.dispatch(event.reporterId(), NotificationCategory.REPORT,
+            notificationService.create(event.reporterId(), NotificationCategory.REPORT,
                     "REPORT_RESOLVED", title, json, "SKILL", event.skillId());
         });
     }

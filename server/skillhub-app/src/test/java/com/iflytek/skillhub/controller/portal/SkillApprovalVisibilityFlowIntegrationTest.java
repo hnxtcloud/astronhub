@@ -5,6 +5,7 @@ import com.iflytek.skillhub.TestRedisConfig;
 import com.iflytek.skillhub.auth.device.DeviceAuthService;
 import com.iflytek.skillhub.auth.rbac.PlatformPrincipal;
 import com.iflytek.skillhub.auth.rbac.RbacService;
+import com.iflytek.skillhub.domain.audit.AuditLogRepository;
 import com.iflytek.skillhub.domain.namespace.Namespace;
 import com.iflytek.skillhub.domain.namespace.NamespaceMemberRepository;
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
@@ -34,6 +35,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
@@ -41,6 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -83,6 +86,9 @@ class SkillApprovalVisibilityFlowIntegrationTest {
 
     @MockBean
     private RbacService rbacService;
+
+    @MockBean
+    private AuditLogRepository auditLogRepository;
 
     @BeforeEach
     void setUp() {
@@ -160,6 +166,31 @@ class SkillApprovalVisibilityFlowIntegrationTest {
         assertThat(savedVersion.getPublishedAt()).isNotNull();
     }
 
+    @Test
+    void approveReview_rollsBackDomainStateWhenAuditPersistenceFails() throws Exception {
+        PendingSkillGraph graph = createPendingGlobalSkill("local-user");
+        when(auditLogRepository.save(any()))
+                .thenThrow(new DataIntegrityViolationException("forced audit failure"));
+
+        mockMvc.perform(post("/api/v1/reviews/" + graph.reviewTask().getId() + "/approve")
+                        .contentType("application/json")
+                        .content("{\"comment\":\"ship it\"}")
+                        .with(authentication(apiAuth("super-1", "SUPER_ADMIN")))
+                        .with(csrf()))
+                .andExpect(status().isInternalServerError());
+
+        ReviewTask savedReviewTask = reviewTaskJpaRepository.findAllById(List.of(graph.reviewTask().getId()))
+                .stream()
+                .findFirst()
+                .orElseThrow();
+        assertThat(savedReviewTask.getStatus())
+                .isEqualTo(com.iflytek.skillhub.domain.review.ReviewTaskStatus.PENDING);
+        assertThat(skillVersionRepository.findById(graph.version().getId()).orElseThrow().getStatus())
+                .isEqualTo(SkillVersionStatus.PENDING_REVIEW);
+        assertThat(skillRepository.findById(graph.skill().getId()).orElseThrow().getLatestVersionId()).isNull();
+        assertThat(skillSearchDocumentJpaRepository.findBySkillId(graph.skill().getId())).isEmpty();
+    }
+
     private PendingSkillGraph createPendingGlobalSkill(String ownerId) {
         String suffix = UUID.randomUUID().toString().substring(0, 8);
 
@@ -181,7 +212,8 @@ class SkillApprovalVisibilityFlowIntegrationTest {
         version = skillVersionRepository.save(version);
         skillVersionRepository.flush();
 
-        ReviewTask reviewTask = reviewTaskJpaRepository.saveAndFlush(new ReviewTask(version.getId(), namespace.getId(), ownerId));
+        ReviewTask reviewTask = reviewTaskJpaRepository.saveAndFlush(new ReviewTask(
+                version.getId(), skill.getId(), namespace.getId(), version.getVersion(), ownerId));
 
         return new PendingSkillGraph(namespace, skill, version, reviewTask);
     }
@@ -206,7 +238,8 @@ class SkillApprovalVisibilityFlowIntegrationTest {
         version = skillVersionRepository.save(version);
         skillVersionRepository.flush();
 
-        ReviewTask reviewTask = reviewTaskJpaRepository.saveAndFlush(new ReviewTask(version.getId(), namespace.getId(), ownerId));
+        ReviewTask reviewTask = reviewTaskJpaRepository.saveAndFlush(new ReviewTask(
+                version.getId(), skill.getId(), namespace.getId(), version.getVersion(), ownerId));
 
         return new PendingSkillGraph(namespace, skill, version, reviewTask);
     }

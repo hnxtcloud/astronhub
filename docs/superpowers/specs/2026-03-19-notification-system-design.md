@@ -2,11 +2,11 @@
 
 ## Goal
 
-Build an independent in-app notification subsystem for SkillHub that delivers real-time notifications for skill lifecycle events (publish, review, promotion, report), with SSE push, user preference control, and extensibility for future third-party channels.
+Build an independent in-app notification subsystem for SkillHub that delivers near-real-time notifications for skill lifecycle events (publish, review, promotion, report), with HTTP polling, user preference control, and extensibility for future third-party channels.
 
 ## Scope
 
-- **In scope**: In-app notifications, SSE real-time push, notification preferences (category × channel), bell icon + dropdown + notification page, data cleanup
+- **In scope**: In-app notifications, 10-second HTTP polling, notification preferences (category × channel), bell icon + dropdown + notification page, data cleanup
 - **Out of scope**: External channels (email, Feishu, DingTalk), migration of existing governance notifications, external webhook delivery
 
 ## Architecture
@@ -22,13 +22,11 @@ Domain Events (existing + new)
     └── NotificationModule (NEW)
          ├── NotificationEventListener
          ├── RecipientResolver
-         ├── NotificationPreferenceService (filter)
-         ├── NotificationDispatcher (channel routing)
-         ├── NotificationService (persist)
-         └── SseEmitterManager (push)
+         ├── NotificationPreferenceService (preference CRUD)
+         └── NotificationService (preference filter + persist + HTTP reads)
 ```
 
-The notification module consumes domain events via `@TransactionalEventListener(phase = AFTER_COMMIT)` + `@Async("skillhubEventExecutor")`, following the same pattern as existing listeners. The async executor pool (max 4 threads) is sufficient for the added load since notification processing is lightweight (DB insert + SSE push).
+The notification module consumes domain events via `@TransactionalEventListener(phase = AFTER_COMMIT)` + `@Async("skillhubEventExecutor")`, following the same pattern as existing listeners. The async executor pool (max 4 threads) is sufficient for the added load since notification processing is a lightweight database insert. Clients discover persisted changes through HTTP polling.
 
 ## Data Model
 
@@ -163,30 +161,24 @@ skillhub-notification/                    -- new module (depends on: skillhub-do
 │   ├── NotificationPreference.java
 │   ├── NotificationRepository.java
 │   └── NotificationPreferenceRepository.java
-├── service/
-│   ├── NotificationService.java         -- CRUD: create, list, mark read, batch read, unread count
-│   ├── NotificationPreferenceService.java  -- preference CRUD + default fallback
-│   └── NotificationDispatcher.java      -- route by channel (currently IN_APP only)
-└── sse/
-    └── SseEmitterManager.java           -- manage SSE connections: register, push, heartbeat, cleanup
+└── service/
+    ├── NotificationService.java         -- apply preference, create, list, mark read, batch read, unread count
+    └── NotificationPreferenceService.java  -- preference CRUD + default fallback
 
 skillhub-app/                             -- existing module
 └── listener/
-    ├── NotificationEventListener.java   -- consume domain events, call RecipientResolver + Dispatcher
+    ├── NotificationEventListener.java   -- consume domain events, call RecipientResolver + NotificationService
     └── RecipientResolver.java           -- resolve recipient list per event type (needs auth + domain repos)
 ```
 
-## SSE Real-Time Push
+## HTTP Polling
 
-- Endpoint: `GET /api/notifications/sse`
-- `SseEmitterManager` uses `ConcurrentHashMap<String, CopyOnWriteArrayList<SseEmitter>>` (thread-safe for concurrent tab open/close)
-- Per-user connection limit: max 5 emitters (reject new connections beyond limit)
-- Global connection limit: max 1000 emitters (configurable, reject with 503 when exceeded)
-- SseEmitter timeout: 60s, browser `EventSource` auto-reconnects
-- Heartbeat: `:ping` every 30s to prevent proxy/LB disconnection
-- On emitter complete/timeout/error: auto-remove from map
-- Push failure: silent ignore (notification already persisted, visible on refresh)
-- On `EventSource` reconnect: frontend fetches unread count to sync badge
+- The global bell polls `GET /api/notifications/unread-count` every 10 seconds while a user is authenticated.
+- An active dropdown or notification page polls its paginated `GET /api/notifications` query every 10 seconds.
+- Polling pauses while the browser tab is in the background.
+- Window focus and network reconnect trigger a fresh request.
+- Poll responses are authoritative; the unread badge uses the server count instead of incrementing a client-side event counter.
+- Closing the dropdown unmounts its list query, so the full notification list is not polled when it is not visible.
 
 ## API Design
 
@@ -195,8 +187,6 @@ GET    /api/notifications                  -- List (paginated + category filter)
 GET    /api/notifications/unread-count     -- Unread count (for bell badge)
 PUT    /api/notifications/{id}/read        -- Mark single as read
 PUT    /api/notifications/read-all         -- Mark all as read
-GET    /api/notifications/sse              -- SSE connection
-
 GET    /api/notification-preferences       -- Get current user preferences
 PUT    /api/notification-preferences       -- Batch update preferences
 ```
@@ -208,10 +198,12 @@ Response format follows existing SkillHub API conventions (code + data wrapper).
 ### Bell Component (global nav bar)
 - Bell icon in nav bar, left of user avatar
 - Red badge with unread count (> 99 shows "99+")
+- Polls the unread count over HTTP every 10 seconds while the tab is visible
 - Click to expand dropdown
 
 ### Dropdown List
 - Shows latest 5 notifications
+- Polls the visible list over HTTP every 10 seconds
 - Each item: title + relative time ("3 minutes ago")
 - Click item → navigate to entity page + mark as read
 - Footer: "View all notifications" link
@@ -219,6 +211,7 @@ Response format follows existing SkillHub API conventions (code + data wrapper).
 
 ### Notification Page (`/dashboard/notifications`)
 - Full notification list with pagination
+- Polls the visible page over HTTP every 10 seconds
 - Tab filter by category: All / Publish / Review / Promotion / Report
 - Batch mark all as read
 - Click to navigate
@@ -242,8 +235,6 @@ Response format follows existing SkillHub API conventions (code + data wrapper).
 ```yaml
 skillhub:
   notification:
-    sse-timeout: 60s
-    sse-heartbeat: 30s
     cleanup:
       read-retention-days: 30
       unread-retention-days: 90
@@ -260,6 +251,5 @@ skillhub:
 ## Extensibility
 
 - New event types: add domain event record + mapping in `NotificationEventListener`
-- New channels: add enum value to `NotificationChannel` + implement channel-specific dispatcher
 - Third-party integrations: add new `@TransactionalEventListener` beans that consume the same domain events
 - Preference table already supports category × channel granularity, no schema change needed

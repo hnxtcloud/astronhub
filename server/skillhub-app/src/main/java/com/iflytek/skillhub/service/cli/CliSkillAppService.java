@@ -1,14 +1,16 @@
 package com.iflytek.skillhub.service.cli;
 
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
+import com.iflytek.skillhub.domain.skill.Skill;
 import com.iflytek.skillhub.domain.skill.SkillVisibility;
 import com.iflytek.skillhub.domain.skill.service.SkillDownloadService;
 import com.iflytek.skillhub.domain.skill.service.SkillPublishService;
 import com.iflytek.skillhub.domain.skill.service.SkillQueryService;
 import com.iflytek.skillhub.domain.skill.validation.PackageEntry;
-import com.iflytek.skillhub.dto.SkillSummaryResponse;
 import com.iflytek.skillhub.dto.cli.CliDeleteResponse;
 import com.iflytek.skillhub.dto.cli.CliDryRunResponse;
+import com.iflytek.skillhub.dto.cli.CliNamespaceSyncItemResponse;
+import com.iflytek.skillhub.dto.cli.CliNamespaceSyncResponse;
 import com.iflytek.skillhub.dto.cli.CliPublishResponse;
 import com.iflytek.skillhub.dto.cli.CliResolveResponse;
 import com.iflytek.skillhub.service.AuditRequestContext;
@@ -16,6 +18,8 @@ import com.iflytek.skillhub.service.SkillDeleteAppService;
 import com.iflytek.skillhub.service.SkillSearchAppService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -78,6 +82,42 @@ public class CliSkillAppService {
                 resolved.version(),
                 resolved.versionId(),
                 resolved.fingerprint(),
+                resolved.downloadUrl()
+        );
+    }
+
+    public CliNamespaceSyncResponse listNamespaceSkills(
+            String namespace,
+            int page,
+            int limit,
+            String userId,
+            Map<Long, NamespaceRole> userNsRoles) {
+        Map<Long, NamespaceRole> roles = userNsRoles != null ? userNsRoles : Map.of();
+        Page<Skill> skills = skillQueryService.listInstallableSkillsByNamespace(
+                namespace, userId, roles, PageRequest.of(page, limit));
+
+        List<CliNamespaceSyncItemResponse> items = skills.getContent().stream()
+                .map(skill -> toNamespaceSyncItem(skill, namespace, userId, roles))
+                .toList();
+        String nextCursor = skills.hasNext() ? String.valueOf(page + 1) : null;
+        return new CliNamespaceSyncResponse(items, nextCursor);
+    }
+
+    private CliNamespaceSyncItemResponse toNamespaceSyncItem(
+            Skill skill,
+            String namespace,
+            String userId,
+            Map<Long, NamespaceRole> userNsRoles) {
+        SkillQueryService.ResolvedVersionDTO resolved = skillQueryService.resolveVersion(
+                namespace, skill.getSlug(), null, null, null, userId, userNsRoles);
+        return new CliNamespaceSyncItemResponse(
+                namespace,
+                skill.getSlug(),
+                resolved.version(),
+                resolved.versionId(),
+                resolved.fingerprint(),
+                skill.getUpdatedAt(),
+                skill.getVisibility().name(),
                 resolved.downloadUrl()
         );
     }

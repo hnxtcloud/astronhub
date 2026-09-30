@@ -56,6 +56,9 @@ public class SecurityAudit {
     @Column(name = "scan_duration_seconds")
     private Double scanDurationSeconds;
 
+    @Column(name = "failure_reason", length = 1000)
+    private String failureReason;
+
     @Column(name = "scanned_at")
     private Instant scannedAt;
 
@@ -131,6 +134,10 @@ public class SecurityAudit {
         return scanDurationSeconds;
     }
 
+    public String getFailureReason() {
+        return failureReason;
+    }
+
     public Instant getScannedAt() {
         return scannedAt;
     }
@@ -169,6 +176,18 @@ public class SecurityAudit {
 
     public void setScannedAt(Instant scannedAt) {
         this.scannedAt = scannedAt;
+    }
+
+    public void markFailed(Instant failedAt, String reason) {
+        this.failureReason = truncate(reason, 1000);
+        this.scannedAt = failedAt;
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) {
+            return value;
+        }
+        return value.substring(0, maxLength);
     }
 
     public Instant getDeletedAt() {

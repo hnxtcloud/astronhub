@@ -1,6 +1,7 @@
 package com.iflytek.skillhub.service;
 
 import com.iflytek.skillhub.auth.rbac.RbacService;
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.audit.AuditLogService;
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
 import com.iflytek.skillhub.domain.review.PromotionRequest;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PromotionPortalAppService {
@@ -48,6 +50,7 @@ public class PromotionPortalAppService {
         this.requestIdAccessor = requestIdAccessor;
     }
 
+    @Transactional
     public PromotionResponseDto submitPromotion(Long sourceSkillId,
                                                 Long sourceVersionId,
                                                 Long targetNamespaceId,
@@ -67,11 +70,12 @@ public class PromotionPortalAppService {
                 userId,
                 promotion.getId(),
                 auditContext,
-                "{\"sourceSkillId\":" + sourceSkillId + ",\"sourceVersionId\":" + sourceVersionId + "}"
+                AuditDetail.of("sourceSkillId", sourceSkillId, "sourceVersionId", sourceVersionId)
         );
         return governanceQueryRepository.getPromotionResponse(promotion);
     }
 
+    @Transactional
     public PromotionResponseDto approvePromotion(Long promotionId,
                                                  String comment,
                                                  String userId,
@@ -87,6 +91,7 @@ public class PromotionPortalAppService {
         return governanceQueryRepository.getPromotionResponse(promotion);
     }
 
+    @Transactional
     public PromotionResponseDto rejectPromotion(Long promotionId,
                                                 String comment,
                                                 String userId,
@@ -247,24 +252,9 @@ public class PromotionPortalAppService {
 
     private String detailWithComment(String comment, boolean selfReview) {
         boolean hasComment = comment != null && !comment.isBlank();
-        if (!hasComment && !selfReview) {
-            return null;
-        }
-        StringBuilder detail = new StringBuilder("{");
-        if (hasComment) {
-            detail.append("\"comment\":\"").append(escapeJson(comment)).append("\"");
-        }
-        if (selfReview) {
-            if (hasComment) {
-                detail.append(",");
-            }
-            detail.append("\"selfReview\":true");
-        }
-        detail.append("}");
-        return detail.toString();
-    }
-
-    private String escapeJson(String value) {
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
+        return AuditDetail.builder()
+                .put("comment", hasComment ? comment : null)
+                .put("selfReview", selfReview ? Boolean.TRUE : null)
+                .build();
     }
 }

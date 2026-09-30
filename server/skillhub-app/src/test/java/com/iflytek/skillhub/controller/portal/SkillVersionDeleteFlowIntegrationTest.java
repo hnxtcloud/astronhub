@@ -91,15 +91,18 @@ class SkillVersionDeleteFlowIntegrationTest {
         retainedVersion.setStatus(SkillVersionStatus.REJECTED);
         retainedVersion = skillVersionRepository.save(retainedVersion);
 
-        ReviewTask rejectedTask = new ReviewTask(rejectedVersion.getId(), namespace.getId(), ownerId);
+        ReviewTask rejectedTask = new ReviewTask(
+                rejectedVersion.getId(), skill.getId(), namespace.getId(), rejectedVersion.getVersion(), ownerId);
         rejectedTask.setStatus(ReviewTaskStatus.REJECTED);
         rejectedTask = reviewTaskRepository.save(rejectedTask);
 
-        ReviewTask approvedTask = new ReviewTask(rejectedVersion.getId(), namespace.getId(), ownerId);
+        ReviewTask approvedTask = new ReviewTask(
+                rejectedVersion.getId(), skill.getId(), namespace.getId(), rejectedVersion.getVersion(), ownerId);
         approvedTask.setStatus(ReviewTaskStatus.APPROVED);
         approvedTask = reviewTaskRepository.save(approvedTask);
 
-        ReviewTask retainedTask = new ReviewTask(retainedVersion.getId(), namespace.getId(), ownerId);
+        ReviewTask retainedTask = new ReviewTask(
+                retainedVersion.getId(), skill.getId(), namespace.getId(), retainedVersion.getVersion(), ownerId);
         retainedTask.setStatus(ReviewTaskStatus.REJECTED);
         retainedTask = reviewTaskRepository.save(retainedTask);
 

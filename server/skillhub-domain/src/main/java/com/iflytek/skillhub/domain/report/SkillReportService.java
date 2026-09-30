@@ -1,5 +1,6 @@
 package com.iflytek.skillhub.domain.report;
 
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.audit.AuditLogService;
 import com.iflytek.skillhub.domain.event.ReportResolvedEvent;
 import com.iflytek.skillhub.domain.event.ReportSubmittedEvent;
@@ -78,7 +79,7 @@ public class SkillReportService {
                 normalize(details)
         ));
         auditLogService.record(reporterId, "REPORT_SKILL", "SKILL", skillId, null, clientIp, userAgent,
-                "{\"reportId\":" + saved.getId() + "}");
+                AuditDetail.of("reportId", saved.getId()));
         eventPublisher.publishEvent(new ReportSubmittedEvent(
                 saved.getId(), saved.getSkillId(), saved.getReporterId()));
         return saved;
@@ -120,7 +121,7 @@ public class SkillReportService {
                 "SKILL_REPORT",
                 reportId,
                 "Report handled",
-                "{\"status\":\"RESOLVED\"}"
+                AuditDetail.of("status", "RESOLVED")
         );
         return saved;
     }
@@ -146,7 +147,7 @@ public class SkillReportService {
                 "SKILL_REPORT",
                 reportId,
                 "Report dismissed",
-                "{\"status\":\"DISMISSED\"}"
+                AuditDetail.of("status", "DISMISSED")
         );
         return saved;
     }

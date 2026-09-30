@@ -16,20 +16,27 @@ import java.time.Instant;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final NotificationPreferenceService preferenceService;
     private final Clock clock;
 
-    public NotificationService(NotificationRepository notificationRepository, Clock clock) {
+    public NotificationService(NotificationRepository notificationRepository,
+                               NotificationPreferenceService preferenceService,
+                               Clock clock) {
         this.notificationRepository = notificationRepository;
+        this.preferenceService = preferenceService;
         this.clock = clock;
     }
 
     @Transactional
-    public Notification create(String recipientId, NotificationCategory category,
-                                String eventType, String title, String bodyJson,
-                                String entityType, Long entityId) {
+    public void create(String recipientId, NotificationCategory category,
+                       String eventType, String title, String bodyJson,
+                       String entityType, Long entityId) {
+        if (!preferenceService.isEnabled(recipientId, category, NotificationChannel.IN_APP)) {
+            return;
+        }
         Notification notification = new Notification(recipientId, category, eventType,
                 title, bodyJson, entityType, entityId, Instant.now(clock));
-        return notificationRepository.save(notification);
+        notificationRepository.save(notification);
     }
 
     @Transactional(readOnly = true)

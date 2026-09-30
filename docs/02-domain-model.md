@@ -230,10 +230,18 @@
 | skill_id | bigint | |
 | user_id | varchar(128) | |
 | score | tinyint | 1-5 |
+| review_text | varchar(2000) | 可选文字评价；空值表示仅评分 |
+| review_status | enum | `VISIBLE` / `HIDDEN`，隐藏不影响评分聚合 |
+| moderated_by | varchar(128) | 最近一次管理操作人，nullable |
+| moderated_at | datetime | 最近一次管理时间，nullable |
+| moderation_reason | varchar(500) | 隐藏原因，nullable |
+| lock_version | bigint | 乐观锁版本；并发编辑或治理冲突返回 409 |
 | created_at | datetime | |
 | updated_at | datetime | |
 
-唯一约束：`(skill_id, user_id)`，每人每技能一条，可修改
+唯一约束：`(skill_id, user_id)`，每人每技能一条，可修改。删除文字评价只清空
+`review_text`，保留评分和既有治理状态；管理员隐藏评价时也保留评分，避免作者通过
+清空后重新提交绕过治理，或治理动作改变聚合分数。
 
 ### user_account
 
@@ -245,6 +253,7 @@
 | avatar_url | varchar(512) | |
 | status | enum | `ACTIVE` / `PENDING` / `DISABLED` / `MERGED` |
 | merged_to_user_id | varchar(128) | 合并目标用户 ID，仅 MERGED 状态有值 |
+| system_account | boolean | 系统服务账号，禁止交互式 Web/OAuth 登录 |
 | created_at | datetime | |
 | updated_at | datetime | |
 
@@ -252,8 +261,10 @@
   - `ACTIVE`：正常使用
   - `PENDING`：等待管理员审批（AccessPolicy 返回 PENDING_APPROVAL 时创建）
   - `DISABLED`：管理员封禁，登录后拒绝所有操作，返回 403
-  - `MERGED`：已合并到其他账号，保留记录不物理删除，登录时自动跳转到合并目标账号
+  - `MERGED`：已合并到其他账号，保留记录不物理删除；登录直接拒绝，不向调用方泄露合并目标
 - 授权层在每次请求时检查用户状态，非 `ACTIVE` 用户拒绝所有写操作
+- system account 可按独立 Token Policy 使用非交互凭证，但不能通过本地密码或外部 OAuth
+  建立普通用户 Session
 
 ### identity_binding
 

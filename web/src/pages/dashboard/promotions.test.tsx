@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PromotionStatus, PromotionTask } from '@/api/types'
 
@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   approveMutate: vi.fn(),
   rejectMutate: vi.fn(),
   usePromotionList: vi.fn(),
+  paginationProps: [] as Array<{ page: number; totalPages: number; onPageChange: (page: number) => void }>,
   translations: {
     'promotions.approve': 'Approve',
     'promotions.colReviewComment': 'Review Comment',
@@ -68,6 +69,17 @@ vi.mock('@/shared/components/dashboard-page-header', () => ({
   ),
 }))
 
+vi.mock('@/shared/components/pagination', () => ({
+  Pagination: (props: { page: number; totalPages: number; onPageChange: (page: number) => void }) => {
+    mocks.paginationProps.push(props)
+    return (
+      <button type="button" onClick={() => props.onPageChange(props.page + 1)}>
+        pagination:{props.page}/{props.totalPages}
+      </button>
+    )
+  },
+}))
+
 import { PromotionsPage } from './promotions'
 
 function createPromotion(overrides: Partial<PromotionTask> = {}): PromotionTask {
@@ -99,9 +111,12 @@ function createPromotion(overrides: Partial<PromotionTask> = {}): PromotionTask 
 
 function installPromotionListMock(overrides: {
   pending?: PromotionTask[]
+  pendingTotal?: number
   approvedDesc?: PromotionTask[]
+  approvedTotal?: number
   approvedAsc?: PromotionTask[]
   rejectedDesc?: PromotionTask[]
+  rejectedTotal?: number
   rejectedAsc?: PromotionTask[]
 } = {}) {
   const pending = overrides.pending ?? [createPromotion()]
@@ -152,20 +167,37 @@ function installPromotionListMock(overrides: {
   const approvedAsc = overrides.approvedAsc ?? [...approvedDesc].reverse()
   const rejectedAsc = overrides.rejectedAsc ?? [...rejectedDesc].reverse()
 
-  mocks.usePromotionList.mockImplementation((params: { status?: PromotionStatus; sortDirection?: 'ASC' | 'DESC' } = {}) => {
+  mocks.usePromotionList.mockImplementation((params: {
+    status?: PromotionStatus
+    page?: number
+    size?: number
+    sortDirection?: 'ASC' | 'DESC'
+  } = {}) => {
+    const page = params.page ?? 0
+    const size = params.size ?? 20
     if (params.status === 'APPROVED') {
-      return { data: params.sortDirection === 'ASC' ? approvedAsc : approvedDesc, isLoading: false }
+      return {
+        data: { items: params.sortDirection === 'ASC' ? approvedAsc : approvedDesc, total: overrides.approvedTotal ?? approvedDesc.length, page, size },
+        isLoading: false,
+      }
     }
     if (params.status === 'REJECTED') {
-      return { data: params.sortDirection === 'ASC' ? rejectedAsc : rejectedDesc, isLoading: false }
+      return {
+        data: { items: params.sortDirection === 'ASC' ? rejectedAsc : rejectedDesc, total: overrides.rejectedTotal ?? rejectedDesc.length, page, size },
+        isLoading: false,
+      }
     }
-    return { data: pending, isLoading: false }
+    return {
+      data: { items: pending, total: overrides.pendingTotal ?? pending.length, page, size },
+      isLoading: false,
+    }
   })
 }
 
 describe('PromotionsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.paginationProps.length = 0
     installPromotionListMock()
   })
 
@@ -184,6 +216,62 @@ describe('PromotionsPage', () => {
     expect(screen.getByText('1.8 MB')).toBeTruthy()
     expect(screen.getByText('18 downloads')).toBeTruthy()
     expect(screen.getByText('5 stars')).toBeTruthy()
+  })
+
+  it('paginates pending and history queues independently', () => {
+    installPromotionListMock({ pendingTotal: 21, approvedTotal: 21 })
+    render(<PromotionsPage />)
+
+    expect(mocks.usePromotionList).toHaveBeenCalledWith({
+      status: 'PENDING',
+      page: 0,
+      size: 20,
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'pagination:0/2' }))
+    expect(mocks.usePromotionList).toHaveBeenCalledWith({
+      status: 'PENDING',
+      page: 1,
+      size: 20,
+    })
+    expect(screen.getByRole('button', { name: 'pagination:1/2' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Approved' }))
+    expect(mocks.usePromotionList).toHaveBeenCalledWith({
+      status: 'APPROVED',
+      page: 0,
+      size: 20,
+      sortBy: 'reviewedAt',
+      sortDirection: 'DESC',
+    })
+    expect(screen.getByRole('button', { name: 'pagination:0/2' })).toBeTruthy()
+  })
+
+  it('returns to the last valid page when a mutation empties the current page', async () => {
+    const pending = createPromotion()
+    mocks.usePromotionList.mockImplementation((params: { status?: PromotionStatus; page?: number } = {}) => {
+      const page = params.page ?? 0
+      return {
+        data: {
+          items: params.status === 'PENDING' && page === 0 ? [pending] : [],
+          total: params.status === 'PENDING' ? 20 : 0,
+          page,
+          size: 20,
+        },
+        isLoading: false,
+      }
+    })
+    render(<PromotionsPage />)
+
+    mocks.paginationProps[0]?.onPageChange(1)
+
+    await waitFor(() => {
+      expect(mocks.usePromotionList).toHaveBeenLastCalledWith({
+        status: 'PENDING',
+        page: 0,
+        size: 20,
+      })
+    })
+    expect(screen.getByText('Knowledge Helper')).toBeTruthy()
   })
 
   it('renders approved history as a sortable table', () => {

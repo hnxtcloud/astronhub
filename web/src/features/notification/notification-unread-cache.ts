@@ -6,13 +6,6 @@ function normalizeUnreadCount(data: NotificationUnreadCount | undefined) {
   return Math.max(data?.count ?? 0, 0)
 }
 
-export function incrementUnreadCount(queryClient: QueryClient, userId?: string | null) {
-  queryClient.setQueryData<NotificationUnreadCount>(
-    NOTIFICATION_QUERY_KEYS.unreadCount(userId),
-    (current) => ({ count: normalizeUnreadCount(current) + 1 })
-  )
-}
-
 export function decrementUnreadCount(queryClient: QueryClient, userId?: string | null) {
   queryClient.setQueryData<NotificationUnreadCount>(
     NOTIFICATION_QUERY_KEYS.unreadCount(userId),

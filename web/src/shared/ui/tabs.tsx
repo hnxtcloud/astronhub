@@ -59,9 +59,10 @@ interface TabsTriggerProps {
   value: string
   children: React.ReactNode
   className?: string
+  disabled?: boolean
 }
 
-export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
+export function TabsTrigger({ value, children, className, disabled = false }: TabsTriggerProps) {
   const context = React.useContext(TabsContext)
   if (!context) throw new Error('TabsTrigger must be used within Tabs')
 
@@ -72,6 +73,8 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
       type="button"
       role="tab"
       aria-selected={isActive}
+      aria-disabled={disabled}
+      disabled={disabled}
       onClick={() => context.setValue(value)}
       data-state={isActive ? 'active' : 'inactive'}
       className={cn(

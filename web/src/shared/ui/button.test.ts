@@ -4,9 +4,9 @@ import { buttonVariants } from './button'
 describe('buttonVariants', () => {
   it('applies default variant and size classes', () => {
     const classes = buttonVariants()
-    expect(classes).toContain('bg-brand-gradient')
-    expect(classes).toContain('h-10')
-    expect(classes).toContain('px-5')
+    expect(classes).toContain('bg-primary')
+    expect(classes).toContain('h-9')
+    expect(classes).toContain('px-4')
   })
 
   it('applies destructive variant classes', () => {
@@ -17,7 +17,7 @@ describe('buttonVariants', () => {
   it('applies outline variant classes', () => {
     const classes = buttonVariants({ variant: 'outline' })
     expect(classes).toContain('border')
-    expect(classes).toContain('bg-transparent')
+    expect(classes).toContain('bg-background/70')
   })
 
   it('applies secondary variant classes', () => {
@@ -25,9 +25,15 @@ describe('buttonVariants', () => {
     expect(classes).toContain('bg-secondary')
   })
 
+  it('applies soft blue variant classes', () => {
+    const classes = buttonVariants({ variant: 'soft' })
+    expect(classes).toContain('bg-blue-500/10')
+    expect(classes).toContain('text-blue-700')
+  })
+
   it('applies ghost variant classes', () => {
     const classes = buttonVariants({ variant: 'ghost' })
-    expect(classes).toContain('hover:bg-secondary')
+    expect(classes).toContain('hover:bg-accent/70')
   })
 
   it('applies link variant classes', () => {
@@ -43,14 +49,14 @@ describe('buttonVariants', () => {
 
   it('applies lg size classes', () => {
     const classes = buttonVariants({ size: 'lg' })
-    expect(classes).toContain('h-12')
-    expect(classes).toContain('text-base')
+    expect(classes).toContain('h-10')
+    expect(classes).toContain('px-8')
   })
 
   it('applies icon size classes', () => {
     const classes = buttonVariants({ size: 'icon' })
-    expect(classes).toContain('h-10')
-    expect(classes).toContain('w-10')
+    expect(classes).toContain('h-9')
+    expect(classes).toContain('w-9')
   })
 
   it('always includes base focus-visible and disabled styles', () => {

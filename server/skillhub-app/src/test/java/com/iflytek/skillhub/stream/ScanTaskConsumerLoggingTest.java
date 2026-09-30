@@ -220,8 +220,19 @@ class ScanTaskConsumerLoggingTest {
         }
 
         @Override
-        public void processScanResult(Long versionId, ScannerType scannerType, SecurityScanResponse response) {
+        public void processScanResult(String taskId,
+                                      Long versionId,
+                                      ScannerType scannerType,
+                                      SecurityScanResponse response) {
         }
+
+        @Override
+        public void processScanFailure(String taskId,
+                                       Long versionId,
+                                       ScannerType scannerType,
+                                       String reason) {
+        }
+
     }
 
     private static final class TestProducer implements ScanTaskProducer {

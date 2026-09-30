@@ -4,7 +4,8 @@ import { Shield } from 'lucide-react'
 import { Card } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/ui/dialog'
-import { useSecurityAudits } from './use-security-audit'
+import { toast } from '@/shared/lib/toast'
+import { useRetrySecurityScan, useSecurityAudits } from './use-security-audit'
 import { getSecurityAuditDisplayState } from './display-state'
 import { VerdictBadge } from './verdict-badge'
 import { SecurityAuditSection } from './security-audit-section'
@@ -13,12 +14,14 @@ interface SecurityAuditSummaryProps {
   skillId: number
   versionId: number
   versionStatus?: string
+  canRetry?: boolean
 }
 
-export function SecurityAuditSummary({ skillId, versionId, versionStatus }: SecurityAuditSummaryProps) {
+export function SecurityAuditSummary({ skillId, versionId, versionStatus, canRetry = false }: SecurityAuditSummaryProps) {
   const { t } = useTranslation()
   const { data: audits } = useSecurityAudits(skillId, versionId)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const retryMutation = useRetrySecurityScan(skillId, versionId)
 
   if (!audits || audits.length === 0) {
     return null
@@ -49,6 +52,22 @@ export function SecurityAuditSummary({ skillId, versionId, versionStatus }: Secu
         <p className="text-xs text-muted-foreground">
           {t('securityAudit.totalFindings', { count: totalFindings })}
         </p>
+        {canRetry && versionStatus === 'SCAN_FAILED' && (
+          <Button
+            size="sm"
+            className="w-full"
+            disabled={retryMutation.isPending}
+            onClick={() => retryMutation.mutate(undefined, {
+              onSuccess: () => toast.success(t('securityAudit.retrySuccess')),
+              onError: (error) => toast.error(
+                t('securityAudit.retryError'),
+                error instanceof Error ? error.message : undefined
+              ),
+            })}
+          >
+            {retryMutation.isPending ? t('securityAudit.retrying') : t('securityAudit.retry')}
+          </Button>
+        )}
         <Button variant="outline" size="sm" className="w-full" onClick={() => setDialogOpen(true)}>
           {t('securityAudit.viewDetails')}
         </Button>

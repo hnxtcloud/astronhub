@@ -200,6 +200,22 @@ class SkillMetadataParserTest {
     }
 
     @Test
+    void testDoesNotInstantiateUnsafeGlobalYamlTags() {
+        String content = """
+            ---
+            name: safe-skill
+            description: Reject unsafe YAML object construction
+            payload: !!java.util.Date []
+            ---
+            Body
+            """;
+
+        SkillMetadata metadata = parser.parse(content);
+
+        assertEquals("!!java.util.Date []", metadata.frontmatter().get("payload"));
+    }
+
+    @Test
     void testThrowsWhenNoClosingDelimiter() {
         String content = """
             ---

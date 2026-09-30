@@ -124,7 +124,7 @@ class SkillHardDeleteServiceTest {
         inOrder.verify(skillRepository).save(skill);
         inOrder.verify(skillRepository).flush();
         inOrder.verify(skillVersionRepository).deleteBySkillId(7L);
-        verify(reviewTaskRepository).deleteBySkillVersionIdIn(List.of(21L, 22L));
+        verify(reviewTaskRepository).deleteBySkillId(7L);
         verify(promotionRequestRepository).deleteBySourceSkillIdOrTargetSkillId(7L, 7L);
         verify(skillTagRepository).deleteBySkillId(7L);
         verify(skillStarRepository).deleteBySkillId(7L);

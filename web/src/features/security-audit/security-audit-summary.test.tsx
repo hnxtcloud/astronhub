@@ -1,5 +1,8 @@
+/** @vitest-environment jsdom */
+
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SecurityAuditRecord } from './types'
 import { SecurityAuditSummary } from './security-audit-summary'
 
@@ -26,6 +29,7 @@ function createAudit(overrides: Partial<SecurityAuditRecord> = {}): SecurityAudi
     findingsCount: 0,
     findings: [],
     scanDurationSeconds: null,
+    failureReason: null,
     scannedAt: '2026-03-20T10:00:00Z',
     createdAt: '2026-03-20T10:00:00Z',
     ...overrides,
@@ -33,10 +37,17 @@ function createAudit(overrides: Partial<SecurityAuditRecord> = {}): SecurityAudi
 }
 
 let mockAudits: SecurityAuditRecord[] | undefined = undefined
+const { retryMutation, toastMocks } = vi.hoisted(() => ({
+  retryMutation: { mutate: vi.fn(), isPending: false },
+  toastMocks: { success: vi.fn(), error: vi.fn() },
+}))
 
 vi.mock('./use-security-audit', () => ({
   useSecurityAudits: () => ({ data: mockAudits }),
+  useRetrySecurityScan: () => retryMutation,
 }))
+
+vi.mock('@/shared/lib/toast', () => ({ toast: toastMocks }))
 
 // Mock the Dialog components to avoid Radix UI portal / context issues in static render
 vi.mock('@/shared/ui/dialog', () => ({
@@ -53,6 +64,10 @@ vi.mock('./security-audit-section', () => ({
 }))
 
 describe('SecurityAuditSummary', () => {
+  afterEach(() => {
+    cleanup()
+    vi.clearAllMocks()
+  })
   it('returns null when audits is undefined', () => {
     mockAudits = undefined
 
@@ -113,6 +128,34 @@ describe('SecurityAuditSummary', () => {
 
     expect(html).toContain('securityAudit.statusScanFailed')
     expect(html).not.toContain('securityAudit.statusScanning')
+  })
+
+  it('renders retry only for an authorized failed version', () => {
+    mockAudits = [createAudit({ scannedAt: null })]
+
+    const failedHtml = renderToStaticMarkup(
+      <SecurityAuditSummary skillId={1} versionId={10} versionStatus="SCAN_FAILED" canRetry />
+    )
+    const unauthorizedHtml = renderToStaticMarkup(
+      <SecurityAuditSummary skillId={1} versionId={10} versionStatus="SCAN_FAILED" />
+    )
+
+    expect(failedHtml).toContain('securityAudit.retry')
+    expect(unauthorizedHtml).not.toContain('securityAudit.retry')
+  })
+
+  it('starts retry and exposes success and failure feedback callbacks', () => {
+    mockAudits = [createAudit({ scannedAt: null })]
+    render(<SecurityAuditSummary skillId={1} versionId={10} versionStatus="SCAN_FAILED" canRetry />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'securityAudit.retry' }))
+
+    expect(retryMutation.mutate).toHaveBeenCalledOnce()
+    const options = retryMutation.mutate.mock.calls[0]?.[1]
+    options.onSuccess()
+    expect(toastMocks.success).toHaveBeenCalledWith('securityAudit.retrySuccess')
+    options.onError(new Error('scanner unavailable'))
+    expect(toastMocks.error).toHaveBeenCalledWith('securityAudit.retryError', 'scanner unavailable')
   })
 
   it('renders the total findings count across all audits', () => {

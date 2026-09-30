@@ -22,6 +22,7 @@ import java.util.Optional;
 public interface SkillJpaRepository extends JpaRepository<Skill, Long>, SkillRepository {
     List<Skill> findByIdIn(List<Long> ids);
     List<Skill> findByNamespaceIdAndSlug(Long namespaceId, String slug);
+    List<Skill> findByNamespaceIdInAndSlugIn(List<Long> namespaceIds, List<String> slugs);
     Optional<Skill> findByNamespaceIdAndSlugAndOwnerId(Long namespaceId, String slug, String ownerId);
     boolean existsByNamespaceId(Long namespaceId);
 
@@ -33,11 +34,11 @@ public interface SkillJpaRepository extends JpaRepository<Skill, Long>, SkillRep
     List<Skill> findByNamespaceIdAndStatusOrderByCreatedAtDesc(Long namespaceId, SkillStatus status);
     Page<Skill> findByNamespaceIdAndStatus(Long namespaceId, SkillStatus status, Pageable pageable);
     List<Skill> findByOwnerId(String ownerId);
-    Page<Skill> findByOwnerIdOrderByUpdatedAtDesc(String ownerId, Pageable pageable);
+    Page<Skill> findByOwnerIdAndHiddenFalseOrderByUpdatedAtDesc(String ownerId, Pageable pageable);
 
     @Override
-    default Page<Skill> findByOwnerId(String ownerId, Pageable pageable) {
-        return findByOwnerIdOrderByUpdatedAtDesc(ownerId, pageable);
+    default Page<Skill> findVisibleByOwnerId(String ownerId, Pageable pageable) {
+        return findByOwnerIdAndHiddenFalseOrderByUpdatedAtDesc(ownerId, pageable);
     }
 
     @Modifying

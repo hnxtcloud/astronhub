@@ -4,7 +4,7 @@ import type { NotificationItem } from '@/api/types'
 import { getNotificationItems } from './notification-page'
 import { resolveNotificationDisplay } from './notification-content'
 import { useAuth } from '@/features/auth/use-auth'
-import { useNotifications, useMarkAllRead, useMarkRead } from './use-notifications'
+import { useNotificationList, useMarkAllRead, useMarkRead } from './use-notifications'
 import { resolveNotificationTarget } from './notification-target'
 import { formatRelativeTime } from '@/shared/lib/format-relative-time'
 
@@ -18,7 +18,7 @@ interface Props {
 export function NotificationDropdown({ onClose }: Props) {
   const { t, i18n } = useTranslation()
   const { user } = useAuth()
-  const { data, isLoading } = useNotifications(user?.userId, 0, 5)
+  const { data, isLoading } = useNotificationList(user?.userId, 0, 5)
   const markAllRead = useMarkAllRead(user?.userId)
   const markRead = useMarkRead(user?.userId)
 
@@ -37,7 +37,7 @@ export function NotificationDropdown({ onClose }: Props) {
 
   return (
     <div
-      className="absolute right-0 top-10 z-50 w-80 rounded-xl border bg-white shadow-lg"
+      className="absolute right-0 top-10 z-50 w-80 rounded-xl border bg-popover text-popover-foreground shadow-lg"
       style={{ borderColor: 'hsl(var(--border))' }}
     >
       {/* Header */}
@@ -75,7 +75,7 @@ export function NotificationDropdown({ onClose }: Props) {
               <Link
                 to={resolveNotificationTarget(item)}
                 onClick={() => handleItemClick(item)}
-                className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted"
               >
                 {/* Unread dot */}
                 <span className={`mt-1.5 flex-shrink-0 w-2 h-2 rounded-full ${item.status === 'UNREAD' ? 'bg-red-500' : 'bg-transparent'}`} />

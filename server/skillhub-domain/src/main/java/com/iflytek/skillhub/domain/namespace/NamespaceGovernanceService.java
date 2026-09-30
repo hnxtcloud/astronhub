@@ -1,5 +1,6 @@
 package com.iflytek.skillhub.domain.namespace;
 
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.audit.AuditLogService;
 import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
 import com.iflytek.skillhub.domain.shared.exception.DomainForbiddenException;
@@ -206,7 +207,7 @@ public class NamespaceGovernanceService {
                 requestId,
                 clientIp,
                 userAgent,
-                reason == null || reason.isBlank() ? null : "{\"reason\":\"" + reason.replace("\"", "\\\"") + "\"}"
+                reason == null || reason.isBlank() ? null : AuditDetail.of("reason", reason)
         );
     }
 }

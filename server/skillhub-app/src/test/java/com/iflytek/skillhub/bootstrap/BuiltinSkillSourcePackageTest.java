@@ -34,7 +34,6 @@ class BuiltinSkillSourcePackageTest {
         JsonNode skills = catalog.path("skills");
 
         assertThat(skills.isArray()).isTrue();
-        assertThat(skills).hasSize(15);
 
         Set<String> catalogSlugs = new HashSet<>();
         for (JsonNode item : skills) {

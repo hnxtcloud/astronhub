@@ -1,25 +1,31 @@
 # OpenClaw Integration Guide
 
-This document explains how to configure OpenClaw CLI to connect to a SkillHub private registry for publishing, searching, and downloading skills.
+This document explains how to configure the ClawHub CLI to connect to a private SkillHub registry for search, inspection, and installation. Use the first-party SkillHub CLI for publishing.
 > Not only applicable to Openclaw, but also compatible with other CLI Coding Agents (Claude Code, OpenCode, Qcoder, etc.) or Agent assistants (Nanobot, CoPaw, etc.) by specifying the installation directory.
 
 ## Overview
 
-SkillHub provides a ClawHub-compatible API layer, allowing OpenClaw CLI to seamlessly integrate with private registries. With simple configuration, you can:
+SkillHub provides a ClawHub-compatible API for common read and install flows. With simple configuration, you can:
 
 - 🔍 Search for private skills within your organization
 - 📥 Download and install skill packages
-- 📤 Publish new skills to the private registry
-- ⭐ Star and rate skills
+- ⭐ Star skills
+
+Current compatibility boundaries:
+
+- ClawHub CLI `0.23.3` uses `/api/v1/whoami`, which matches the SkillHub compatibility API.
+- ClawHub publishing depends on upload-ticket endpoints that SkillHub does not implement, so `clawhub publish` and `clawhub sync` are not supported.
+- ClawHub CLI `0.23.3` does not reliably prioritize the private Registry saved during `login`; site discovery or the default can select another target. Set `CLAWHUB_REGISTRY` in each shell session or pass `--registry` explicitly.
+- Canonical slugs use `--` between namespace and skill. SkillHub rejects new namespace or skill slugs containing consecutive `--`, keeping new coordinates unambiguous. Rename invalid legacy or externally imported coordinates before using the ClawHub CLI.
 
 ## Quick Start
 
 ### 1. Configure Registry URL
 
-Set the SkillHub registry address in your OpenClaw configuration:
+Set the SkillHub registry address for the current shell session:
 
 ```bash
-# Via environment variable (temporary)
+# Do not depend on the registry resolution order of the login configuration
 export CLAWHUB_REGISTRY=https://skillhub.your-company.com
 ```
 
@@ -29,7 +35,7 @@ For **global namespace (@global) PUBLIC skills**, no login is required to downlo
 
 - Team namespace skills (regardless of visibility)
 - NAMESPACE_ONLY or PRIVATE skills
-- Write operations like publishing, starring, etc.
+- Authenticated operations such as starring
 
 ```bash
 # Log in with an API token
@@ -107,24 +113,21 @@ npx clawhub uninstall --help
 npx clawhub list --help
 ```
 
-### 5. Publish Skills
+### 5. Publish with the SkillHub CLI
+
+The ClawHub CLI `0.23.3` publishing protocol is not compatible with SkillHub. Use the first-party SkillHub CLI:
 
 ```bash
-# Publish to the global namespace (requires appropriate permissions)
-npx clawhub publish ./my-skill --slug my-skill --name "My Skill" --version 1.0.0
-
-# Publish to a team namespace such as my-space
-npx clawhub publish ./my-skill --slug my-space--my-skill --name "My Skill" --version 1.0.0
-npx clawhub sync --all # Upload all skills in current folder
-
-# Help
-npx clawhub publish --help
-npx clawhub sync --help
+export SKILLHUB_REGISTRY=https://skillhub.your-company.com
+export SKILLHUB_TOKEN=YOUR_API_TOKEN
+npx @astron-team/skillhub@latest publish ./my-skill --namespace global
+npx @astron-team/skillhub@latest publish ./my-skill --namespace my-space
 ```
 
 Notes:
-- `my-space--my-skill` is the canonical compatibility slug. SkillHub parses it as namespace `my-space` plus skill slug `my-skill`
-- To avoid mismatches between CLI display text and the final persisted coordinate, keep the `name` in `SKILL.md` aligned with the canonical slug suffix
+- Publishing requires an API Token with the `skill:publish` scope and permission in the target namespace.
+- `clawhub login` and the SkillHub CLI do not share credentials; set `SKILLHUB_TOKEN` separately for the first-party CLI.
+- The first-party CLI uses a separate namespace option, but it still follows the server's slug validation rules.
 
 ## API Endpoints
 
@@ -138,9 +141,9 @@ SkillHub compatibility layer provides the following endpoints:
 | `/api/v1/download/{slug}` | GET | Download skill (redirect) | Optional* |
 | `/api/v1/download` | GET | Download skill (query params) | Optional* |
 | `/api/v1/skills/{slug}` | GET | Get skill details | Optional |
-| `/api/v1/skills/{slug}/star` | POST | Star a skill | Required |
-| `/api/v1/skills/{slug}/unstar` | DELETE | Unstar a skill | Required |
-| `/api/v1/publish` | POST | Publish a skill | Required |
+| `/api/v1/stars/{slug}` | POST | Star a skill | Required |
+| `/api/v1/stars/{slug}` | DELETE | Unstar a skill | Required |
+| `/api/v1/publish` | POST | Legacy compatibility endpoint; not used by ClawHub CLI `0.23.3` | Required |
 
 Notes:
 - The compatibility layer may still expose the term "latest" externally, but it must strictly mean "latest published version"
@@ -185,6 +188,8 @@ SkillHub internally uses `@{namespace}/{skill}` format, but the compatibility la
 | `@my-team/my-skill` | `my-team--my-skill` | Team namespace skill |
 
 OpenClaw CLI uses canonical slug format, and SkillHub handles the conversion automatically.
+
+The canonical format has no escaping rule, so SkillHub rejects new namespace or skill slugs containing consecutive `--`. If legacy or externally imported data bypassed that validation, rename the coordinate first; the first-party CLI does not bypass server-side slug validation.
 
 ## Configuration Examples
 
@@ -248,11 +253,15 @@ curl https://skillhub.your-company.com/api/v1/whoami \
 npx clawhub search ""
 ```
 
-### Q: Permission denied when publishing?
+### Q: Why does publishing with the ClawHub CLI fail?
 
-- Publishing to global namespace (`@global`) requires `SUPER_ADMIN` permission
-- Publishing to team namespace requires OWNER or ADMIN role in that namespace
-- Contact your administrator for appropriate permissions
+ClawHub CLI `0.23.3` uses an upload-ticket protocol outside SkillHub's compatibility scope. This failure does not mean that the API Token was revoked; use the first-party SkillHub CLI instead.
+
+If the first-party CLI reports insufficient permission:
+
+- The publisher must be a member of the target namespace; `SUPER_ADMIN` is exempt
+- A regular member may submit a publication; visibility and review rules decide whether it is published immediately or enters review
+- Contact a namespace administrator to join the target namespace
 
 ### Q: Which OpenClaw versions are supported?
 

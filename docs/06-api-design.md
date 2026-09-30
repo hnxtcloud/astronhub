@@ -82,6 +82,7 @@
 | GET | `/api/v1/skills/{namespace}/{slug}/tags/{tagName}/download` | 按标签下载（解析标签指向的版本后下载） |
 | GET | `/api/v1/skills/{namespace}/{slug}/tags/{tagName}/files` | 按标签查看文件清单 |
 | GET | `/api/v1/skills/{namespace}/{slug}/tags/{tagName}/file?path=...` | 按标签读取单个文件 |
+| GET | `/api/v1/skills/{skillId}/reviews` | 公开评价分页列表；仅返回可见评价，管理员可见隐藏项 |
 | GET | `/api/v1/namespaces` | 公开命名空间列表 |
 | GET | `/api/v1/namespaces/{slug}` | 命名空间详情 |
 
@@ -201,6 +202,9 @@ Public API 的可见性规则：
 | POST | `/api/v1/skills/{namespace}/{slug}/star` | 收藏 |
 | DELETE | `/api/v1/skills/{namespace}/{slug}/star` | 取消收藏 |
 | POST | `/api/v1/skills/{namespace}/{slug}/rating` | 评分 |
+| GET | `/api/v1/skills/{skillId}/reviews/me` | 当前用户的评分与文字评价 |
+| PUT | `/api/v1/skills/{skillId}/reviews/me` | 新增或更新当前用户评价（`score` 1-5，`reviewText` 最长 2000） |
+| DELETE | `/api/v1/skills/{skillId}/reviews/me` | 删除文字评价并保留星级评分 |
 | GET | `/api/v1/me/stars` | 我的收藏列表 |
 | GET | `/api/v1/me/skills` | 我发布的技能列表 |
 
@@ -226,6 +230,7 @@ Public API 的可见性规则：
 | POST | `/api/v1/skills/{namespace}/{slug}/archive` | 归档技能（namespace ADMIN 或 owner） |
 | POST | `/api/v1/skills/{namespace}/{slug}/unarchive` | 恢复归档（namespace ADMIN 或 owner） |
 | DELETE | `/api/v1/skills/{namespace}/{slug}/versions/{version}` | 删除 DRAFT/REJECTED 版本 |
+| POST | `/api/v1/skills/{namespace}/{slug}/versions/{version}/yank` | 撤回已发布版本（namespace ADMIN 或 owner；可选 body `{"reason"}`；API Token 需 `skill:publish`） |
 | POST | `/api/v1/skills/{namespace}/{slug}/versions/{version}/rerelease` | 从已发布版本重新发出一个新版本（namespace ADMIN 或 owner） |
 
 当前代码中的 skill 生命周期读模型不再依赖 `latestVersionStatus` / `viewingVersionStatus` 一类拼装字段，而统一使用以下 projection：
@@ -312,6 +317,8 @@ Admin API 按最小权限拆分，不再统一要求 SUPER_ADMIN：
 | POST | `/api/v1/admin/skills/{id}/hide` | 隐藏技能（仅 `SUPER_ADMIN`） |
 | POST | `/api/v1/admin/skills/{id}/unhide` | 恢复技能（仅 `SUPER_ADMIN`） |
 | POST | `/api/v1/admin/skills/versions/{versionId}/yank` | 撤回已发布版本（`SKILL_ADMIN` / `SUPER_ADMIN`） |
+| POST | `/api/v1/admin/skill-reviews/{reviewId}/hide` | 隐藏用户评价（`SKILL_ADMIN` / `SUPER_ADMIN`） |
+| POST | `/api/v1/admin/skill-reviews/{reviewId}/restore` | 恢复用户评价（`SKILL_ADMIN` / `SUPER_ADMIN`） |
 
 ### 用户治理（需 USER_ADMIN / SUPER_ADMIN）
 

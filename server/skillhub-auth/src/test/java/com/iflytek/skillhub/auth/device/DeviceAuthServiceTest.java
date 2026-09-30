@@ -44,7 +44,7 @@ class DeviceAuthServiceTest {
     @BeforeEach
     void setUp() {
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        service = new DeviceAuthService(redisTemplate, apiTokenService, new ObjectMapper(), "/cli/auth");
+        service = new DeviceAuthService(redisTemplate, apiTokenService, new ObjectMapper(), "/device");
     }
 
     /**
@@ -83,6 +83,11 @@ class DeviceAuthServiceTest {
         DeviceTokenResponse response = service.pollToken(DEVICE_CODE);
 
         assertThat(response.accessToken()).isEqualTo("sk_test_token");
+        verify(apiTokenService).rotateToken(
+            "usr_1",
+            "CLI Device Flow",
+            "[\"skill:read\",\"skill:publish\",\"skill:delete\"]"
+        );
     }
 
     @Test

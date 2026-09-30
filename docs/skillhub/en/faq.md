@@ -65,8 +65,10 @@ npx clawhub search email
 # Install a skill package
 npx clawhub install my-skill
 
-# Publish a skill package
-npx clawhub publish ./my-skill
+# Publish a skill package (the ClawHub CLI publishing protocol is not compatible)
+export SKILLHUB_REGISTRY=http://your-skillhub-host:8080
+export SKILLHUB_TOKEN=YOUR_API_TOKEN
+npx @astron-team/skillhub@latest publish ./my-skill
 ```
 
 ## Q: How do I configure HTTPS?
@@ -138,7 +140,13 @@ A: When using the OpenClaw CLI, you can specify the namespace using the `<namesp
 
 ## Q: What is the recommended deployment method? Can I pull the images and deploy manually?
 
-A: We recommend the official one-line deployment script. Pulling images and deploying manually is not recommended (manual deployment is prone to initialization issues such as being redirected back to the login page after logging in):
+A: We recommend the official one-line deployment script. Pulling images and deploying manually is not recommended because it is prone to database initialization, dependency-order, and login redirect issues. By default, dependencies come from public registries, and the SkillHub application images come from GHCR:
+
+```bash
+curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- up --public-url https://skillhub.your-company.com
+```
+
+If GHCR is unreachable from China, use the Aliyun mirror:
 
 ```bash
 curl -fsSL https://imageless.oss-cn-beijing.aliyuncs.com/runtime.sh | sh -s -- up --aliyun --public-url https://skillhub.your-company.com --version latest
@@ -182,9 +190,14 @@ A: Skill names are generally in English; Chinese names are not currently support
 
 A: As long as you have permission to view it, it can generally be downloaded.
 
-## Q: How do I hide or remove the GitHub / GitLab SSO login options on the login page?
+## Q: How do I hide or remove third-party SSO login options on the login page?
 
-A: Edit `application.yml` and comment out or delete the `github` and `gitlab` blocks under `spring.security.oauth2.client.registration`, along with their corresponding `provider` sections. Spring Boot then won't create these registrations at startup, and the login page won't show those entries.
+A: Login entries are config-driven: `/api/v1/auth/methods` only returns registrations that have a real client id. When a client id is empty or contains `placeholder`, that entry never reaches the login page.
+
+So there are two ways to hide one:
+
+- Leave the matching environment variable unset (for example, omit `OAUTH2_FEISHU_CLIENT_ID`). No config file change needed.
+- Or edit `application.yml` and comment out or delete the relevant registration block (`github`, `gitlab`, `feishu`, `dingtalk`) under `spring.security.oauth2.client.registration`, along with its `provider` section. Spring Boot then won't create that registration at startup.
 
 ## Q: Is SkillHub's security scanning (Skill Scanner) developed in-house by iFLYTEK? What license does it use?
 
@@ -192,7 +205,23 @@ A: SkillHub has built-in security scanning. The scanner integration, task orches
 
 ## Q: Which version of cisco-ai-skill-scanner does SkillHub use?
 
-A: `scanner/Dockerfile` runs `pip install cisco-ai-skill-scanner` directly without pinning a version, so the latest version on PyPI is pulled when the image is built. To pin a version, do so yourself when customizing the build.
+A: `scanner/Dockerfile` pins `cisco-ai-skill-scanner==2.1.0`. The Scanner image uses glibc Linux and supports `linux/amd64` and `linux/arm64`.
+
+## Q: Should the Scanner use upload mode or local mode?
+
+A: The official Compose and Kubernetes deployments use `upload` mode and send skill packages through `POST /scan-upload`. `SKILLHUB_SCANNER_MAX_UPLOAD_SIZE_BYTES` controls the upload limit; its default is `110100480` bytes (105 MiB).
+
+Use `local` mode only when the Server and Scanner can see the same directory at the **same path**. Both services must share the mount, and the Scanner must allow that root; for the standard path, set `SKILL_SCANNER_ALLOWED_ROOTS=/tmp/skillhub-scans`.
+
+## Q: Does “No high-risk findings” mean that a security scan returned no findings?
+
+A: No. A Scanner response with `is_safe=true`, rendered in the UI as “No high-risk findings,” only means that no high-risk issue was found. Lower-severity findings may still exist and `findingsCount` may be greater than zero. Review the finding details instead of treating this state as an unconditional safety guarantee.
+
+## Q: How should I roll out the Scanner 2.1.0 upgrade?
+
+A: First deploy the Server release that is compatible with the 2.1.0 protocol. While the old Scanner is still running, drain and remove every old Server instance and its in-flight scans. Then upgrade the Scanner and verify `/health` plus one upload-mode scan. Do not connect an old Server to Scanner 2.1.0.
+
+During the mixed-version window, keep AI Defense disabled in both upload and local modes (the default is `SKILLHUB_SCANNER_USE_AI_DEFENSE=false`). If AI Defense must remain enabled before the upgrade, configure its credential directly in the old Scanner environment using the variable supported by that Scanner version; never put an AI Defense key in URL query parameters or request bodies.
 
 ## Q: How do I troubleshoot a `registry returned 400` error from `skillhub publish` (CLI)?
 
@@ -298,6 +327,17 @@ docker compose --env-file .env.release -f compose.release.yml up -d --force-recr
 A: PostgreSQL and Redis are required. Object storage supports both `local` and S3, controlled by `SKILLHUB_STORAGE_PROVIDER`. `.env.release.example` explicitly selects `local`, but if the variable is completely unset when using `compose.release.yml`, the Compose fallback is `s3`. Set it explicitly; S3 is recommended for production (configured via `SKILLHUB_STORAGE_S3_*`). Only PostgreSQL is supported as the database — MySQL is not.
 
 The release Compose file already bundles PostgreSQL and Redis, bound to `127.0.0.1` by default.
+
+## Q: What should I do when PostgreSQL reports `operation not permitted` while writing `postmaster.pid` or `pg_wal`?
+
+A: SkillHub's default Compose and `runtime.sh` use a Docker named volume (`postgres_data`), so host-directory permissions normally do not need manual changes. This error is more common after replacing that volume with a host bind mount, such as `/data/skillhub/postgres:/var/lib/postgresql/data`.
+
+Check the following in order:
+
+1. Prefer switching back to a Docker named volume, or use the official `runtime.sh` to avoid missing permission settings in a hand-written Compose file.
+2. If a bind mount is required, first identify the effective `POSTGRES_IMAGE` selected by `.env.release` or the `runtime.sh` options. Export that value in the current shell, then run `docker run --rm "$POSTGRES_IMAGE" id postgres`. Change the data-directory owner to the reported UID/GID, for example `chown -R <uid>:<gid> <data-dir>`. Do not assume the image is `postgres:16-alpine`, or that every environment uses `999:999`.
+3. Check SELinux on RHEL/CentOS. With AppArmor, rootless Docker, NFS, CIFS, or NAS storage, also verify that the host filesystem permits PostgreSQL to write, lock files, and change permissions.
+4. Avoid placing PostgreSQL `PGDATA` on network filesystems without full POSIX permission semantics. For production, prefer local disks, Docker named volumes, block storage, or an external PostgreSQL service.
 
 ## Q: How does an account created through OAuth (GitHub / GitLab, etc.) get admin rights?
 

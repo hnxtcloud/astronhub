@@ -11,7 +11,6 @@ import com.iflytek.skillhub.dto.PageResponse;
 import com.iflytek.skillhub.notification.domain.Notification;
 import com.iflytek.skillhub.notification.domain.NotificationCategory;
 import com.iflytek.skillhub.notification.service.NotificationService;
-import com.iflytek.skillhub.notification.sse.SseEmitterManager;
 import com.iflytek.skillhub.observability.RequestIdAccessor;
 import java.time.Clock;
 import java.time.Instant;
@@ -32,9 +31,6 @@ class NotificationControllerTest {
     @Mock
     private NotificationService notificationService;
 
-    @Mock
-    private SseEmitterManager sseEmitterManager;
-
     private NotificationController controller;
 
     @BeforeEach
@@ -46,7 +42,7 @@ class NotificationControllerTest {
                 Clock.fixed(Instant.parse("2026-03-20T00:00:00Z"), ZoneOffset.UTC),
                 new RequestIdAccessor()
         );
-        controller = new NotificationController(notificationService, sseEmitterManager, new ObjectMapper(), responseFactory);
+        controller = new NotificationController(notificationService, new ObjectMapper(), responseFactory);
     }
 
     @Test

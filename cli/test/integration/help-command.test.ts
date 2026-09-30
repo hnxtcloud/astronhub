@@ -2,11 +2,21 @@ import { describe, expect, test } from 'bun:test'
 import { runCli } from '../helpers/run-cli'
 
 describe('help command', () => {
+  test('documents interactive device login and the headless fallback', async () => {
+    const result = await runCli(['help', 'login'])
+
+    expect(result.exitCode).toBe(0)
+    expect(result.stdout).toContain('OAuth Device Flow')
+    expect(result.stdout).toContain('--no-open')
+    expect(result.stdout).toContain('--token')
+  })
   test('prints detailed help for install', async () => {
     const result = await runCli(['help', 'install'])
     expect(result.exitCode).toBe(0)
     expect(result.stdout).toContain('Usage: skillhub install <coordinate>')
     expect(result.stdout).toContain('--agent <profile>')
+    expect(result.stdout).toContain('--version <v>')
+    expect(result.stdout).toContain('--registry <url>')
     expect(result.stdout).toContain('@team/my-skill')
     expect(result.stdout).toContain('team/my-skill')
     expect(result.stdout).toContain('team--my-skill')
@@ -18,6 +28,7 @@ describe('help command', () => {
     expect(result.stdout).toContain('Usage: skillhub remove <coordinate>')
     expect(result.stdout).toContain('skillhub remove team/my-skill')
     expect(result.stdout).toContain('skillhub remove my-skill --namespace team')
+    expect(result.stdout).toContain('--registry <url>')
   })
 
   test('prints namespaced local remove contract in --help', async () => {
@@ -34,6 +45,40 @@ describe('help command', () => {
     expect(result.stdout).toContain('skillhub search')
   })
 
+  test('states that Suite commands require a compatible registry', async () => {
+    const topic = await runCli(['help', 'suite'])
+    expect(topic.exitCode).toBe(0)
+    expect(topic.stdout).toContain('Manage Skill Suites on compatible registries')
+
+    const root = await runCli(['--help'])
+    expect(root.exitCode).toBe(0)
+    expect(root.stdout).toContain('Manage Skill Suites on compatible registries')
+  })
+
+  test('distinguishes skill upgrade from CLI self-update and namespace sync', async () => {
+    const upgrade = await runCli(['help', 'upgrade'])
+    expect(upgrade.exitCode).toBe(0)
+    expect(upgrade.stdout).toContain('Upgrade explicitly selected installed skills')
+    expect(upgrade.stdout).toContain('skillhub upgrade <coordinate...>')
+    expect(upgrade.stdout).toContain('--check')
+    expect(upgrade.stdout).toContain('--force')
+
+    const update = await runCli(['help', 'update'])
+    expect(update.exitCode).toBe(0)
+    expect(update.stdout).toContain('Check or update CLI itself')
+
+    const sync = await runCli(['help', 'sync'])
+    expect(sync.exitCode).toBe(0)
+    expect(sync.stdout).toContain('namespace workspaces')
+    expect(sync.stdout).toContain('--namespace <slug>')
+    expect(sync.stdout).toContain('--skill <slug>')
+
+    const publish = await runCli(['help', 'publish'])
+    expect(publish.exitCode).toBe(0)
+    expect(publish.stdout).toContain('--dry-run')
+    expect(publish.stdout).toContain('--registry <url>')
+  })
+
   // P1: bare `skillhub help` (no topic) prints the directory of all commands
   test('bare help lists all commands in human format', async () => {
     const result = await runCli(['help'])
@@ -44,41 +89,44 @@ describe('help command', () => {
     }
   })
 
-  // P1: `skillhub help --json` is wired in cac but the --json flag is consumed
-  // by the action wrapper and never reaches helpCommand's args. Today this
-  // makes the JSON branch unreachable from the CLI surface (helpCommand always
-  // sees [] or [topic] without --json). We document the current human-only
-  // behavior here so a future source fix that re-routes --json into
-  // helpCommand will fail this test loudly and we can convert it into a
-  // positive JSON assertion at that time.
-  // TODO source bug: cli/src/index.ts:178 should forward --json into helpCommand args.
-  test('help --json currently returns human directory (documents source bug)', async () => {
+  test('help --json returns a parseable command directory', async () => {
     const result = await runCli(['help', '--json'])
     expect(result.exitCode).toBe(0)
-    // Output is NOT valid JSON today.
-    let isJson = true
-    try { JSON.parse(result.stdout) } catch { isJson = false }
-    expect(isJson).toBe(false)
-    // Sanity: human output still mentions some commands
-    expect(result.stdout).toContain('install')
+    expect(result.stderr).toBe('')
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      ok: true,
+      commands: expect.arrayContaining([
+        { name: 'install', description: 'Install a skill locally' }
+      ])
+    })
   })
 
-  test('help <topic> --json currently returns human topic detail (documents source bug)', async () => {
+  test('help <topic> --json returns parseable command detail', async () => {
     const result = await runCli(['help', 'install', '--json'])
     expect(result.exitCode).toBe(0)
-    let isJson = true
-    try { JSON.parse(result.stdout) } catch { isJson = false }
-    expect(isJson).toBe(false)
-    expect(result.stdout).toContain('Usage: skillhub install')
+    expect(result.stderr).toBe('')
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      ok: true,
+      command: 'install',
+      summary: 'Install a skill locally'
+    })
   })
 
-  // P1: `skillhub help <unknown>` currently crashes inside helpCommand because
-  // `commands[topic]` is undefined and `detail.usage` dereferences undefined.
-  // We assert non-zero exit so that a future fix to graceful handling does not
-  // regress silently. TODO source bug: cli/src/commands/help.ts:75 should
-  // surface a friendlier "unknown command" message instead of crashing.
-  test('help <unknown-topic> exits non-zero (documents current crashy behavior)', async () => {
+  test('help <unknown-topic> returns a clear usage error', async () => {
     const result = await runCli(['help', 'definitely-not-a-command'])
-    expect(result.exitCode).not.toBe(0)
+    expect(result.exitCode).toBe(5)
+    expect(result.stderr).toContain('unknown help topic: definitely-not-a-command')
+    expect(result.stderr).not.toContain('TypeError')
+  })
+
+  test('help <unknown-topic> --json returns a structured error only on stderr', async () => {
+    const result = await runCli(['help', 'definitely-not-a-command', '--json'])
+    expect(result.exitCode).toBe(5)
+    expect(result.stdout).toBe('')
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      ok: false,
+      message: 'unknown help topic: definitely-not-a-command',
+      exitCode: 5
+    })
   })
 })

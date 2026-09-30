@@ -110,6 +110,8 @@ helm -n skillhub upgrade -i skillhub ./charts/skillhub \
 | `skillhub-download-anon-cookie-secret` | 是 | 至少 32 字符的匿名下载 Cookie 签名密钥 |
 | `oauth2-github-client-id` | 否 | GitHub OAuth2 Client ID |
 | `oauth2-github-client-secret` | 否 | GitHub OAuth2 Client Secret |
+| `oauth2-dingtalk-client-id` | 否 | DingTalk AppKey |
+| `oauth2-dingtalk-client-secret` | 否 | DingTalk AppSecret |
 | `skill-scanner-llm-api-key` | 否 | Scanner LLM API Key |
 | `skill-scanner-llm-base-url` | 否 | Scanner 自定义 LLM API 地址 |
 | `skill-scanner-llm-model` | 否 | Scanner LLM 模型名称 |
@@ -297,6 +299,20 @@ standalone → replication、Redis standalone/replication → Sentinel 等切换
 外部 Redis Cluster 由云服务或运维系统提供，Chart 只负责注入连接配置，不创建
 Cluster，也不将其计入上述内置架构运行时验证范围。应用侧应另行验证 Spring
 Data、Spring Session 与 Redisson Stream 链路。
+
+### Skill Suite 审核滚动升级门禁
+
+Chart 默认将 `server.suiteReviewWritesEnabled` 设为 `false`，避免新旧 Server Pod 混跑时，
+旧实例读取到无法识别的 Suite 审核任务。全新安装可以直接启用：
+
+```yaml
+server:
+  suiteReviewWritesEnabled: true
+```
+
+从不支持 Suite 的版本滚动升级时，先保持 `false` 完成全部 Server Pod 升级；确认集群中不再有
+旧版实例后，再改为 `true` 并执行一次滚动更新。单实例 `compose.release.yml` 不存在混跑窗口，
+因此已默认启用。
 
 ### Redis Sentinel
 
