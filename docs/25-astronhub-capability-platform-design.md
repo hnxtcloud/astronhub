@@ -4,6 +4,8 @@
 
 Accepted on 2026-08-27 after a design-tree interview. The canonical domain language is maintained in [CONTEXT.md](../CONTEXT.md).
 
+The confirmed intranet implementation amendment is [Plugin management](27-plugin-management-implementation-plan.md), dated 2026-10-14. It adds server-managed internal Git/npm publication, manual archive import and independent dependency uploads. For this implementation, its explicit offline rules and public-channel restrictions take precedence over the broader distribution-source options below. Application update feeds remain a separate software-center domain, specified in [Software release update channels](28-software-release-update-channels.md).
+
 ## Context
 
 The current product is a mature Skill registry whose domain model, API, CLI compatibility layer, lifecycle, search, and documentation are strongly coupled to SkillHub terminology. The product is expanding into AstronHub（星枢）, a self-hosted registry and discovery platform for three kinds of Agent capability:
