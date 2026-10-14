@@ -192,6 +192,16 @@
       }
     },
     {
+      "slug": "triage-nda",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "upstream": {
+        "repository": "https://github.com/anthropics/knowledge-work-plugins",
+        "commit": "da38ec1ee89d41e5380e652a97382695003396e7",
+        "path": "legal/skills/triage-nda"
+      }
+    },
+    {
       "slug": "video-frames",
       "version": "1.0.0",
       "license": "MIT",

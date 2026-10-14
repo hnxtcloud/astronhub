@@ -30,6 +30,7 @@ export function UserMenu({ user, triggerClassName }: UserMenuProps) {
   const [isClickOpen, setIsClickOpen] = useState(false)
 
   const hasRole = (role: string) => user.platformRoles?.includes(role) ?? false
+  const isSkillAdmin = hasRole('SKILL_ADMIN') || hasRole('SUPER_ADMIN')
   const isUserAdmin = hasRole('USER_ADMIN') || hasRole('SUPER_ADMIN')
   const isAuditor = hasRole('AUDITOR') || hasRole('SUPER_ADMIN')
   const isSoftwareAdmin = hasRole('SOFTWARE_ADMIN') || hasRole('SUPER_ADMIN')
@@ -196,6 +197,11 @@ export function UserMenu({ user, triggerClassName }: UserMenuProps) {
             {isSuperAdmin ? (
               <Link to="/admin/labels" className={menuItemClassName} onClick={closeMenu}>
                 {t('user.menu.labels')}
+              </Link>
+            ) : null}
+            {isSuperAdmin ? (
+              <Link to="/admin/system-config" className={menuItemClassName} onClick={closeMenu}>
+                {t('user.menu.systemConfig')}
               </Link>
             ) : null}
             {isSuperAdmin ? (

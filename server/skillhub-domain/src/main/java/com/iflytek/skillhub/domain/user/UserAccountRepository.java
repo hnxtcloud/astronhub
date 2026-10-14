@@ -11,6 +11,7 @@ import java.util.Optional;
  */
 public interface UserAccountRepository {
     Optional<UserAccount> findById(String id);
+    Optional<UserAccount> findLockedById(String id);
     List<UserAccount> findByIdIn(List<String> ids);
     Optional<UserAccount> findByEmailIgnoreCase(String email);
     Page<UserAccount> search(String keyword, UserStatus status, Pageable pageable);

@@ -27,7 +27,7 @@ import { buildMaintainerHandoffBrief } from "./issue-handoff-brief.ts";
 export function parseIssueBody(body: string | null): ParsedIssueBody {
   const sections: Record<string, string> = {};
   const rawBody = body ?? "";
-  const headingMatches = [...rawBody.matchAll(/^###\s+(.+)$/gm)];
+  const headingMatches = [...rawBody.matchAll(/^#{2,3}\s+(.+)$/gm)];
 
   for (let index = 0; index < headingMatches.length; index += 1) {
     const current = headingMatches[index];

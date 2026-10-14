@@ -490,6 +490,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/system-config/role-grants/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["updateRoleGrant"];
+        post?: never;
+        delete: operations["disableRoleGrant"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/system-config/auth/local": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getLocalSettings"];
+        put: operations["updateLocalSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/software/uploads/{id}/chunks/{chunkNo}": {
         parameters: {
             query?: never;
@@ -1740,6 +1772,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/web/promotion-revocations/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotion-revocations/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reject_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotion-revocations/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/promotion-revocations/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["approve_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/promotion-revocations/source/{sourceSkillId}/direct": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["revokeDirect"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotion-revocations/source/{sourceSkillId}/direct": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["revokeDirect_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/promotion-revocations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotion-revocations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["submit_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/web/namespaces/{slug}/unfreeze": {
         parameters: {
             query?: never;
@@ -2412,6 +2572,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/system-config/role-grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listRoleGrants"];
+        put?: never;
+        post: operations["createRoleGrant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/software/uploads": {
         parameters: {
             query?: never;
@@ -2837,7 +3013,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["reject"];
+        post: operations["reject_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2853,7 +3029,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["approve"];
+        post: operations["approve_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3047,6 +3223,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["confirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/merge/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cancel_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4221,6 +4413,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/promotions/source/{sourceSkillId}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPromotionSourceState"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/promotions/source/{sourceSkillId}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getPromotionSourceState_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/web/promotions/pending": {
         parameters: {
             query?: never;
@@ -4245,6 +4469,134 @@ export interface paths {
             cookie?: never;
         };
         get: operations["listPendingPromotions_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/promotion-revocations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotion-revocations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/promotion-revocations/source/{sourceSkillId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotion-revocations/source/{sourceSkillId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["history_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/promotion-revocations/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["pending"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotion-revocations/pending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["pending_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/promotion-revocations/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reviewedHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/promotion-revocations/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["reviewedHistory_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5129,6 +5481,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/local/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["capabilities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users": {
         parameters: {
             query?: never;
@@ -5137,6 +5505,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["listUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/system-config/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["listRoles"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5168,7 +5552,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["history"];
+        get: operations["history_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5329,6 +5713,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["listAuditLogs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/merge/requests/{mergeRequestId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["approvalDetails"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5933,6 +6333,59 @@ export interface components {
         AdminUserRoleUpdateRequest: {
             role: string;
         };
+        ExternalRoleGrantUpdateRequest: {
+            roleCode: string;
+            /** Format: int64 */
+            version: number;
+        };
+        ApiResponseExternalRoleGrantRuleResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["ExternalRoleGrantRuleResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ExternalRoleGrantRuleResponse: {
+            /** Format: int64 */
+            id?: number;
+            providerCode?: string;
+            email?: string;
+            roleCode?: string;
+            status?: string;
+            matchedSubject?: string;
+            grantedUserId?: string;
+            /** Format: date-time */
+            grantedAt?: string;
+            /** Format: int64 */
+            version?: number;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        SystemAuthSettingsUpdateRequest: {
+            passwordLoginEnabled: boolean;
+            selfRegistrationEnabled: boolean;
+            /** Format: int64 */
+            version: number;
+        };
+        ApiResponseSystemAuthSettingsResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SystemAuthSettingsResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SystemAuthSettingsResponse: {
+            passwordLoginEnabled?: boolean;
+            selfRegistrationEnabled?: boolean;
+            /** Format: int64 */
+            version?: number;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
         ApiResponseSoftwareChunkReceiptResponse: {
             /** Format: int32 */
             code?: number;
@@ -6501,6 +6954,10 @@ export interface components {
             submittedAt?: string;
             /** Format: date-time */
             reviewedAt?: string;
+            requestKind?: string;
+            targetCurrentVersion?: string;
+            /** Format: int64 */
+            targetVersionId?: number;
         };
         PromotionRequestDto: {
             /** Format: int64 */
@@ -6509,6 +6966,47 @@ export interface components {
             sourceVersionId?: number;
             /** Format: int64 */
             targetNamespaceId?: number;
+        };
+        PromotionRevocationActionRequest: {
+            comment?: string;
+        };
+        ApiResponsePromotionRevocationResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PromotionRevocationResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PromotionRevocationResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            initialPromotionRequestId?: number;
+            /** Format: int64 */
+            sourceSkillId?: number;
+            /** Format: int64 */
+            targetSkillId?: number;
+            /** Format: int64 */
+            sourceNamespaceId?: number;
+            /** Format: int64 */
+            targetNamespaceId?: number;
+            skillSlug?: string;
+            status?: string;
+            reason?: string;
+            submittedBy?: string;
+            reviewedBy?: string;
+            reviewComment?: string;
+            /** Format: date-time */
+            submittedAt?: string;
+            /** Format: date-time */
+            reviewedAt?: string;
+        };
+        PromotionRevocationSubmitRequest: {
+            /** Format: int64 */
+            sourceSkillId?: number;
+            reason?: string;
         };
         TransferOwnershipRequest: {
             newOwnerId: string;
@@ -6749,6 +7247,11 @@ export interface components {
             expiresIn?: number;
             /** Format: int32 */
             interval?: number;
+        };
+        ExternalRoleGrantCreateRequest: {
+            providerCode: string;
+            email: string;
+            roleCode: string;
         };
         SoftwareUploadSessionCreateRequest: {
             /** Format: int64 */
@@ -7069,7 +7572,6 @@ export interface components {
         MergeVerifyRequest: {
             /** Format: int64 */
             mergeRequestId: number;
-            verificationToken: string;
         };
         MergeInitiateRequest: {
             secondaryIdentifier: string;
@@ -7087,10 +7589,13 @@ export interface components {
             /** Format: int64 */
             mergeRequestId?: number;
             secondaryUserId?: string;
-            verificationToken?: string;
             expiresAt?: string;
         };
         ConfirmMergeRequest: {
+            /** Format: int64 */
+            mergeRequestId: number;
+        };
+        CancelMergeRequest: {
             /** Format: int64 */
             mergeRequestId: number;
         };
@@ -7814,6 +8319,23 @@ export interface components {
             updatedAt?: string;
             labels?: components["schemas"]["SkillLabelDto"][];
         };
+        ApiResponsePromotionState: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PromotionState"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PromotionState: {
+            requestKind?: string;
+            /** Format: int64 */
+            targetSkillId?: number;
+            targetCurrentVersion?: string;
+            /** Format: int64 */
+            pendingPromotionId?: number;
+        };
         ApiResponsePageResponsePromotionResponseDto: {
             /** Format: int32 */
             code?: number;
@@ -7825,6 +8347,33 @@ export interface components {
         };
         PageResponsePromotionResponseDto: {
             items?: components["schemas"]["PromotionResponseDto"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        ApiResponseListPromotionRevocationResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PromotionRevocationResponse"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ApiResponsePageResponsePromotionRevocationResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PageResponsePromotionRevocationResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PageResponsePromotionRevocationResponse: {
+            items?: components["schemas"]["PromotionRevocationResponse"][];
             /** Format: int64 */
             total?: number;
             /** Format: int32 */
@@ -8590,6 +9139,20 @@ export interface components {
             displayName?: string;
             actionUrl?: string;
         };
+        ApiResponseLocalAuthCapabilitiesResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["LocalAuthCapabilitiesResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        LocalAuthCapabilitiesResponse: {
+            passwordLoginEnabled?: boolean;
+            selfRegistrationEnabled?: boolean;
+            registrationAvailable?: boolean;
+        };
         AdminUserSummaryResponse: {
             id?: string;
             username?: string;
@@ -8616,6 +9179,28 @@ export interface components {
             page?: number;
             /** Format: int32 */
             size?: number;
+        };
+        ApiResponseListPlatformRoleResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PlatformRoleResponse"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PlatformRoleResponse: {
+            code?: string;
+            name?: string;
+        };
+        ApiResponseListExternalRoleGrantRuleResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["ExternalRoleGrantRuleResponse"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
         };
         ApiResponseSoftwareUploadProgressResponse: {
             /** Format: int32 */
@@ -8930,6 +9515,22 @@ export interface components {
             page?: number;
             /** Format: int32 */
             size?: number;
+        };
+        ApiResponseMergeApprovalDetailsResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["MergeApprovalDetailsResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        MergeApprovalDetailsResponse: {
+            /** Format: int64 */
+            mergeRequestId?: number;
+            primaryUserId?: string;
+            primaryDisplayName?: string;
+            expiresAt?: string;
         };
         ApiResponseCliResolveResponse: {
             /** Format: int32 */
@@ -10392,6 +10993,100 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseAdminUserMutationResponse"];
+                };
+            };
+        };
+    };
+    updateRoleGrant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExternalRoleGrantUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseExternalRoleGrantRuleResponse"];
+                };
+            };
+        };
+    };
+    disableRoleGrant: {
+        parameters: {
+            query: {
+                version: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseExternalRoleGrantRuleResponse"];
+                };
+            };
+        };
+    };
+    getLocalSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSystemAuthSettingsResponse"];
+                };
+            };
+        };
+    };
+    updateLocalSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SystemAuthSettingsUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSystemAuthSettingsResponse"];
                 };
             };
         };
@@ -12501,6 +13196,210 @@ export interface operations {
             };
         };
     };
+    reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PromotionRevocationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    reject_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PromotionRevocationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PromotionRevocationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    approve_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PromotionRevocationActionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    revokeDirect: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceSkillId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PromotionRevocationSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    revokeDirect_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceSkillId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PromotionRevocationSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    submit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionRevocationSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    submit_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionRevocationSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
     unfreezeNamespace: {
         parameters: {
             query?: never;
@@ -13677,6 +14576,50 @@ export interface operations {
             };
         };
     };
+    listRoleGrants: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListExternalRoleGrantRuleResponse"];
+                };
+            };
+        };
+    };
+    createRoleGrant: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExternalRoleGrantCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseExternalRoleGrantRuleResponse"];
+                };
+            };
+        };
+    };
     createSession: {
         parameters: {
             query?: never;
@@ -14375,7 +15318,7 @@ export interface operations {
             };
         };
     };
-    reject: {
+    reject_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -14401,7 +15344,7 @@ export interface operations {
             };
         };
     };
-    approve: {
+    approve_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -14748,6 +15691,30 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ConfirmMergeRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMessageResponse"];
+                };
+            };
+        };
+    };
+    cancel_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelMergeRequest"];
             };
         };
         responses: {
@@ -16623,6 +17590,50 @@ export interface operations {
             };
         };
     };
+    getPromotionSourceState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceSkillId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionState"];
+                };
+            };
+        };
+    };
+    getPromotionSourceState_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceSkillId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionState"];
+                };
+            };
+        };
+    };
     listPendingPromotions: {
         parameters: {
             query?: {
@@ -16665,6 +17676,180 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponsePageResponsePromotionResponseDto"];
+                };
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    get_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceSkillId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListPromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    history_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceSkillId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListPromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    pending: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListPromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    pending_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListPromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    reviewedHistory: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponsePromotionRevocationResponse"];
+                };
+            };
+        };
+    };
+    reviewedHistory_1: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponsePromotionRevocationResponse"];
                 };
             };
         };
@@ -17919,6 +19104,26 @@ export interface operations {
             };
         };
     };
+    capabilities: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseLocalAuthCapabilitiesResponse"];
+                };
+            };
+        };
+    };
     listUsers: {
         parameters: {
             query?: {
@@ -17940,6 +19145,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponsePageResponseAdminUserSummaryResponse"];
+                };
+            };
+        };
+    };
+    listRoles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListPlatformRoleResponse"];
                 };
             };
         };
@@ -17966,7 +19191,7 @@ export interface operations {
             };
         };
     };
-    history: {
+    history_2: {
         parameters: {
             query?: {
                 page?: number;
@@ -18227,6 +19452,28 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponsePageResponseAuditLogItemResponse"];
+                };
+            };
+        };
+    };
+    approvalDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mergeRequestId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMergeApprovalDetailsResponse"];
                 };
             };
         };

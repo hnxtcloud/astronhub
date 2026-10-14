@@ -25,6 +25,36 @@ class SoftwareCenterMigrationH2Test {
             .formatted(System.nanoTime());
 
     @Test
+    void downloadSessionTimestampMigration_preservesLastActivityAndDefaultsNewRows() throws Exception {
+        try (Connection connection = DriverManager.getConnection(URL, "sa", "");
+             Statement statement = connection.createStatement()) {
+            statement.execute("CREATE DOMAIN IF NOT EXISTS TIMESTAMPTZ AS TIMESTAMP WITH TIME ZONE");
+            statement.execute("""
+                    CREATE TABLE software_download_session (
+                        id VARCHAR(64) PRIMARY KEY,
+                        last_activity_at TIMESTAMP WITH TIME ZONE NOT NULL
+                    )""");
+            statement.execute("""
+                    INSERT INTO software_download_session VALUES
+                    ('legacy', TIMESTAMP WITH TIME ZONE '2026-09-29 01:00:00+00')""");
+
+            statement.execute(readMigration("db/migration/V73__software_download_session_updated_at.sql"));
+
+            ResultSet legacy = statement.executeQuery("""
+                    SELECT updated_at, last_activity_at FROM software_download_session WHERE id = 'legacy'""");
+            assertThat(legacy.next()).isTrue();
+            assertThat(legacy.getObject(1)).isEqualTo(legacy.getObject(2));
+
+            statement.execute("""
+                    INSERT INTO software_download_session (id, last_activity_at) VALUES ('new', CURRENT_TIMESTAMP)""");
+            ResultSet inserted = statement.executeQuery("""
+                    SELECT updated_at FROM software_download_session WHERE id = 'new'""");
+            assertThat(inserted.next()).isTrue();
+            assertThat(inserted.getObject(1)).isNotNull();
+        }
+    }
+
+    @Test
     void softwareCenterMigration_applies_andSeedsExpectedState() throws Exception {
         try (Connection connection = DriverManager.getConnection(URL, "sa", "");
              Statement statement = connection.createStatement()) {

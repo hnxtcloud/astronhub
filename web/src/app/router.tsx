@@ -210,6 +210,11 @@ const AdminLabelsPage = createRoleProtectedRouteComponent(
   'AdminLabelsPage',
   ['SUPER_ADMIN'],
 )
+const SystemConfigPage = createRoleProtectedRouteComponent(
+  () => import('@/pages/admin/system-config'),
+  'SystemConfigPage',
+  ['SUPER_ADMIN'],
+)
 const AdminNamespacesPage = createRoleProtectedRouteComponent(
   () => import('@/pages/admin/namespaces'),
   'AdminNamespacesPage',
@@ -691,6 +696,13 @@ const adminLabelsRoute = createRoute({
   component: AdminLabelsPage,
 })
 
+const systemConfigRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'admin/system-config',
+  beforeLoad: requireAuth,
+  component: SystemConfigPage,
+})
+
 const adminNamespacesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'admin/namespaces',
@@ -785,6 +797,7 @@ const routeTree = rootRoute.addChildren([
   adminUsersRoute,
   adminAuditLogRoute,
   adminLabelsRoute,
+  systemConfigRoute,
   adminNamespacesRoute,
   softwareCatalogRoute,
   softwareAppDetailRoute,

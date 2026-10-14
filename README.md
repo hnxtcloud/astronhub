@@ -449,30 +449,9 @@ password defaults.
 
 ## Architecture
 
-```
-┌─────────────┐     ┌─────────────┐     ┌──────────────┐
-│   Web UI    │     │  CLI Tools  │     │  REST API    │
-│  (React 19) │     │             │     │              │
-└──────┬──────┘     └──────┬──────┘     └──────┬───────┘
-       │                   │                   │
-       └───────────────────┼───────────────────┘
-                           │
-                    ┌──────▼──────┐
-                    │   Nginx     │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ Spring Boot │  Auth · RBAC · Core Services
-                    │   (Java 21) │  OAuth2 · API Tokens · Audit
-                    └──────┬──────┘
-                           │
-              ┌────────────┼────────────┐
-              │            │            │
-       ┌──────▼───┐  ┌─────▼────┐  ┌────▼────┐
-       │PostgreSQL│  │  Redis   │  │ Storage │
-       │    16    │  │    7     │  │ S3/MinIO│
-       └──────────┘  └──────────┘  └─────────┘
-```
+<div align="center">
+  <img src="./docs/skillhub/public/diagrams/architecture-overview.png" alt="SkillHub system architecture" width="900" />
+</div>
 
 **Backend (Spring Boot 3.2.3, Java 21):**
 - Multi-module Maven project with clean architecture
