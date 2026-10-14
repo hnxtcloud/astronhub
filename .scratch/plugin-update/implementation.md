@@ -45,3 +45,13 @@ Base branch: codex/software-center-phase1
 ## Environment acceptance
 
 真实内网 registry、Git 目标和发布凭据；安装样本与签名；NSIS/macOS 原生安装和差分请求分别验收。模拟通过只记服务端证据。
+
+## Preparation checkpoint — 2026-10-14
+
+- 规格、研究与地图初始提交：`afe11f58`。本地文档链接与任务图无环检查已通过。
+- 已有 `CONTEXT.md` 用户改动和其他 `.scratch/` 内容未纳入提交；本次补充术语保留在工作副本。
+- 票 01 准备工作树：`C:/Users/adolbook/.codex/worktrees/plugin-drafts/astronhub`，分支 `codex/plugin-drafts-review`。
+- 票 07 准备工作树：`C:/Users/adolbook/.codex/worktrees/software-updates/astronhub`，分支 `codex/software-release-assets`。
+- 两代理只读勘查；计划笔记位于仓库外 `C:/Users/adolbook/.codex/worktrees/plugin-update-notes/`。迁移编号预留 01 使用 V74，07 使用 V75，编码前重新检查。
+- 使用等价 Maven reactor 命令（`-pl skillhub-app -am test`）跑既有基线，日志在 `.scratch/plugin-update-baseline.log`。完整结果尚待确认，不能描述为全部通过。
+- 尚无新增测试或功能代码。TDD 测试边界问题仍等待用户实际答复，不能用超时或产品范围确认代替该答复。
