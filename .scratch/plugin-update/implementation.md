@@ -24,7 +24,7 @@ Base branch: codex/software-center-phase1
 
 | 任务 | 阻塞 | 规格验收分组 |
 | --- | --- | --- |
-| [插件草稿、版本与审核管理闭环](tickets/01-plugin-drafts-review.md) | None | P1、P4 |
+| [插件草稿、版本与审核管理闭环](tickets/01-plugin-drafts-review.md) | None | P1、P4、P2/P3 首条单包路径 |
 | [离线单包和仓库批量导入](tickets/02-offline-plugin-import.md) | 01 | P2、P3 |
 | [插件下载、历史版本与组件治理](tickets/03-plugin-download-governance.md) | 01,02 | P4 |
 | [内网 npm 插件发布及依赖上传](tickets/04-npm-publication.md) | 01,02 | P5 |
@@ -55,3 +55,4 @@ Base branch: codex/software-center-phase1
 - 两代理只读勘查；计划笔记位于仓库外 `C:/Users/adolbook/.codex/worktrees/plugin-update-notes/`。迁移编号预留 01 使用 V74，07 使用 V75，编码前重新检查。
 - 使用等价 Maven reactor 命令（`-pl skillhub-app -am test`）跑既有基线，日志在 `.scratch/plugin-update-baseline.log`。完整结果尚待确认，不能描述为全部通过。
 - 尚无新增测试或功能代码。TDD 测试边界问题仍等待用户实际答复，不能用超时或产品范围确认代替该答复。
+- 勘查修正首条插件票：必须包含真实 Claude Code 单 ZIP 静态导入和受限托管发布，否则“先审批、后验证”的空草稿会造成隐含循环依赖。后续导入票扩展其他宿主和仓库批量流程，不降低提交门禁。
