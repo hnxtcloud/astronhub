@@ -68,7 +68,65 @@ tmp="$(new_tmp)"
 
 valid_env="$tmp/valid.env"
 write_env "$valid_env" "release-download-secret-32-bytes-minimum"
+printf '%s\n' "SKILLHUB_STORAGE_S3_DISABLE_CHUNKED_ENCODING=true" >>"$valid_env"
 "$SCRIPT" "$valid_env" >/dev/null
+
+compose_default_redirect="$tmp/compose-default-redirect.txt"
+SKILLHUB_DOWNLOAD_ANON_COOKIE_SECRET=release-download-secret-32-bytes-minimum \
+SKILLHUB_PUBLIC_BASE_URL=https://skillhub.example.com \
+  docker compose -f "$REPO_ROOT/compose.release.yml" config \
+  | grep -A1 'OAUTH2_FEISHU_REDIRECT_URI:' >"$compose_default_redirect"
+grep -Fq 'https://skillhub.example.com/login/oauth2/code/feishu' "$compose_default_redirect" \
+  || fail "compose must derive the default Feishu redirect URI from SKILLHUB_PUBLIC_BASE_URL"
+
+valid_feishu_env="$tmp/valid-feishu.env"
+write_env "$valid_feishu_env" "release-download-secret-32-bytes-minimum"
+cat >>"$valid_feishu_env" <<'EOF'
+OAUTH2_FEISHU_CLIENT_ID=cli_test
+OAUTH2_FEISHU_CLIENT_SECRET=secret_test
+OAUTH2_FEISHU_PROTOCOL_VERSION=v2
+OAUTH2_FEISHU_AUTHORIZATION_URI=https://accounts.feishu.cn/open-apis/authen/v1/authorize
+OAUTH2_FEISHU_TOKEN_URI=https://open.feishu.cn/open-apis/authen/v2/oauth/token
+OAUTH2_FEISHU_USER_INFO_URI=https://open.feishu.cn/open-apis/authen/v1/user_info
+OAUTH2_FEISHU_REDIRECT_URI=http://127.0.0.1:55041/login/oauth2/code/feishu
+EOF
+"$SCRIPT" "$valid_feishu_env" >/dev/null
+
+invalid_feishu_protocol_env="$tmp/invalid-feishu-protocol.env"
+write_env "$invalid_feishu_protocol_env" "release-download-secret-32-bytes-minimum"
+printf '%s\n' "OAUTH2_FEISHU_PROTOCOL_VERSION=v1" >>"$invalid_feishu_protocol_env"
+expect_fail "$invalid_feishu_protocol_env" "OAUTH2_FEISHU_PROTOCOL_VERSION must be either v2 or v3"
+
+invalid_feishu_endpoint_env="$tmp/invalid-feishu-endpoint.env"
+write_env "$invalid_feishu_endpoint_env" "release-download-secret-32-bytes-minimum"
+printf '%s\n' "OAUTH2_FEISHU_TOKEN_URI=https://open.feishu.cn/oauth/token?tenant=prod" >>"$invalid_feishu_endpoint_env"
+expect_fail "$invalid_feishu_endpoint_env" "OAUTH2_FEISHU_TOKEN_URI must not contain a query"
+
+invalid_feishu_redirect_env="$tmp/invalid-feishu-redirect.env"
+write_env "$invalid_feishu_redirect_env" "release-download-secret-32-bytes-minimum"
+printf '%s\n' "OAUTH2_FEISHU_REDIRECT_URI=https://skillhub.example.com/login/oauth2/code/feishu?bad=1" >>"$invalid_feishu_redirect_env"
+expect_fail "$invalid_feishu_redirect_env" "OAUTH2_FEISHU_REDIRECT_URI must not contain a query"
+
+valid_dingtalk_env="$tmp/valid-dingtalk.env"
+write_env "$valid_dingtalk_env" "release-download-secret-32-bytes-minimum"
+cat >>"$valid_dingtalk_env" <<'EOF'
+OAUTH2_DINGTALK_CLIENT_ID=ding-test
+OAUTH2_DINGTALK_CLIENT_SECRET=dingtalk-test-secret
+OAUTH2_DINGTALK_AUTHORIZE_URI=https://login.dingtalk.com
+OAUTH2_DINGTALK_BASE_URI=https://api.dingtalk.com
+OAUTH2_DINGTALK_REDIRECT_URI=https://skillhub.example.com/login/oauth2/code/dingtalk
+EOF
+"$SCRIPT" "$valid_dingtalk_env" >/dev/null
+
+invalid_dingtalk_base_env="$tmp/invalid-dingtalk-base.env"
+write_env "$invalid_dingtalk_base_env" "release-download-secret-32-bytes-minimum"
+printf '%s\n' "OAUTH2_DINGTALK_BASE_URI=https://api.dingtalk.com/" >>"$invalid_dingtalk_base_env"
+expect_fail "$invalid_dingtalk_base_env" "OAUTH2_DINGTALK_BASE_URI must not have a trailing slash"
+
+invalid_dingtalk_redirect_env="$tmp/invalid-dingtalk-redirect.env"
+write_env "$invalid_dingtalk_redirect_env" "release-download-secret-32-bytes-minimum"
+printf '%s\n' "OAUTH2_DINGTALK_REDIRECT_URI=https://skillhub.example.com/callback?bad=1" >>"$invalid_dingtalk_redirect_env"
+expect_fail "$invalid_dingtalk_redirect_env" "OAUTH2_DINGTALK_REDIRECT_URI must not contain a query"
 
 disabled_builtin_skills_env="$tmp/disabled-builtin-skills.env"
 write_env "$disabled_builtin_skills_env" "release-download-secret-32-bytes-minimum"
@@ -252,6 +310,29 @@ invalid_redis_sentinel_check_env="$tmp/invalid-redis-sentinel-check.env"
 write_env "$invalid_redis_sentinel_check_env" "release-download-secret-32-bytes-minimum"
 printf '%s\n' "SKILLHUB_REDIS_SENTINEL_CHECK_SENTINELS_LIST=yes" >>"$invalid_redis_sentinel_check_env"
 expect_fail "$invalid_redis_sentinel_check_env" "SKILLHUB_REDIS_SENTINEL_CHECK_SENTINELS_LIST must be true or false"
+
+# An OAuth client id without its secret (or vice versa) leaves the provider half-configured:
+# the login button renders but the exchange fails. Checked for every supported provider.
+for provider in GITHUB GITLAB FEISHU DINGTALK; do
+  missing_oauth_secret_env="$tmp/missing-oauth-secret.env"
+  write_env "$missing_oauth_secret_env" "release-download-secret-32-bytes-minimum"
+  printf 'OAUTH2_%s_CLIENT_ID=real-client-id\n' "$provider" >>"$missing_oauth_secret_env"
+  expect_fail "$missing_oauth_secret_env" "OAUTH2_${provider}_CLIENT_SECRET is required"
+
+  missing_oauth_id_env="$tmp/missing-oauth-id.env"
+  write_env "$missing_oauth_id_env" "release-download-secret-32-bytes-minimum"
+  printf 'OAUTH2_%s_CLIENT_SECRET=real-client-secret\n' "$provider" >>"$missing_oauth_id_env"
+  expect_fail "$missing_oauth_id_env" "OAUTH2_${provider}_CLIENT_ID is required"
+done
+
+# A fully configured provider pair must pass.
+valid_oauth_env="$tmp/valid-oauth.env"
+write_env "$valid_oauth_env" "release-download-secret-32-bytes-minimum"
+cat >>"$valid_oauth_env" <<'EOF'
+OAUTH2_FEISHU_CLIENT_ID=cli_release_example
+OAUTH2_FEISHU_CLIENT_SECRET=release-feishu-secret
+EOF
+"$SCRIPT" "$valid_oauth_env" >/dev/null
 
 draft_env="$tmp/draft.env"
 while IFS= read -r line || [[ -n "$line" ]]; do

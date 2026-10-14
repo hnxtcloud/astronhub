@@ -7,6 +7,8 @@ import com.iflytek.skillhub.domain.security.SecurityVerdict;
 import com.iflytek.skillhub.infra.http.HttpClient;
 import com.iflytek.skillhub.infra.http.HttpClientException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.HttpHeaders;
 
 import java.nio.file.Path;
@@ -87,16 +89,45 @@ class SkillScannerAdapterTest {
         assertThat(response.verdict()).isEqualTo(SecurityVerdict.BLOCKED);
     }
 
-    @Test
-    void scan_wrapsHttpClientFailureAsSecurityScanException() {
+    @ParameterizedTest
+    @ValueSource(ints = {429, 500, 599})
+    void scan_treatsTransientHttpFailureAsScannerUnavailable(int statusCode) {
         StubSkillScannerService skillScannerService = new StubSkillScannerService();
-        skillScannerService.directoryException = new HttpClientException(502, "bad gateway");
+        skillScannerService.directoryException = new HttpClientException(statusCode, "scanner unavailable");
         ScanOptions options = ScanOptions.disabled();
         SkillScannerAdapter adapter = new SkillScannerAdapter(skillScannerService, "local", options);
 
         assertThatThrownBy(() -> adapter.scan(new SecurityScanRequest("task-1", 42L, "/tmp/skill", Map.of())))
                 .isInstanceOf(SecurityScanException.class)
-                .hasMessage("Security scan failed");
+                .hasMessage("Security scan request failed: HTTP " + statusCode + ": scanner unavailable")
+                .satisfies(error -> assertThat(((SecurityScanException) error).isScannerUnavailable()).isTrue());
+    }
+
+    @Test
+    void scan_treatsConnectionFailureAsScannerUnavailable() {
+        StubSkillScannerService skillScannerService = new StubSkillScannerService();
+        skillScannerService.directoryException =
+                new HttpClientException("request failed", new IllegalStateException("connection refused"));
+        SkillScannerAdapter adapter = new SkillScannerAdapter(
+                skillScannerService, "local", ScanOptions.disabled());
+
+        assertThatThrownBy(() -> adapter.scan(new SecurityScanRequest("task-1", 42L, "/tmp/skill", Map.of())))
+                .isInstanceOf(SecurityScanException.class)
+                .satisfies(error -> assertThat(((SecurityScanException) error).isScannerUnavailable()).isTrue());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {400, 422, 499})
+    void scan_treatsDeterministicClientFailureAsPermanent(int statusCode) {
+        StubSkillScannerService skillScannerService = new StubSkillScannerService();
+        skillScannerService.directoryException = new HttpClientException(statusCode, "invalid package");
+        SkillScannerAdapter adapter = new SkillScannerAdapter(
+                skillScannerService, "local", ScanOptions.disabled());
+
+        assertThatThrownBy(() -> adapter.scan(
+                new SecurityScanRequest("task-1", 42L, "/tmp/skill", Map.of())))
+                .isInstanceOf(SecurityScanException.class)
+                .satisfies(error -> assertThat(((SecurityScanException) error).isScannerUnavailable()).isFalse());
     }
 
     private static final class StubSkillScannerService extends SkillScannerService {
@@ -134,6 +165,11 @@ class SkillScannerAdapterTest {
 
         @Override
         public <T> T post(String uri, Object body, Class<T> responseType) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <T> T post(String uri, Object body, HttpHeaders headers, Class<T> responseType) {
             throw new UnsupportedOperationException();
         }
 

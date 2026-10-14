@@ -1,25 +1,31 @@
 # OpenClaw 集成指南
 
-本文档说明如何配置 OpenClaw CLI 连接到 SkillHub 私有注册中心，实现技能的发布、搜索和下载。
+本文档说明如何配置 ClawHub CLI 连接到 SkillHub 私有注册中心，实现技能的搜索、查看和安装。发布技能请使用第一方 SkillHub CLI。
 > 不仅适用于 Openclaw，通过指定安装目录，可适用于其他的 CLI Coding Agent (Claude Code、OpenCode、Qcoder等) 或者 Agent 助手（Nanobot、CoPaw等）。
 
 ## 概述
 
-SkillHub 提供了与 ClawHub 兼容的 API 层，使得 OpenClaw CLI 可以无缝对接私有注册中心。通过简单的配置，您可以：
+SkillHub 提供 ClawHub 兼容 API，覆盖常用的只读发现和安装流程。通过简单配置，您可以：
 
 - 🔍 搜索组织内的私有技能
 - 📥 下载和安装技能包
-- 📤 发布新技能到私有注册中心
-- ⭐ 收藏和评分技能
+- ⭐ 收藏技能
+
+当前兼容边界：
+
+- 已验证的 ClawHub CLI `0.23.3` 使用 `/api/v1/whoami`，与 SkillHub 兼容层一致。
+- ClawHub CLI 的发布协议依赖 SkillHub 未实现的上传票据接口，因此 `clawhub publish` 和 `clawhub sync` 不属于支持范围。
+- ClawHub CLI `0.23.3` 不会可靠地优先使用登录时保存的私有 Registry；站点发现或默认地址可能覆盖预期目标。每个终端会话都应设置 `CLAWHUB_REGISTRY`，或在命令中显式传入 `--registry`。
+- canonical slug 使用 `--` 分隔 namespace 与 skill。SkillHub 会拒绝新建包含连续 `--` 的 namespace 或 skill slug，以保证新坐标可无歧义解析；历史或外部导入的异常坐标应先重命名，再使用 ClawHub CLI。
 
 ## 快速开始
 
 ### 1. 配置 Registry 地址
 
-在 OpenClaw 配置文件中设置 SkillHub 注册中心地址：
+为当前终端会话设置 SkillHub 注册中心地址：
 
 ```bash
-# 通过环境变量配置（临时）
+# 不依赖 login 配置的 Registry 解析顺序
 export CLAWHUB_REGISTRY=https://skillhub.your-company.com
 ```
 
@@ -29,7 +35,7 @@ export CLAWHUB_REGISTRY=https://skillhub.your-company.com
 
 - 团队命名空间的技能（无论可见性）
 - NAMESPACE_ONLY 或 PRIVATE 技能
-- 发布、收藏等写操作
+- 收藏等需要登录的操作
 
 ```bash
 # 使用 API Token 登录
@@ -107,24 +113,21 @@ npx clawhub uninstall --help
 npx clawhub list --help
 ```
 
-### 5. 发布技能
+### 5. 使用 SkillHub CLI 发布技能
+
+ClawHub CLI `0.23.3` 的发布协议与 SkillHub 不兼容。请使用第一方 SkillHub CLI：
 
 ```bash
-# 发布到 global 空间（需要相应权限）
-npx clawhub publish ./my-skill --slug my-skill --name "My Skill" --version 1.0.0
-
-# 发布到如 my-space 这样的团队空间
-npx clawhub publish ./my-skill --slug my-space--my-skill --name "My Skill" --version 1.0.0
-npx clawhub sync --all # 上传当前文件夹中所有的 skill
-
-# 使用帮助
-npx clawhub publish --help
-npx clawhub sync --help
+export SKILLHUB_REGISTRY=https://skillhub.your-company.com
+export SKILLHUB_TOKEN=YOUR_API_TOKEN
+npx @astron-team/skillhub@latest publish ./my-skill --namespace global
+npx @astron-team/skillhub@latest publish ./my-skill --namespace my-space
 ```
 
 说明：
-- `my-space--my-skill` 是兼容层 canonical slug，SkillHub 会将其解析为 namespace `my-space` 和 skill slug `my-skill`
-- 为避免 CLI 展示与服务端最终坐标不一致，建议让 `SKILL.md` 中的 `name` 与 canonical slug 后半段保持一致
+- 发布需要具有 `skill:publish` scope 的 API Token，以及目标 namespace 对应权限。
+- `clawhub login` 与 SkillHub CLI 不共享凭据；请为第一方 CLI 单独设置 `SKILLHUB_TOKEN`。
+- 第一方 CLI 使用独立 namespace 参数，但仍遵循服务端 slug 校验规则。
 
 ## API 端点说明
 
@@ -138,9 +141,9 @@ SkillHub 兼容层提供以下端点：
 | `/api/v1/download/{slug}` | GET | 下载技能（重定向） | 可选* |
 | `/api/v1/download` | GET | 下载技能（查询参数） | 可选* |
 | `/api/v1/skills/{slug}` | GET | 获取技能详情 | 可选 |
-| `/api/v1/skills/{slug}/star` | POST | 收藏技能 | 必需 |
-| `/api/v1/skills/{slug}/unstar` | DELETE | 取消收藏 | 必需 |
-| `/api/v1/publish` | POST | 发布技能 | 必需 |
+| `/api/v1/stars/{slug}` | POST | 收藏技能 | 必需 |
+| `/api/v1/stars/{slug}` | DELETE | 取消收藏 | 必需 |
+| `/api/v1/publish` | POST | 旧版兼容发布端点；ClawHub CLI `0.23.3` 不使用 | 必需 |
 
 说明：
 - 兼容层对外继续使用 “latest” 语义，但这里严格指向“最新已发布版本”
@@ -185,6 +188,8 @@ SkillHub 内部使用 `@{namespace}/{skill}` 格式，但兼容层会自动转�
 | `@my-team/my-skill` | `my-team--my-skill` | 团队命名空间技能 |
 
 OpenClaw CLI 使用 canonical slug 格式，SkillHub 会自动处理转换。
+
+canonical 格式没有转义规则，因此 SkillHub 会拒绝新建包含连续 `--` 的 namespace 或 skill slug。若历史或外部导入数据绕过了该校验，应先重命名坐标；第一方 SkillHub CLI 虽使用独立 `--namespace` 参数，也不能绕过服务端 slug 校验。
 
 ## 配置示例
 
@@ -248,11 +253,15 @@ curl https://skillhub.your-company.com/api/v1/whoami \
 npx clawhub search ""
 ```
 
-### Q: 发布技能时提示权限不足？
+### Q: 使用 ClawHub CLI 发布为什么失败？
 
-- 发布到全局命名空间（`@global`）需要 `SUPER_ADMIN` 权限
-- 发布到团队命名空间需要是该命名空间的 OWNER 或 ADMIN
-- 联系管理员分配相应权限
+ClawHub CLI `0.23.3` 使用的上传票据协议不在 SkillHub 兼容范围内。该错误不代表 API Token 已撤销；请改用第一方 SkillHub CLI。
+
+如果第一方 CLI 提示权限不足：
+
+- 发布者必须是目标命名空间成员；`SUPER_ADMIN` 例外
+- 普通成员可提交发布，是否直接发布或进入审核由可见性和审核规则决定
+- 联系命名空间管理员加入目标空间
 
 ### Q: 支持哪些 OpenClaw 版本？
 

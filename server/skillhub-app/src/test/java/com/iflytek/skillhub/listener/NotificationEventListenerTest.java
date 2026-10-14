@@ -19,7 +19,7 @@ import com.iflytek.skillhub.domain.user.UserAccount;
 import com.iflytek.skillhub.domain.user.UserAccountRepository;
 import com.iflytek.skillhub.domain.user.UserStatus;
 import com.iflytek.skillhub.notification.domain.NotificationCategory;
-import com.iflytek.skillhub.notification.service.NotificationDispatcher;
+import com.iflytek.skillhub.notification.service.NotificationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,7 +39,7 @@ class NotificationEventListenerTest {
     @Mock SkillVersionRepository skillVersionRepository;
     @Mock NamespaceRepository namespaceRepository;
     @Mock RecipientResolver recipientResolver;
-    @Mock NotificationDispatcher dispatcher;
+    @Mock NotificationService notificationService;
     @Mock ObjectMapper objectMapper;
     @Mock SkillSubscriptionService skillSubscriptionService;
     @Mock UserAccountRepository userAccountRepository;
@@ -51,7 +51,7 @@ class NotificationEventListenerTest {
     @org.junit.jupiter.api.BeforeEach
     void setUpListener() {
         listener = new NotificationEventListener(skillRepository, skillVersionRepository, namespaceRepository,
-                recipientResolver, dispatcher, skillSubscriptionService, objectMapper,
+                recipientResolver, notificationService, skillSubscriptionService, objectMapper,
                 new SubscriptionRecipientEligibility(userAccountRepository, namespaceMemberRepository,
                         new SubscriptionMetadataAccessPolicy()));
     }
@@ -98,7 +98,7 @@ class NotificationEventListenerTest {
 
         listener.onSkillPublished(new SkillPublishedEvent(1L, 10L, "publisher-1"));
 
-        verify(dispatcher).dispatch(eq("publisher-1"), eq(NotificationCategory.PUBLISH),
+        verify(notificationService).create(eq("publisher-1"), eq(NotificationCategory.PUBLISH),
                 eq("SKILL_PUBLISHED"), anyString(), anyString(), eq("SKILL"), eq(1L));
     }
 
@@ -109,7 +109,7 @@ class NotificationEventListenerTest {
 
         listener.onSkillPublished(new SkillPublishedEvent(1L, 10L, "reviewer-1"));
 
-        verifyNoInteractions(dispatcher);
+        verifyNoInteractions(notificationService);
     }
 
     @Test
@@ -120,7 +120,7 @@ class NotificationEventListenerTest {
 
         listener.onSkillPublished(new SkillPublishedEvent(1L, 10L, "reviewer-1"));
 
-        verifyNoInteractions(dispatcher);
+        verifyNoInteractions(notificationService);
     }
 
     @Test
@@ -129,7 +129,7 @@ class NotificationEventListenerTest {
 
         listener.onSkillPublished(new SkillPublishedEvent(99L, 10L, "publisher-1"));
 
-        verifyNoInteractions(dispatcher);
+        verifyNoInteractions(notificationService);
     }
 
     @Test
@@ -142,10 +142,10 @@ class NotificationEventListenerTest {
 
         listener.onReviewSubmitted(new ReviewSubmittedEvent(100L, 1L, 10L, "submitter-1", 5L));
 
-        verify(dispatcher, times(2)).dispatch(anyString(), eq(NotificationCategory.REVIEW),
+        verify(notificationService, times(2)).create(anyString(), eq(NotificationCategory.REVIEW),
                 eq("REVIEW_SUBMITTED"), anyString(), anyString(), eq("REVIEW"), eq(100L));
-        verify(dispatcher).dispatch(eq("admin-1"), any(), any(), any(), any(), any(), any());
-        verify(dispatcher).dispatch(eq("admin-2"), any(), any(), any(), any(), any(), any());
+        verify(notificationService).create(eq("admin-1"), any(), any(), any(), any(), any(), any());
+        verify(notificationService).create(eq("admin-2"), any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -157,10 +157,10 @@ class NotificationEventListenerTest {
         listener.onProfileReviewSubmitted(
                 new ProfileReviewSubmittedEvent(77L, "submitter-1", List.of("displayName")));
 
-        verify(dispatcher, times(2)).dispatch(anyString(), eq(NotificationCategory.REVIEW),
+        verify(notificationService, times(2)).create(anyString(), eq(NotificationCategory.REVIEW),
                 eq("PROFILE_REVIEW_SUBMITTED"), anyString(), anyString(), eq("PROFILE_REVIEW"), eq(77L));
-        verify(dispatcher).dispatch(eq("user-admin-1"), any(), any(), any(), any(), any(), any());
-        verify(dispatcher).dispatch(eq("super-admin-1"), any(), any(), any(), any(), any(), any());
+        verify(notificationService).create(eq("user-admin-1"), any(), any(), any(), any(), any(), any());
+        verify(notificationService).create(eq("super-admin-1"), any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -172,7 +172,7 @@ class NotificationEventListenerTest {
 
         listener.onReviewApproved(new ReviewApprovedEvent(100L, 1L, 10L, "reviewer-1", "submitter-1"));
 
-        verify(dispatcher).dispatch(eq("submitter-1"), eq(NotificationCategory.REVIEW),
+        verify(notificationService).create(eq("submitter-1"), eq(NotificationCategory.REVIEW),
                 eq("REVIEW_APPROVED"), anyString(), anyString(), eq("SKILL"), eq(1L));
     }
 
@@ -187,10 +187,10 @@ class NotificationEventListenerTest {
 
         listener.onPromotionSubmitted(new PromotionSubmittedEvent(200L, 1L, 10L, "submitter-1"));
 
-        verify(dispatcher, times(2)).dispatch(anyString(), eq(NotificationCategory.PROMOTION),
+        verify(notificationService, times(2)).create(anyString(), eq(NotificationCategory.PROMOTION),
                 eq("PROMOTION_SUBMITTED"), anyString(), anyString(), eq("PROMOTION"), eq(200L));
-        verify(dispatcher).dispatch(eq("platform-admin-1"), any(), any(), any(), any(), any(), any());
-        verify(dispatcher).dispatch(eq("super-admin-1"), any(), any(), any(), any(), any(), any());
+        verify(notificationService).create(eq("platform-admin-1"), any(), any(), any(), any(), any(), any());
+        verify(notificationService).create(eq("super-admin-1"), any(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -204,7 +204,7 @@ class NotificationEventListenerTest {
 
         listener.onPromotionSubmitted(new PromotionSubmittedEvent(200L, 1L, 10L, "submitter-1"));
 
-        verify(dispatcher, times(1)).dispatch(eq("platform-admin-1"), eq(NotificationCategory.PROMOTION),
+        verify(notificationService, times(1)).create(eq("platform-admin-1"), eq(NotificationCategory.PROMOTION),
                 eq("PROMOTION_SUBMITTED"), anyString(), anyString(), eq("PROMOTION"), eq(200L));
     }
 
@@ -217,7 +217,7 @@ class NotificationEventListenerTest {
 
         listener.onPromotionApproved(new PromotionApprovedEvent(200L, 1L, "self-admin", "self-admin"));
 
-        verify(dispatcher).dispatch(eq("self-admin"), eq(NotificationCategory.PROMOTION),
+        verify(notificationService).create(eq("self-admin"), eq(NotificationCategory.PROMOTION),
                 eq("PROMOTION_APPROVED"), anyString(), anyString(), eq("SKILL"), eq(1L));
     }
 
@@ -230,7 +230,7 @@ class NotificationEventListenerTest {
 
         listener.onPromotionRejected(new PromotionRejectedEvent(200L, 1L, "self-admin", "self-admin", "not ready"));
 
-        verify(dispatcher).dispatch(eq("self-admin"), eq(NotificationCategory.PROMOTION),
+        verify(notificationService).create(eq("self-admin"), eq(NotificationCategory.PROMOTION),
                 eq("PROMOTION_REJECTED"), anyString(), anyString(), eq("SKILL"), eq(1L));
     }
 
@@ -243,7 +243,7 @@ class NotificationEventListenerTest {
 
         listener.onReportResolved(new ReportResolvedEvent(300L, 1L, "handler-1", "reporter-1", "DISMISSED"));
 
-        verify(dispatcher).dispatch(eq("reporter-1"), eq(NotificationCategory.REPORT),
+        verify(notificationService).create(eq("reporter-1"), eq(NotificationCategory.REPORT),
                 eq("REPORT_RESOLVED"), anyString(), anyString(), eq("SKILL"), eq(1L));
     }
 
@@ -260,7 +260,7 @@ class NotificationEventListenerTest {
 
         listener.onSkillPublishedForSubscribers(new SkillPublishedEvent(1L, 10L, "owner"));
 
-        verifyNoInteractions(dispatcher);
+        verifyNoInteractions(notificationService);
     }
 
     @Test
@@ -275,7 +275,7 @@ class NotificationEventListenerTest {
                 listener.onSkillPublishedForSubscribers(new SkillPublishedEvent(1L, 10L, "owner")))
                 .isInstanceOf(IllegalStateException.class);
 
-        verifyNoInteractions(dispatcher);
+        verifyNoInteractions(notificationService);
     }
 
     @Test
@@ -300,9 +300,9 @@ class NotificationEventListenerTest {
 
         listener.onSkillPublishedForSubscribers(new SkillPublishedEvent(1L, 10L, "publisher"));
 
-        verify(dispatcher).dispatch("admin", NotificationCategory.PUBLISH, "SUBSCRIPTION_NEW_VERSION",
+        verify(notificationService).create("admin", NotificationCategory.PUBLISH, "SUBSCRIPTION_NEW_VERSION",
                 "Skill updated: Test Skill", "{\"skillId\":1,\"version\":\"1.0.0\"}", "SKILL", 1L);
-        verifyNoMoreInteractions(dispatcher);
+        verifyNoMoreInteractions(notificationService);
     }
 
     @Test
@@ -318,9 +318,9 @@ class NotificationEventListenerTest {
 
         listener.onSkillVersionYankedForSubscribers(new SkillVersionYankedEvent(1L, 10L, "actor", true));
 
-        verify(dispatcher).dispatch("subscriber", NotificationCategory.PUBLISH, "SUBSCRIPTION_VERSION_YANKED",
+        verify(notificationService).create("subscriber", NotificationCategory.PUBLISH, "SUBSCRIPTION_VERSION_YANKED",
                 "Skill version yanked: Test Skill", "{\"skillId\":1,\"versionId\":10}", "SKILL", 1L);
-        verifyNoMoreInteractions(dispatcher);
+        verifyNoMoreInteractions(notificationService);
     }
 
     @Test
@@ -335,7 +335,7 @@ class NotificationEventListenerTest {
 
         listener.onSkillVersionYankedForSubscribers(new SkillVersionYankedEvent(1L, 10L, "actor", false));
 
-        verifyNoInteractions(dispatcher);
+        verifyNoInteractions(notificationService);
     }
 
     @Test
@@ -350,7 +350,7 @@ class NotificationEventListenerTest {
                 listener.onSkillPublishedForSubscribers(new SkillPublishedEvent(1L, 10L, "owner")))
                 .isInstanceOf(IllegalStateException.class);
 
-        verifyNoInteractions(dispatcher);
+        verifyNoInteractions(notificationService);
     }
 
     @Test
@@ -370,7 +370,7 @@ class NotificationEventListenerTest {
                 listener.onSkillVersionYankedForSubscribers(new SkillVersionYankedEvent(1L, 10L, "actor", true)))
                 .isInstanceOf(IllegalStateException.class);
 
-        verifyNoInteractions(dispatcher);
+        verifyNoInteractions(notificationService);
     }
 
     @Test
@@ -391,8 +391,8 @@ class NotificationEventListenerTest {
 
         listener.onSkillVersionYankedForSubscribers(new SkillVersionYankedEvent(1L, 10L, "actor", true));
 
-        verify(dispatcher).dispatch(eq("current"), eq(NotificationCategory.PUBLISH),
+        verify(notificationService).create(eq("current"), eq(NotificationCategory.PUBLISH),
                 eq("SUBSCRIPTION_VERSION_YANKED"), anyString(), eq("{}"), eq("SKILL"), eq(1L));
-        verifyNoMoreInteractions(dispatcher);
+        verifyNoMoreInteractions(notificationService);
     }
 }

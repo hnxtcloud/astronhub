@@ -46,6 +46,11 @@
 
     /* Border semantic */
     --border-card: 214 18% 84%;
+
+    /* Shadow tokens */
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04);
+    --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / 0.08);
+    --shadow-btn-primary: 0 1px 2px 0 rgb(0 0 0 / 0.06);
   }
 
   .dark {
@@ -72,6 +77,16 @@
     --surface-glass: 222 35% 11%;
     --glow-primary: 239 100% 75%;
     --glow-accent: 271 100% 72%;
+    --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.30);
+    --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / 0.40);
+    --shadow-btn-primary: 0 1px 2px 0 rgb(0 0 0 / 0.20);
+  }
+
+  /* 暗色模式 card-hover */
+  .dark .card-hover:hover {
+    background: hsl(var(--muted));
+    border-color: hsl(var(--border));
+    box-shadow: 0 4px 12px 0 rgb(0 0 0 / 0.30);
   }
 }
 
@@ -86,7 +101,10 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, 'system-ui', 'SF Pro Text', 'PingFang SC', 'HarmonyOS Sans SC', 'Noto Sans SC', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -164,6 +182,25 @@
   transform: translateY(0);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .scroll-fade-up {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .animate-fade-in {
   animation: fade-in 0.18s ease-out both;
 }
@@ -216,6 +253,25 @@
   background: hsl(var(--secondary) / 0.35);
 }
 
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
 /* ─── Selection ─── */
 ::selection {
   background: hsl(var(--primary) / 0.3);
@@ -243,9 +299,9 @@
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 500;
-  color: #0369a1;
-  background: #e0f2fe;
-  border: 1px solid #7dd3fc;
+  color: hsl(199 76% 34%);
+  background: hsl(199 89% 94%);
+  border: 1px solid hsl(199 93% 74%);
   border-radius: 9999px;
 }
 
@@ -262,7 +318,7 @@
 }
 
 .status-pill--published { background: #16a34a; }
-.status-pill--review { background: #ea580c; }
+.status-pill--review { background: #c2410c; }
 .status-pill--archived { background: #6b7280; }
 .status-pill--rejected { background: #dc2626; }
 
@@ -298,10 +354,26 @@
   color: #1d4ed8;
 }
 
+.dark .handle-tag {
+  color: hsl(196 80% 72%);
+  background: hsl(199 70% 15%);
+  border-color: hsl(199 60% 30%);
+}
+
+.dark .badge-soft-green {
+  background: hsl(142 55% 16%);
+  color: hsl(142 70% 72%);
+}
+
+.dark .badge-soft-blue {
+  background: hsl(221 55% 18%);
+  color: hsl(213 90% 75%);
+}
+
 /* ─── Tab active ─── */
 .tab-active {
-  border-bottom: 2px solid #3b82f6;
-  color: #1d4ed8;
+  border-bottom: 2px solid hsl(var(--primary));
+  color: hsl(var(--primary));
 }
 
 /* ─── Code block ─── */
@@ -340,7 +412,7 @@
 .hljs-symbol,
 .hljs-bullet,
 .hljs-addition {
-  color: hsl(var(--accent) / 0.9);
+  color: hsl(var(--primary) / 0.85);
 }
 
 .hljs-number,
@@ -378,8 +450,8 @@
 }
 
 .upload-zone:hover {
-  border-color: var(--brand-start);
-  background: rgba(106, 109, 255, 0.04);
+  border-color: #202020;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .upload-zone .upload-zone-icon {
@@ -388,12 +460,13 @@
 }
 
 .upload-zone:hover .upload-zone-icon {
-  color: var(--brand-start);
+  color: #202020;
 }
 
 /* ─── Feature icon shadow ─── */
 .feature-icon {
   color: hsl(var(--primary));
+  box-shadow: 0 14px 30px hsl(0 0% 0% / 0.12);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -408,4 +481,129 @@
 /* ─── Hero input placeholder ─── */
 .hero-input::placeholder {
   color: hsl(var(--text-placeholder));
+}
+
+/* 技能卡片描述固定为三行，避免长文案拉高网格；完整内容通过 title 提供。 */
+.skill-card-summary {
+  display: -webkit-box;
+  min-height: 3.75rem;
+  max-height: 3.75rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* ═══════════════════════════════════════════
+   样式细节增强（不改颜色，只改交互/布局/字体）
+   ═══════════════════════════════════════════ */
+
+/* ─── 胶囊按钮（白 + 近黑风格） ─── */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+.btn-pill:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
+}
+.btn-pill-primary {
+  background: #202020;
+  color: #fff;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 16%) inset, 0 4px 12px rgb(0 0 0 / 8%);
+}
+.btn-pill-primary:hover {
+  background: #111111;
+  transform: translateY(-1px);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 16%) inset, 0 7px 18px rgb(0 0 0 / 12%);
+}
+.btn-pill-primary:active {
+  background: #000;
+  transform: translateY(0) scale(0.985);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+.btn-pill-outline {
+  background: #f2f2f2;
+  color: #000;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+.btn-pill-outline:hover {
+  background: #e8e8e8;
+  border-color: rgb(0 0 0 / 6%);
+  transform: translateY(-1px);
+}
+.btn-pill-outline:active {
+  background: #dedede;
+  transform: translateY(0) scale(0.985);
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-pill,
+  .btn-pill:hover,
+  .btn-pill:active {
+    transform: none;
+    transition-duration: 0.01ms;
+  }
+}
+
+/* ─── 多彩标签（柔和彩色，不改品牌色） ─── */
+.tag-color {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.tag-orange { background: hsl(30 70% 90%); color: hsl(25 70% 28%); }
+.tag-purple { background: hsl(270 45% 92%); color: hsl(270 40% 32%); }
+.tag-blue   { background: hsl(215 60% 92%); color: hsl(215 55% 30%); }
+.tag-green  { background: hsl(155 50% 90%); color: hsl(155 55% 24%); }
+
+.dark .tag-orange { background: hsl(25 45% 18%); color: hsl(30 70% 72%); }
+.dark .tag-purple { background: hsl(270 30% 20%); color: hsl(270 45% 80%); }
+.dark .tag-blue   { background: hsl(215 40% 18%); color: hsl(215 50% 76%); }
+.dark .tag-green  { background: hsl(155 40% 16%); color: hsl(155 50% 68%); }
+
+/* ─── Container / 选中项模型（淡蓝 tint，对齐 TabTin） ─── */
+.container-tray {
+  background: hsl(214 70% 97%);
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+}
+.container-tray .item-selected {
+  background: #fff;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04);
+}
+.container-tray .item-selected .text-foreground,
+.container-tray .item-selected [style*="color: hsl(var(--foreground))"] {
+  color: hsl(var(--foreground)) !important;
+}
+.container-tray .item-idle {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+}
+.container-tray .item-idle:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+/* 暗色模式 container-tray */
+.dark .container-tray {
+  background: hsl(0 0% 13%);
+}
+.dark .container-tray .item-selected {
+  background: hsl(0 0% 18%);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.30);
+}
+.dark .container-tray .item-idle:hover {
+  background: rgba(255,255,255,0.04);
 }

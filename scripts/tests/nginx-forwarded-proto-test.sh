@@ -39,13 +39,25 @@ wait_for_nginx() {
   fail "$container did not become healthy"
 }
 
+create_test_network() {
+  local subnet
+  for subnet in 172.29.0.0/24 172.30.0.0/24 192.168.252.0/24 10.254.0.0/24; do
+    if docker network create --driver bridge --subnet "$subnet" "$NETWORK" >/dev/null 2>&1; then
+      return 0
+    fi
+  done
+  fail "could not create a test network with an explicit subnet"
+}
+
 start_proxy() {
   local container="$1"
   local trust_forwarded_proto="$2"
+  local backend_name="${3:-$BACKEND}"
   docker run --detach \
     --name "$container" \
     --network "$NETWORK" \
-    --env "SKILLHUB_API_UPSTREAM=http://$BACKEND:8080" \
+    --env "NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1" \
+    --env "SKILLHUB_API_UPSTREAM=http://$backend_name:8080" \
     --env "SKILLHUB_TRUST_FORWARDED_PROTO=$trust_forwarded_proto" \
     --volume "$TEMPLATE:/etc/nginx/templates/default.conf.template:ro" \
     "$NGINX_IMAGE" >/dev/null
@@ -80,7 +92,7 @@ server {
 }
 EOF
 
-docker network create "$NETWORK" >/dev/null
+create_test_network
 docker run --detach \
   --name "$BACKEND" \
   --network "$NETWORK" \
@@ -98,4 +110,89 @@ done
 assert_proto "$TRUSTED_PROXY" http
 assert_proto "$TRUSTED_PROXY" http "https,http"
 
-echo "nginx-forwarded-proto-test passed"
+DNS_BACKEND="${TEST_ID}-dns-backend"
+DNS_OLD_BACKEND="${TEST_ID}-dns-old"
+DNS_NEW_BACKEND="${TEST_ID}-dns-new"
+DNS_STALE_BACKEND="${TEST_ID}-dns-stale"
+DNS_PROXY="${TEST_ID}-dns-proxy"
+
+start_dns_backend() {
+  local container="$1"
+  local response="$2"
+  local alias="${3:-}"
+  local static_ip="${4:-}"
+  local config="$TMP_DIR/$container.conf"
+  cat >"$config" <<EOF
+server {
+    listen 8080;
+    location / {
+        default_type text/plain;
+        return 200 "$response";
+    }
+}
+EOF
+
+  local alias_args=()
+  local ip_args=()
+  if [[ -n "$alias" ]]; then
+    alias_args+=(--network-alias "$alias")
+  fi
+  if [[ -n "$static_ip" ]]; then
+    ip_args+=(--ip "$static_ip")
+  fi
+
+  docker run --detach \
+    --name "$container" \
+    --network "$NETWORK" \
+    "${alias_args[@]}" \
+    "${ip_args[@]}" \
+    --volume "$config:/etc/nginx/conf.d/default.conf:ro" \
+    "$NGINX_IMAGE" >/dev/null
+  CONTAINERS+=("$container")
+}
+
+container_ip() {
+  docker inspect --format "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" "$1"
+}
+
+start_dns_backend "$DNS_OLD_BACKEND" first "$DNS_BACKEND"
+start_proxy "$DNS_PROXY" false "$DNS_BACKEND"
+assert_dns_response() {
+  local expected="$1"
+  local actual
+  actual="$(docker exec "$DNS_PROXY" wget -qO- http://127.0.0.1/api/dns)" \
+    || fail "DNS proxy request failed; expected '$expected'"
+  [[ "$actual" == "$expected" ]] \
+    || fail "DNS proxy returned '$actual', expected '$expected'"
+}
+assert_dns_response first
+
+old_ip="$(container_ip "$DNS_OLD_BACKEND")"
+docker rm -f "$DNS_OLD_BACKEND" >/dev/null
+start_dns_backend "$DNS_STALE_BACKEND" stale "" "$old_ip"
+start_dns_backend "$DNS_NEW_BACKEND" second "$DNS_BACKEND"
+new_ip="$(container_ip "$DNS_NEW_BACKEND")"
+[[ "$old_ip" != "$new_ip" ]] || fail "replacement backend reused old IP $old_ip"
+
+refreshed=false
+saw_stale_response=false
+refresh_started=$SECONDS
+for attempt in {1..36}; do
+  if actual="$(docker exec "$DNS_PROXY" wget -qO- http://127.0.0.1/api/dns 2>/dev/null)"; then
+    if [[ "$actual" == second ]]; then
+      refreshed=true
+      break
+    fi
+    [[ "$actual" == stale ]] \
+      || fail "DNS proxy returned unexpected backend marker '$actual'"
+    saw_stale_response=true
+  fi
+  sleep 0.5
+done
+[[ "$refreshed" == true ]] \
+  || { docker logs "$DNS_PROXY" >&2 || true; fail "unchanged proxy did not reach replacement backend $new_ip"; }
+refresh_elapsed=$((SECONDS - refresh_started))
+((refresh_elapsed <= 12)) \
+  || fail "DNS refresh took ${refresh_elapsed}s, exceeding the 12s test boundary"
+
+echo "nginx-forwarded-proto-test passed, including DNS refresh ($old_ip -> $new_ip) in ${refresh_elapsed}s; stale cache observed=$saw_stale_response"

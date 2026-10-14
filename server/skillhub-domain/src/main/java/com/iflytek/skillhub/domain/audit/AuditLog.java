@@ -30,6 +30,15 @@ public class AuditLog {
     @Column(name = "target_id")
     private Long targetId;
 
+    @Column(name = "organization_id", length = 64)
+    private String organizationId;
+
+    @Column(name = "target_ref", length = 128)
+    private String targetRef;
+
+    @Column(name = "result", length = 32)
+    private String result;
+
     @Column(name = "request_id", length = 64)
     private String requestId;
 
@@ -68,11 +77,27 @@ public class AuditLog {
         this.createdAt = createdAt;
     }
 
+    public static AuditLog organizationSuccess(String actorUserId,
+                                               String action,
+                                               String organizationId,
+                                               String requestId,
+                                               Instant createdAt) {
+        AuditLog log = new AuditLog(actorUserId, action, "ORGANIZATION", null,
+                requestId, null, null, null, createdAt);
+        log.organizationId = organizationId;
+        log.targetRef = organizationId;
+        log.result = "SUCCESS";
+        return log;
+    }
+
     public Long getId() { return id; }
     public String getActorUserId() { return actorUserId; }
     public String getAction() { return action; }
     public String getTargetType() { return targetType; }
     public Long getTargetId() { return targetId; }
+    public String getOrganizationId() { return organizationId; }
+    public String getTargetRef() { return targetRef; }
+    public String getResult() { return result; }
     public String getRequestId() { return requestId; }
     public String getClientIp() { return clientIp; }
     public String getUserAgent() { return userAgent; }

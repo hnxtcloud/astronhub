@@ -56,10 +56,13 @@ class BuiltinSkillManifestLoaderTest {
 
         List<BuiltinSkillManifestLoader.ManifestItem> items = loader.load();
 
-        assertThat(items).hasSize(17);
-        assertThat(items).allSatisfy(item ->
+        assertThat(items).isNotEmpty().allSatisfy(item ->
                 assertThat(item.sha256()).matches("[0-9a-f]{64}")
         );
+        assertThat(items).anySatisfy(item -> {
+            assertThat(item.slug()).isEqualTo("plugin-scanner");
+            assertThat(item.version()).isEqualTo("1.0.0");
+        });
     }
 
     @Test

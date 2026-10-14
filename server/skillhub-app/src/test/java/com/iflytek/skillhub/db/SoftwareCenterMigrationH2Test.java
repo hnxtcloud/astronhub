@@ -12,7 +12,7 @@ import java.sql.Statement;
 import org.junit.jupiter.api.Test;
 
 /**
- * Applies V47 (software center) against H2 in PostgreSQL compatibility mode,
+ * Applies V70–V73 (software center) against H2 in PostgreSQL compatibility mode,
  * with the prerequisite auth tables from V1 stubbed in. The full migration
  * chain cannot run on H2 because early skill migrations use PostgreSQL-only
  * full-text types (tsvector), so this test scopes the smoke check to the new
@@ -55,9 +55,10 @@ class SoftwareCenterMigrationH2Test {
                         CONSTRAINT uk_role_permission UNIQUE (role_id, permission_id)
                     )""");
 
-            statement.execute(shimmed("db/migration/V47__software_center.sql"));
-            statement.execute(shimmed("db/migration/V48__software_center_transfer.sql"));
-            statement.execute(shimmed("db/migration/V49__software_center_inspection.sql"));
+            statement.execute(shimmed("db/migration/V70__software_center.sql"));
+            statement.execute(shimmed("db/migration/V71__software_center_transfer.sql"));
+            statement.execute(shimmed("db/migration/V72__software_center_inspection.sql"));
+            statement.execute(readMigration("db/migration/V73__software_download_session_updated_at.sql"));
 
             for (String table : new String[] {
                     "software_category", "software_application", "software_release",

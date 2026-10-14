@@ -17,6 +17,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.FieldError;
@@ -24,11 +25,13 @@ import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 /**
  * Translates application, domain, auth, and infrastructure exceptions into the platform's JSON API
@@ -68,6 +71,15 @@ public class GlobalExceptionHandler {
         return renderLocalizedError(ex, HttpStatus.valueOf(ex.statusCode()), request);
     }
 
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePersistenceConflict(
+            RuntimeException ex,
+            HttpServletRequest request) {
+        logHandledException(HttpStatus.CONFLICT, "error.request.conflict", request);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                apiResponseFactory.error(409, "error.request.conflict"));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String msg = ex.getBindingResult().getFieldErrors().stream()
@@ -92,7 +104,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
+            MissingRequestHeaderException.class,
             MissingServletRequestParameterException.class,
+            MissingServletRequestPartException.class,
             HttpMessageNotReadableException.class,
             MethodArgumentTypeMismatchException.class
     })
@@ -177,12 +191,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AsyncRequestTimeoutException.class)
     public ResponseEntity<?> handleAsyncRequestTimeout(AsyncRequestTimeoutException ex, HttpServletRequest request) {
-        String path = request.getRequestURI();
-        if (path != null && path.endsWith("/sse")) {
-            logger.debug("SSE timeout [requestId={}, path={}]", requestIdAccessor.current(), path);
-            return ResponseEntity.noContent().build();
-        }
-
         logHandledException(HttpStatus.REQUEST_TIMEOUT, "error.request.timeout", request);
         return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(
                 apiResponseFactory.error(408, "error.request.timeout"));

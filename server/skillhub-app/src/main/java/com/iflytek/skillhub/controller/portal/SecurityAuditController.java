@@ -19,9 +19,14 @@ import com.iflytek.skillhub.domain.skill.VisibilityChecker;
 import com.iflytek.skillhub.dto.ApiResponse;
 import com.iflytek.skillhub.dto.ApiResponseFactory;
 import com.iflytek.skillhub.dto.SecurityAuditResponse;
+import com.iflytek.skillhub.dto.SkillLifecycleMutationResponse;
+import com.iflytek.skillhub.service.AuditRequestContext;
+import com.iflytek.skillhub.service.SecurityScanRetryAppService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,19 +46,40 @@ public class SecurityAuditController extends BaseApiController {
     private final SkillVersionRepository skillVersionRepository;
     private final VisibilityChecker visibilityChecker;
     private final ObjectMapper objectMapper;
+    private final SecurityScanRetryAppService securityScanRetryAppService;
 
     public SecurityAuditController(SecurityAuditRepository securityAuditRepository,
                                    SkillRepository skillRepository,
                                    SkillVersionRepository skillVersionRepository,
                                    VisibilityChecker visibilityChecker,
                                    ApiResponseFactory responseFactory,
-                                   ObjectMapper objectMapper) {
+                                   ObjectMapper objectMapper,
+                                   SecurityScanRetryAppService securityScanRetryAppService) {
         super(responseFactory);
         this.securityAuditRepository = securityAuditRepository;
         this.skillRepository = skillRepository;
         this.skillVersionRepository = skillVersionRepository;
         this.visibilityChecker = visibilityChecker;
         this.objectMapper = objectMapper;
+        this.securityScanRetryAppService = securityScanRetryAppService;
+    }
+
+    @PostMapping("/retry")
+    public ApiResponse<SkillLifecycleMutationResponse> retrySecurityScan(
+            @PathVariable Long skillId,
+            @PathVariable Long versionId,
+            @AuthenticationPrincipal PlatformPrincipal principal,
+            @RequestAttribute(value = "userNsRoles", required = false) Map<Long, NamespaceRole> userNsRoles,
+            HttpServletRequest request) {
+        SkillLifecycleMutationResponse result = securityScanRetryAppService.retry(
+                skillId,
+                versionId,
+                principal.userId(),
+                principal.platformRoles(),
+                userNsRoles,
+                AuditRequestContext.from(request)
+        );
+        return ok("security_audit.retry.started", result);
     }
 
     @GetMapping
@@ -121,6 +147,7 @@ public class SecurityAuditController extends BaseApiController {
                 audit.getFindingsCount(),
                 deserializeFindings(audit.getFindings()),
                 audit.getScanDurationSeconds(),
+                audit.getFailureReason(),
                 audit.getScannedAt(),
                 audit.getCreatedAt()
         );

@@ -2,11 +2,14 @@ package com.iflytek.skillhub.auth.config;
 
 import com.iflytek.skillhub.auth.oauth.CustomOAuth2UserService;
 import com.iflytek.skillhub.auth.oauth.CustomOidcUserService;
+import com.iflytek.skillhub.auth.oauth.DispatchingTokenResponseClient;
 import com.iflytek.skillhub.auth.oauth.OAuth2LoginFailureHandler;
 import com.iflytek.skillhub.auth.oauth.OAuth2LoginSuccessHandler;
 import com.iflytek.skillhub.auth.oauth.SkillHubOAuth2AuthorizationRequestResolver;
 import com.iflytek.skillhub.auth.mock.MockAuthFilter;
 import com.iflytek.skillhub.auth.policy.RouteSecurityPolicyRegistry;
+import com.iflytek.skillhub.auth.session.ExpiredPublicSessionFilter;
+import com.iflytek.skillhub.auth.session.CorruptSessionRemover;
 import com.iflytek.skillhub.auth.token.ApiTokenAuthenticationFilter;
 import com.iflytek.skillhub.auth.token.ApiTokenScopeFilter;
 import jakarta.servlet.http.Cookie;
@@ -15,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,6 +34,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -45,11 +50,11 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 public class SecurityConfig {
     private static final String CONTENT_SECURITY_POLICY = String.join("; ",
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+            "script-src 'self'",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "img-src 'self' data: blob: https:",
             "font-src 'self' data: https://fonts.gstatic.com",
-            "connect-src 'self' ws: wss: http://localhost:* https://localhost:*",
+            "connect-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",
             "frame-ancestors 'none'",
@@ -57,6 +62,7 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOidcUserService customOidcUserService;
+    private final DispatchingTokenResponseClient tokenResponseClient;
     private final SkillHubOAuth2AuthorizationRequestResolver authorizationRequestResolver;
     private final OAuth2LoginSuccessHandler successHandler;
     private final OAuth2LoginFailureHandler failureHandler;
@@ -66,9 +72,12 @@ public class SecurityConfig {
     private final AccessDeniedHandler apiAccessDeniedHandler;
     private final ObjectProvider<MockAuthFilter> mockAuthFilterProvider;
     private final RouteSecurityPolicyRegistry routeSecurityPolicyRegistry;
+    private final CorruptSessionRemover corruptSessionRemover;
+    private final String sessionCookieName;
 
     public SecurityConfig(CustomOAuth2UserService customOAuth2UserService,
                           CustomOidcUserService customOidcUserService,
+                          DispatchingTokenResponseClient tokenResponseClient,
                           SkillHubOAuth2AuthorizationRequestResolver authorizationRequestResolver,
                           OAuth2LoginSuccessHandler successHandler,
                           OAuth2LoginFailureHandler failureHandler,
@@ -77,9 +86,12 @@ public class SecurityConfig {
                           AuthenticationEntryPoint apiAuthenticationEntryPoint,
                           AccessDeniedHandler apiAccessDeniedHandler,
                           ObjectProvider<MockAuthFilter> mockAuthFilterProvider,
-                          RouteSecurityPolicyRegistry routeSecurityPolicyRegistry) {
+                          RouteSecurityPolicyRegistry routeSecurityPolicyRegistry,
+                          ObjectProvider<CorruptSessionRemover> corruptSessionRemoverProvider,
+                          @Value("${server.servlet.session.cookie.name:SESSION}") String sessionCookieName) {
         this.customOAuth2UserService = customOAuth2UserService;
         this.customOidcUserService = customOidcUserService;
+        this.tokenResponseClient = tokenResponseClient;
         this.authorizationRequestResolver = authorizationRequestResolver;
         this.successHandler = successHandler;
         this.failureHandler = failureHandler;
@@ -89,6 +101,10 @@ public class SecurityConfig {
         this.apiAccessDeniedHandler = apiAccessDeniedHandler;
         this.mockAuthFilterProvider = mockAuthFilterProvider;
         this.routeSecurityPolicyRegistry = routeSecurityPolicyRegistry;
+        this.corruptSessionRemover = corruptSessionRemoverProvider.getIfAvailable(() -> sessionId -> {
+            throw new IllegalStateException("Corrupt session recovery is not configured");
+        });
+        this.sessionCookieName = sessionCookieName;
     }
 
     /**
@@ -103,7 +119,7 @@ public class SecurityConfig {
         var csrfHandler = new CsrfTokenRequestAttributeHandler();
         csrfHandler.setCsrfRequestAttributeName(null);
         RequestMatcher csrfIgnoreMatcher = request -> {
-            String path = request.getRequestURI();
+            String path = RouteSecurityPolicyRegistry.requestPath(request);
             String authorization = request.getHeader("Authorization");
             return routeSecurityPolicyRegistry.shouldIgnoreCsrf(request.getMethod(), path, authorization, hasSessionCookie(request));
         };
@@ -120,6 +136,7 @@ public class SecurityConfig {
             })
             .oauth2Login(oauth2 -> oauth2
                 .authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(authorizationRequestResolver))
+                .tokenEndpoint(token -> token.accessTokenResponseClient(tokenResponseClient))
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService)
                     .oidcUserService(customOidcUserService))
@@ -159,8 +176,10 @@ public class SecurityConfig {
                     response.sendRedirect(((contextPath == null) ? "" : contextPath) + "/");
                 })
                 .invalidateHttpSession(true)
-                .deleteCookies("SESSION")
+                .deleteCookies(sessionCookieName)
             )
+            .addFilterBefore(new ExpiredPublicSessionFilter(
+                    routeSecurityPolicyRegistry, corruptSessionRemover, sessionCookieName), CsrfFilter.class)
             .addFilterBefore(apiTokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(apiTokenScopeFilter, ApiTokenAuthenticationFilter.class);
 

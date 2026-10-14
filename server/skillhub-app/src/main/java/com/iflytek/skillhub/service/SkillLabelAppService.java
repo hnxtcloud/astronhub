@@ -1,6 +1,7 @@
 package com.iflytek.skillhub.service;
 
 import com.iflytek.skillhub.auth.rbac.RbacService;
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.audit.AuditLogService;
 import com.iflytek.skillhub.domain.label.LabelDefinition;
 import com.iflytek.skillhub.domain.label.LabelDefinitionService;
@@ -96,7 +97,7 @@ public class SkillLabelAppService {
                 platformRoles(userId)
         );
         afterCommit(() -> labelSearchSyncService.rebuildSkill(skill.getId()));
-        recordAudit("SKILL_LABEL_ATTACH", userId, skill.getId(), auditContext, "{\"labelSlug\":\"" + labelSlug + "\"}");
+        recordAudit("SKILL_LABEL_ATTACH", userId, skill.getId(), auditContext, AuditDetail.of("labelSlug", labelSlug));
         return toDtos(List.of(attached)).getFirst();
     }
 
@@ -116,7 +117,7 @@ public class SkillLabelAppService {
                 platformRoles(userId)
         );
         afterCommit(() -> labelSearchSyncService.rebuildSkill(skill.getId()));
-        recordAudit("SKILL_LABEL_DETACH", userId, skill.getId(), auditContext, "{\"labelSlug\":\"" + labelSlug + "\"}");
+        recordAudit("SKILL_LABEL_DETACH", userId, skill.getId(), auditContext, AuditDetail.of("labelSlug", labelSlug));
         return new MessageResponse("Label detached");
     }
 

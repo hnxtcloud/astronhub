@@ -21,6 +21,12 @@ describe('use-review-detail exports', () => {
     expect(typeof mod.useReviewSkillDetail).toBe('function')
   })
 
+  it('exports useReviewAttempts', async () => {
+    const mod = await import('./use-review-detail')
+    expect(mod.useReviewAttempts).toBeDefined()
+    expect(typeof mod.useReviewAttempts).toBe('function')
+  })
+
   it('exports useApproveReview', async () => {
     const mod = await import('./use-review-detail')
     expect(mod.useApproveReview).toBeDefined()

@@ -1,13 +1,13 @@
 import { expect, test } from '@playwright/test'
 import { setEnglishLocale } from './helpers/auth-fixtures'
-import { createFreshSession } from './helpers/session'
+import { registerSession } from './helpers/session'
 
 test.describe('Settings Pages (Real API)', () => {
   test.use({ baseURL: 'http://127.0.0.1:3000' })
 
   test.beforeEach(async ({ page }, testInfo) => {
     await setEnglishLocale(page)
-    await createFreshSession(page, testInfo)
+    await registerSession(page, testInfo, { allowMockSession: false })
   })
 
   test('opens profile settings page', async ({ page }) => {
@@ -15,11 +15,11 @@ test.describe('Settings Pages (Real API)', () => {
     await expect(page.getByRole('heading', { name: 'Profile Settings' })).toBeVisible()
   })
 
-  test('navigates to reset-password page from profile settings', async ({ page }) => {
+  test('navigates to security settings from profile settings', async ({ page }) => {
     await page.goto('/settings/profile')
     await page.getByRole('button', { name: 'Reset Password' }).click()
-    await expect(page).toHaveURL('/reset-password')
-    await expect(page.getByRole('heading', { name: 'Reset Password' })).toBeVisible()
+    await expect(page).toHaveURL('/settings/security')
+    await expect(page.getByRole('heading', { name: 'Security Settings' })).toBeVisible()
   })
 
   test('shows validation when current password is missing', async ({ page }) => {

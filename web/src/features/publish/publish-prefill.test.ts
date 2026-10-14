@@ -6,9 +6,13 @@ describe('normalizePublishPrefill', () => {
     expect(normalizePublishPrefill({
       namespace: 'team-ai',
       visibility: 'private',
+      resubmitSkill: 'agent-helper',
+      resubmitVersion: '1.2.0',
     })).toEqual({
       namespace: 'team-ai',
       visibility: 'PRIVATE',
+      resubmitSkill: 'agent-helper',
+      resubmitVersion: '1.2.0',
     })
   })
 
@@ -19,6 +23,8 @@ describe('normalizePublishPrefill', () => {
     })).toEqual({
       namespace: 'team-ai',
       visibility: 'PUBLIC',
+      resubmitSkill: '',
+      resubmitVersion: '',
     })
   })
 
@@ -28,6 +34,8 @@ describe('normalizePublishPrefill', () => {
     })).toEqual({
       namespace: 'team-ml',
       visibility: 'PUBLIC',
+      resubmitSkill: '',
+      resubmitVersion: '',
     })
   })
 })

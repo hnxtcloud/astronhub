@@ -515,8 +515,9 @@ Because SkillHub speaks the same `SKILL.md` format, skills from `anthropics/skil
 git clone https://github.com/anthropics/skills
 
 # ...and publish it into your private SkillHub registry
-export CLAWHUB_REGISTRY=https://skillhub.your-company.com
-npx clawhub publish ./skills/<category>/<skill-name>
+export SKILLHUB_REGISTRY=https://skillhub.your-company.com
+export SKILLHUB_TOKEN=YOUR_API_TOKEN
+npx @astron-team/skillhub@latest publish ./skills/<category>/<skill-name>
 ```
 
 > ⚖️ **Licensing**: honor each skill's own license when republishing. Most skills in
@@ -546,15 +547,17 @@ npx clawhub search email
 npx clawhub install my-skill
 npx clawhub install my-namespace--my-skill
 
-# Publish to global namespace
-npx clawhub publish ./my-skill --slug my-skill --version 1.0.0
-
-# Publish to a team namespace such as my-space
-npx clawhub publish ./my-skill --slug my-space--my-skill --version 1.0.0
+# Publishing uses the first-party SkillHub CLI
+export SKILLHUB_REGISTRY=https://skillhub.your-company.com
+export SKILLHUB_TOKEN=YOUR_API_TOKEN
+npx @astron-team/skillhub@latest publish ./my-skill --namespace my-space
 ```
 
 `my-space--my-skill` is the canonical compat slug. SkillHub parses it as
 namespace `my-space` plus skill slug `my-skill`.
+
+ClawHub compatibility covers search, inspection, and installation. Its publish
+protocol is not compatible with SkillHub; use the first-party CLI shown above.
 
 > 💡 **Tip**: The above commands are not only applicable to OpenClaw, but also to other CLI Coding Agents or Agent assistants by specifying the installation directory (`--dir`). For example: `npx clawhub --dir ~/.claude/skills install my-skill`
 
@@ -565,6 +568,18 @@ namespace `my-space` plus skill slug `my-skill`.
 [Hermes Agent](https://github.com/NousResearch/hermes-agent) uses the standard `SKILL.md` format and recursively discovers skills under `$HERMES_HOME/skills/`. Use SkillHub CLI's explicit `--dir` option to install a complete SkillHub package into Hermes without a registry adapter, then verify it with `hermes skills list`.
 
 📖 **[Complete Hermes Agent Integration Guide →](./docs/hermes-integration-en.md)**
+
+### [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
+
+[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`) discovers standard `SKILL.md` packages from `.dsh/skills` and the shared `.agents/skills` roots. Install directly into its native user directory with the first-party SkillHub CLI:
+
+```bash
+skillhub install my-skill --agent dsh --scope user
+```
+
+Project-scoped installs use `<repository>/.dsh/skills`; run them from the repository root. dsh watches its skill roots, so newly installed skills are discovered without restarting the process.
+
+📖 **[Complete DeepSeek Harness Integration Guide →](./docs/dsh-integration-en.md)**
 
 ### [HarnessClaw Engine](https://github.com/harnessclaw/harnessclaw-engine)
 

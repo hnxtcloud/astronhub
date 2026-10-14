@@ -8,7 +8,6 @@ import com.iflytek.skillhub.dto.*;
 import com.iflytek.skillhub.notification.domain.Notification;
 import com.iflytek.skillhub.notification.domain.NotificationCategory;
 import com.iflytek.skillhub.notification.service.NotificationService;
-import com.iflytek.skillhub.notification.sse.SseEmitterManager;
 import java.util.Collections;
 import java.util.Map;
 import jakarta.validation.constraints.Max;
@@ -16,10 +15,8 @@ import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @Validated
@@ -27,16 +24,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class NotificationController extends BaseApiController {
 
     private final NotificationService notificationService;
-    private final SseEmitterManager sseEmitterManager;
     private final ObjectMapper objectMapper;
 
     public NotificationController(NotificationService notificationService,
-                                  SseEmitterManager sseEmitterManager,
                                   ObjectMapper objectMapper,
                                   ApiResponseFactory responseFactory) {
         super(responseFactory);
         this.notificationService = notificationService;
-        this.sseEmitterManager = sseEmitterManager;
         this.objectMapper = objectMapper;
     }
 
@@ -77,11 +71,6 @@ public class NotificationController extends BaseApiController {
                                         @RequestAttribute("userId") String userId) {
         notificationService.deleteRead(id, userId);
         return ok("response.success.deleted", null);
-    }
-
-    @GetMapping(value = "/sse", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter sse(@RequestAttribute("userId") String userId) {
-        return sseEmitterManager.register(userId);
     }
 
     private NotificationResponse toResponse(Notification n) {

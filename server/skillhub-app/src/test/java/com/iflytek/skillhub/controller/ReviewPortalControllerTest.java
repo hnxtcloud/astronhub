@@ -16,11 +16,15 @@ import com.iflytek.skillhub.domain.review.ReviewTaskStatus;
 import com.iflytek.skillhub.domain.skill.service.SkillDownloadService;
 import com.iflytek.skillhub.dto.ReviewTaskResponse;
 import com.iflytek.skillhub.dto.ReviewSkillDetailResponse;
+import com.iflytek.skillhub.dto.ReviewProgressResponse;
+import com.iflytek.skillhub.dto.ReviewProgressPageResponse;
+import com.iflytek.skillhub.dto.ReviewProgressStatusCounts;
 import com.iflytek.skillhub.dto.SkillDetailResponse;
 import com.iflytek.skillhub.dto.SkillFileResponse;
 import com.iflytek.skillhub.dto.SkillLifecycleVersionResponse;
 import com.iflytek.skillhub.dto.SkillVersionResponse;
 import com.iflytek.skillhub.repository.GovernanceQueryRepository;
+import com.iflytek.skillhub.repository.ReviewProgressQueryRepository;
 import com.iflytek.skillhub.service.ReviewSkillDetailAppService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.util.List;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -78,6 +83,9 @@ class ReviewPortalControllerTest {
 
     @MockBean
     private GovernanceQueryRepository governanceQueryRepository;
+
+    @MockBean
+    private ReviewProgressQueryRepository reviewProgressQueryRepository;
 
     @MockBean
     private RbacService rbacService;
@@ -192,7 +200,9 @@ class ReviewPortalControllerTest {
                                 new SkillLifecycleVersionResponse(99L, "1.1.0", "PUBLISHED"),
                                 new SkillLifecycleVersionResponse(100L, "1.2.0", "PENDING_REVIEW"),
                                 null,
-                                "REVIEW_TASK"
+                                "REVIEW_TASK",
+                                List.of(),
+                                new com.iflytek.skillhub.dto.PageResponse<>(List.of(), 0, 0, 20)
                         ),
                         List.of(new SkillVersionResponse(100L, "1.2.0", "PENDING_REVIEW", null, 1, 10L, null, true, null)),
                         List.of(new SkillFileResponse(1L, "README.md", 123L, "text/markdown", "sha")),
@@ -274,6 +284,188 @@ class ReviewPortalControllerTest {
                 .andExpect(jsonPath("$.code").value(403));
 
         verify(reviewTaskRepository, never()).findByStatus(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void listMyReviewProgress_isScopedToAuthenticatedAuthor() throws Exception {
+        var item = new ReviewProgressResponse(
+                12L,
+                30L,
+                "team-a",
+                "skill-a",
+                "1.0.0",
+                "REJECTED",
+                "Please add tests",
+                Instant.parse("2026-08-31T10:00:00Z"),
+                Instant.parse("2026-08-31T11:00:00Z"),
+                2L
+        );
+        given(reviewProgressQueryRepository.findMyProgress("author-1", null, null, "", 0, 20))
+                .willReturn(new ReviewProgressPageResponse(
+                        List.of(item),
+                        1,
+                        0,
+                        20,
+                        new ReviewProgressStatusCounts(0, 0, 1)
+                ));
+
+        mockMvc.perform(get("/api/v1/reviews/my-progress").with(auth("author-1")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items[0].skillSlug").value("skill-a"))
+                .andExpect(jsonPath("$.data.items[0].attemptCount").value(2))
+                .andExpect(jsonPath("$.data.items[0].latestStatus").value("REJECTED"))
+                .andExpect(jsonPath("$.data.statusCounts.pending").value(0))
+                .andExpect(jsonPath("$.data.statusCounts.rejected").value(1));
+
+        verify(reviewProgressQueryRepository).findMyProgress("author-1", null, null, "", 0, 20);
+    }
+
+    @Test
+    void listMyReviewAttempts_returnsOnlyTheAuthorsVersionHistory() throws Exception {
+        ReviewTask latest = createReviewTask(12L, 20L, "author-1", ReviewTaskStatus.REJECTED);
+        setField(latest, "skillId", 30L);
+        setField(latest, "skillVersion", "1.0.0");
+        ReviewTask previous = createReviewTask(8L, 20L, "author-1", ReviewTaskStatus.REJECTED);
+        setField(previous, "skillId", 30L);
+        setField(previous, "skillVersion", "1.0.0");
+        ReviewTask otherAuthor = createReviewTask(7L, 20L, "author-2", ReviewTaskStatus.REJECTED);
+        setField(otherAuthor, "skillId", 30L);
+        setField(otherAuthor, "skillVersion", "1.0.0");
+        given(reviewTaskRepository.findById(12L)).willReturn(Optional.of(latest));
+        given(reviewTaskRepository.findBySubmittedByAndSkillIdAndSkillVersionOrderBySubmittedAtDescIdDesc(
+                "author-1", 30L, "1.0.0"))
+                .willReturn(List.of(latest, previous));
+        given(reviewTaskRepository.findBySkillIdAndSkillVersionOrderBySubmittedAtDescIdDesc(30L, "1.0.0"))
+                .willReturn(List.of(latest, previous, otherAuthor));
+        given(governanceQueryRepository.getReviewTaskResponses(List.of(latest, previous)))
+                .willReturn(List.of(toReviewResponse(latest), toReviewResponse(previous)));
+
+        mockMvc.perform(get("/api/v1/reviews/my-progress/12/attempts").with(auth("author-1")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].id").value(12))
+                .andExpect(jsonPath("$.data[1].id").value(8))
+                .andExpect(jsonPath("$.data[0].submittedBy").value("author-1"))
+                .andExpect(jsonPath("$.data[1].submittedBy").value("author-1"));
+
+        verify(reviewTaskRepository, never())
+                .findBySkillIdAndSkillVersionOrderBySubmittedAtDescIdDesc(30L, "1.0.0");
+    }
+
+    @Test
+    void listReviewAttempts_allowsAuthorizedReviewerToReadVersionHistory() throws Exception {
+        ReviewTask latest = createReviewTask(12L, 20L, "author-1", ReviewTaskStatus.PENDING);
+        setField(latest, "skillId", 30L);
+        setField(latest, "skillVersion", "1.0.0");
+        ReviewTask previous = createReviewTask(8L, 20L, "author-2", ReviewTaskStatus.REJECTED);
+        setField(previous, "skillId", 30L);
+        setField(previous, "skillVersion", "1.0.0");
+        Namespace namespace = createNamespace(20L, "team-a");
+        stubNamespaceRoles("reviewer-1", List.of());
+        given(rbacService.getUserRoleCodes("reviewer-1")).willReturn(Set.of("SKILL_ADMIN"));
+        given(reviewTaskRepository.findById(12L)).willReturn(Optional.of(latest));
+        given(namespaceRepository.findById(20L)).willReturn(Optional.of(namespace));
+        given(reviewService.canReviewNamespace(
+                latest,
+                "reviewer-1",
+                namespace.getType(),
+                Map.of(),
+                Set.of("SKILL_ADMIN"))).willReturn(true);
+        given(reviewTaskRepository.findBySkillIdAndSkillVersionOrderBySubmittedAtDescIdDesc(30L, "1.0.0"))
+                .willReturn(List.of(latest, previous));
+        given(governanceQueryRepository.getReviewTaskResponses(List.of(latest, previous)))
+                .willReturn(List.of(toReviewResponse(latest), toReviewResponse(previous)));
+
+        mockMvc.perform(get("/api/v1/reviews/12/attempts").with(auth("reviewer-1")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].id").value(12))
+                .andExpect(jsonPath("$.data[1].id").value(8))
+                .andExpect(jsonPath("$.data[0].submittedBy").value("author-1"))
+                .andExpect(jsonPath("$.data[1].submittedBy").value("author-2"));
+    }
+
+    @Test
+    void listReviewAttempts_allowsNamespaceAdminToReadCrossAuthorHistory() throws Exception {
+        ReviewTask latest = createReviewTask(12L, 20L, "author-1", ReviewTaskStatus.PENDING);
+        setField(latest, "skillId", 30L);
+        setField(latest, "skillVersion", "1.0.0");
+        ReviewTask previous = createReviewTask(8L, 20L, "author-2", ReviewTaskStatus.REJECTED);
+        setField(previous, "skillId", 30L);
+        setField(previous, "skillVersion", "1.0.0");
+        Namespace namespace = createNamespace(20L, "team-a");
+        stubNamespaceRoles("namespace-admin", List.of(new NamespaceMember(
+                20L, "namespace-admin", NamespaceRole.ADMIN)));
+        given(rbacService.getUserRoleCodes("namespace-admin")).willReturn(Set.of());
+        given(reviewTaskRepository.findById(12L)).willReturn(Optional.of(latest));
+        given(namespaceRepository.findById(20L)).willReturn(Optional.of(namespace));
+        given(reviewService.canReviewNamespace(
+                latest,
+                "namespace-admin",
+                namespace.getType(),
+                Map.of(20L, NamespaceRole.ADMIN),
+                Set.of())).willReturn(true);
+        given(reviewTaskRepository.findBySkillIdAndSkillVersionOrderBySubmittedAtDescIdDesc(30L, "1.0.0"))
+                .willReturn(List.of(latest, previous));
+        given(governanceQueryRepository.getReviewTaskResponses(List.of(latest, previous)))
+                .willReturn(List.of(toReviewResponse(latest), toReviewResponse(previous)));
+
+        mockMvc.perform(get("/api/v1/reviews/12/attempts").with(auth("namespace-admin")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(2))
+                .andExpect(jsonPath("$.data[0].submittedBy").value("author-1"))
+                .andExpect(jsonPath("$.data[1].submittedBy").value("author-2"));
+    }
+
+    @Test
+    void listReviewAttempts_forbidsSubmitterWithoutReviewerRole() throws Exception {
+        ReviewTask ownAttempt = createReviewTask(12L, 20L, "author-1", ReviewTaskStatus.REJECTED);
+        setField(ownAttempt, "skillId", 30L);
+        setField(ownAttempt, "skillVersion", "1.0.0");
+        Namespace namespace = createNamespace(20L, "team-a");
+        stubNamespaceRoles("author-1", List.of(new NamespaceMember(
+                20L, "author-1", NamespaceRole.MEMBER)));
+        given(rbacService.getUserRoleCodes("author-1")).willReturn(Set.of());
+        given(reviewTaskRepository.findById(12L)).willReturn(Optional.of(ownAttempt));
+        given(namespaceRepository.findById(20L)).willReturn(Optional.of(namespace));
+        given(reviewService.canReviewNamespace(
+                ownAttempt,
+                "author-1",
+                namespace.getType(),
+                Map.of(20L, NamespaceRole.MEMBER),
+                Set.of())).willReturn(false);
+
+        mockMvc.perform(get("/api/v1/reviews/12/attempts").with(auth("author-1")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(403));
+
+        verify(reviewTaskRepository, never())
+                .findBySkillIdAndSkillVersionOrderBySubmittedAtDescIdDesc(30L, "1.0.0");
+    }
+
+    @Test
+    void listReviewAttempts_forbidsUnrelatedUser() throws Exception {
+        ReviewTask latest = createReviewTask(12L, 20L, "author-1", ReviewTaskStatus.PENDING);
+        setField(latest, "skillId", 30L);
+        setField(latest, "skillVersion", "1.0.0");
+        Namespace namespace = createNamespace(20L, "team-a");
+        stubNamespaceRoles("other-user", List.of());
+        given(rbacService.getUserRoleCodes("other-user")).willReturn(Set.of());
+        given(reviewTaskRepository.findById(12L)).willReturn(Optional.of(latest));
+        given(namespaceRepository.findById(20L)).willReturn(Optional.of(namespace));
+        given(reviewService.canReviewNamespace(
+                latest,
+                "other-user",
+                namespace.getType(),
+                Map.of(),
+                Set.of())).willReturn(false);
+
+        mockMvc.perform(get("/api/v1/reviews/12/attempts").with(auth("other-user")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(403));
+
+        verify(reviewTaskRepository, never())
+                .findBySkillIdAndSkillVersionOrderBySubmittedAtDescIdDesc(30L, "1.0.0");
     }
 
     @Test

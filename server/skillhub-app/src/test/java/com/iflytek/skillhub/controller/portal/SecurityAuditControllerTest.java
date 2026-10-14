@@ -15,6 +15,8 @@ import com.iflytek.skillhub.domain.skill.SkillStatus;
 import com.iflytek.skillhub.domain.skill.SkillVersion;
 import com.iflytek.skillhub.domain.skill.SkillVersionRepository;
 import com.iflytek.skillhub.domain.skill.SkillVisibility;
+import com.iflytek.skillhub.dto.SkillLifecycleMutationResponse;
+import com.iflytek.skillhub.service.SecurityScanRetryAppService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,9 +36,14 @@ import java.util.Set;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -60,6 +67,37 @@ class SecurityAuditControllerTest {
 
     @MockBean
     private NamespaceMemberRepository namespaceMemberRepository;
+
+    @MockBean
+    private SecurityScanRetryAppService securityScanRetryAppService;
+
+    @Test
+    void retrySecurityScan_returnsScanningState() throws Exception {
+        given(securityScanRetryAppService.retry(
+                org.mockito.ArgumentMatchers.eq(8L),
+                org.mockito.ArgumentMatchers.eq(42L),
+                org.mockito.ArgumentMatchers.eq("owner-1"),
+                org.mockito.ArgumentMatchers.eq(Set.of()),
+                org.mockito.ArgumentMatchers.anyMap(),
+                org.mockito.ArgumentMatchers.any()))
+                .willReturn(new SkillLifecycleMutationResponse(8L, 42L, "RETRY_SECURITY_SCAN", "SCANNING"));
+
+        mockMvc.perform(post("/api/v1/skills/8/versions/42/security-audit/retry")
+                        .with(auth("owner-1"))
+                        .with(csrf())
+                        .requestAttr("userNsRoles", Map.of()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.action").value("RETRY_SECURITY_SCAN"))
+                .andExpect(jsonPath("$.data.status").value("SCANNING"));
+    }
+
+    @Test
+    void retrySecurityScan_requiresAuthentication() throws Exception {
+        mockMvc.perform(post("/api/v1/skills/8/versions/42/security-audit/retry").with(csrf()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(401));
+    }
 
     @Test
     void getSecurityAudit_returnsAuditPayload() throws Exception {
@@ -91,6 +129,29 @@ class SecurityAuditControllerTest {
                 .andExpect(jsonPath("$.data[0].verdict").value("DANGEROUS"))
                 .andExpect(jsonPath("$.data[0].findingsCount").value(1))
                 .andExpect(jsonPath("$.data[0].findings[0].ruleId").value("STATIC-001"));
+    }
+
+    @Test
+    void getSecurityAudit_doesNotExposeUnmaskedCanaryFromStoredFinding() throws Exception {
+        SecurityAudit audit = new SecurityAudit(42L, ScannerType.SKILL_SCANNER);
+        setField(audit, "id", 8L);
+        audit.setScanId("scan-masked");
+        audit.setVerdict(SecurityVerdict.DANGEROUS);
+        audit.setIsSafe(false);
+        audit.setMaxSeverity("HIGH");
+        audit.setFindings("""
+                [{"ruleId":"TOKEN-001","severity":"HIGH","category":"secrets","title":"Token detected","message":"<redacted>","filePath":"SKILL.md","lineNumber":4,"codeSnippet":"token=<redacted>"}]
+                """.trim());
+        given(skillVersionRepository.findById(42L)).willReturn(java.util.Optional.of(skillVersion(42L, 8L)));
+        given(skillRepository.findById(8L)).willReturn(java.util.Optional.of(skill(8L, "reviewer-1")));
+        given(securityAuditRepository.findLatestActiveByVersionId(42L)).willReturn(List.of(audit));
+
+        mockMvc.perform(get("/api/v1/skills/8/versions/42/security-audit")
+                        .with(auth("reviewer-1"))
+                        .requestAttr("userNsRoles", Map.of(5L, NamespaceRole.ADMIN)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].findings[0].message").value("<redacted>"))
+                .andExpect(content().string(not(containsString("ghp_012345678901234567890123456789012345"))));
     }
 
     @Test

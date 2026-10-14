@@ -14,7 +14,7 @@ Design sources: `.scratch/software-center/spec.md` and the decision tickets unde
 |-----------|----------|-------|
 | Backend | `server/` Spring Boot app | Serves portal/admin APIs, chunked upload, download sessions, persistent inspection tasks, dynamic policy |
 | Inspector worker | `inspector/` Docker image (python:3.12-slim + msitools/rpm) | Claims persistent tasks over the restricted internal API; no DB/admin credentials |
-| Database | PostgreSQL 16 | Flyway `V47__software_center.sql`, `V48__software_center_transfer.sql`, `V49__software_center_inspection.sql` |
+| Database | PostgreSQL 16 | Flyway V70–V73: software schema, transfer, inspection, and download-session timestamps |
 | Object storage | Local FS or S3/MinIO | `skillhub.storage.provider=local` (default) or `s3` |
 | Reverse proxy | Nginx / LB | Must not clip upload chunks (see §3) |
 
@@ -23,7 +23,7 @@ Design sources: `.scratch/software-center/spec.md` and the decision tickets unde
 ### 2.1 Backend
 
 1. Deploy the backend image with the standard env (DB, Redis, auth). Flyway applies
-   V47–V49 on startup; they create the software-center schema **and seed the
+   V70–V73 on startup; they create the software-center schema **and seed the
    initial state**:
    - policy revision 1 with the confirmed first-version defaults, pointed at by the
      singleton `software_policy_state` row;
@@ -46,7 +46,53 @@ Design sources: `.scratch/software-center/spec.md` and the decision tickets unde
    - the token is valid **only** on `/api/v1/internal/software/**` and grants no
      user/admin identity; the worker holds no database or administrator credentials.
 
-### 2.2 Inspector worker
+### 2.2 Upgrading a database from before the upstream merge
+
+The upstream merge reserves V47–V68 for SkillHub migrations. AstronHub's plugin/MCP
+migration moves from V66 to V69, and software-center migrations move from V47–V49
+to V70–V72. Their SQL contents and checksums are unchanged. A fresh database needs
+no special handling.
+
+For an existing AstronHub database, back it up and stop all backend instances before
+upgrading. Remap **only** history rows with the exact old AstronHub script names;
+do not change upstream history rows or drop application tables. Run this transaction
+against the application's database (adjust the schema if Flyway uses a custom one):
+
+```sql
+BEGIN;
+LOCK TABLE flyway_schema_history IN EXCLUSIVE MODE;
+DO $$
+DECLARE
+    migration RECORD;
+BEGIN
+    FOR migration IN
+        SELECT * FROM (VALUES
+            ('66', 'V66__astronhub_plugin_mcp_catalog.sql', '69', 'V69__astronhub_plugin_mcp_catalog.sql'),
+            ('47', 'V47__software_center.sql', '70', 'V70__software_center.sql'),
+            ('48', 'V48__software_center_transfer.sql', '71', 'V71__software_center_transfer.sql'),
+            ('49', 'V49__software_center_inspection.sql', '72', 'V72__software_center_inspection.sql')
+        ) AS mapping(old_version, old_script, new_version, new_script)
+    LOOP
+        IF EXISTS (SELECT 1 FROM flyway_schema_history
+                   WHERE version = migration.old_version AND script = migration.old_script) THEN
+            IF EXISTS (SELECT 1 FROM flyway_schema_history WHERE version = migration.new_version) THEN
+                RAISE EXCEPTION 'Migration version % is already occupied', migration.new_version;
+            END IF;
+            UPDATE flyway_schema_history
+               SET version = migration.new_version, script = migration.new_script
+             WHERE version = migration.old_version AND script = migration.old_script;
+        END IF;
+    END LOOP;
+END $$;
+COMMIT;
+```
+
+Start one backend instance with `SPRING_FLYWAY_OUT_OF_ORDER=true` for this upgrade
+so that upstream migrations missing below V72 are applied. Verify migration success
+and application health, then remove this temporary setting before starting the other
+instances. Keep the backup until the upgrade has been accepted.
+
+### 2.3 Inspector worker
 
 ```bash
 docker build -t skillhub-inspector ./inspector

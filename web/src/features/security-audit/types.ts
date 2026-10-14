@@ -26,6 +26,7 @@ export interface SecurityAuditRecord {
   findingsCount: number
   findings: SecurityFinding[]
   scanDurationSeconds: number | null
+  failureReason: string | null
   scannedAt: string | null
   createdAt: string
 }

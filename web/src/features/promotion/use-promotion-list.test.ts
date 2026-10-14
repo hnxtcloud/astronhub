@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { PromotionTask } from '@/api/types'
+import type { PagedResponse, PromotionTask } from '@/api/types'
 
 const mocks = vi.hoisted(() => ({
   invalidateQueries: vi.fn(),
@@ -61,7 +61,7 @@ describe('usePromotionList', () => {
 
   it('defaults to the pending queue without history sort params', async () => {
     usePromotionList()
-    const options = mocks.useQuery.mock.calls[0]?.[0] as { queryKey: unknown; queryFn: () => Promise<PromotionTask[]> }
+    const options = mocks.useQuery.mock.calls[0]?.[0] as { queryKey: unknown; queryFn: () => Promise<PagedResponse<PromotionTask>> }
 
     expect(options.queryKey).toEqual(['promotions', {
       status: 'PENDING',
@@ -70,7 +70,7 @@ describe('usePromotionList', () => {
       sortBy: undefined,
       sortDirection: undefined,
     }])
-    await expect(options.queryFn()).resolves.toEqual([promotion])
+    await expect(options.queryFn()).resolves.toEqual({ items: [promotion], total: 1, page: 0, size: 20 })
     expect(mocks.promotionList).toHaveBeenCalledWith({
       status: 'PENDING',
       page: 0,
@@ -82,7 +82,7 @@ describe('usePromotionList', () => {
 
   it('passes reviewed-time sort params for history queues', async () => {
     usePromotionList({ status: 'APPROVED', sortBy: 'reviewedAt', sortDirection: 'ASC' })
-    const options = mocks.useQuery.mock.calls[0]?.[0] as { queryKey: unknown; queryFn: () => Promise<PromotionTask[]> }
+    const options = mocks.useQuery.mock.calls[0]?.[0] as { queryKey: unknown; queryFn: () => Promise<PagedResponse<PromotionTask>> }
 
     expect(options.queryKey).toEqual(['promotions', {
       status: 'APPROVED',

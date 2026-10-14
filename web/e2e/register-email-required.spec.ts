@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test'
+import { randomUUID } from 'node:crypto'
 import { setEnglishLocale } from './helpers/auth-fixtures'
 
 function buildUniqueUser() {
-  const suffix = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
+  const suffix = `${Date.now().toString(36)}${randomUUID().slice(0, 8)}`
   return {
     username: `e2e_reg_${suffix}`,
     email: `e2e_reg_${suffix}@example.test`,
@@ -25,7 +26,9 @@ test.describe('Register Email Required (Real API)', () => {
     await page.getByLabel('Password').fill(user.password)
     await page.getByRole('button', { name: 'Register & Login' }).click()
 
-    await expect(page).toHaveURL('/dashboard')
+    await expect(page).toHaveURL('/')
+    const sessionResponse = await page.request.get('/api/v1/auth/me')
+    expect(sessionResponse.status()).toBe(200)
   })
 
   test('shows required validation when email is missing', async ({ page }) => {

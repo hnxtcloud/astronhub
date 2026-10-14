@@ -8,10 +8,12 @@ import com.iflytek.skillhub.dto.NamespaceResponse;
 import com.iflytek.skillhub.dto.PageResponse;
 import com.iflytek.skillhub.dto.PromotionResponseDto;
 import com.iflytek.skillhub.dto.ReviewSkillDetailResponse;
+import com.iflytek.skillhub.dto.ReviewProgressPageResponse;
 import com.iflytek.skillhub.dto.ReviewTaskResponse;
 import com.iflytek.skillhub.dto.SkillLifecycleMutationResponse;
 import com.iflytek.skillhub.dto.SkillVersionRereleaseRequest;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 
@@ -67,8 +69,11 @@ public class GovernanceWorkflowAppService {
         return reviewPortalAppService.rejectReview(reviewTaskId, comment, userId, userNsRoles, auditContext);
     }
 
-    public void withdrawReviewTask(Long reviewTaskId, String userId, AuditRequestContext auditContext) {
-        reviewPortalAppService.withdrawReview(reviewTaskId, userId, auditContext);
+    public void withdrawReviewTask(Long reviewTaskId,
+                                   String userId,
+                                   Map<Long, NamespaceRole> userNsRoles,
+                                   AuditRequestContext auditContext) {
+        reviewPortalAppService.withdrawReview(reviewTaskId, userId, userNsRoles, auditContext);
     }
 
     public PageResponse<ReviewTaskResponse> listReviews(String status,
@@ -91,6 +96,27 @@ public class GovernanceWorkflowAppService {
 
     public PageResponse<ReviewTaskResponse> listMyReviewSubmissions(int page, int size, String userId) {
         return reviewPortalAppService.listMySubmissions(page, size, userId);
+    }
+
+    public ReviewProgressPageResponse listMyReviewProgress(
+            String subjectType,
+            String status,
+            String query,
+            int page,
+            int size,
+            String userId) {
+        return reviewPortalAppService.listMyProgress(subjectType, status, query, page, size, userId);
+    }
+
+    public List<ReviewTaskResponse> listMyReviewAttempts(Long reviewTaskId, String userId) {
+        return reviewPortalAppService.listMyAttempts(reviewTaskId, userId);
+    }
+
+    public List<ReviewTaskResponse> listReviewAttempts(
+            Long reviewTaskId,
+            String userId,
+            Map<Long, NamespaceRole> userNsRoles) {
+        return reviewPortalAppService.listReviewAttempts(reviewTaskId, userId, userNsRoles);
     }
 
     public ReviewTaskResponse getReviewDetail(Long reviewTaskId,
@@ -206,6 +232,24 @@ public class GovernanceWorkflowAppService {
                                                         Map<Long, NamespaceRole> userNsRoles,
                                                         AuditRequestContext auditContext) {
         return skillLifecycleAppService.deleteVersion(namespace, slug, version, userId, userNsRoles, auditContext);
+    }
+
+    public SkillLifecycleMutationResponse yankVersion(String namespace,
+                                                      String slug,
+                                                      String version,
+                                                      AdminSkillActionRequest request,
+                                                      String userId,
+                                                      Map<Long, NamespaceRole> userNsRoles,
+                                                      AuditRequestContext auditContext) {
+        return skillLifecycleAppService.yankVersion(
+                namespace,
+                slug,
+                version,
+                request,
+                userId,
+                userNsRoles,
+                auditContext
+        );
     }
 
     public SkillLifecycleMutationResponse withdrawReviewVersion(String namespace,

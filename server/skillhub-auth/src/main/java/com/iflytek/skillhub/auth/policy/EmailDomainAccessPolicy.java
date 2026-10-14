@@ -15,7 +15,7 @@ public class EmailDomainAccessPolicy implements AccessPolicy {
 
     @Override
     public AccessDecision evaluate(OAuthClaims claims) {
-        if (claims.email() == null) return AccessDecision.DENY;
+        if (claims.email() == null || !claims.emailVerified()) return AccessDecision.DENY;
         String domain = claims.email().substring(claims.email().indexOf('@') + 1);
         return allowedDomains.contains(domain.toLowerCase())
             ? AccessDecision.ALLOW : AccessDecision.DENY;

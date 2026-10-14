@@ -35,7 +35,8 @@ manifest 需要维护四个字段：
 - `slug`：Skill 在 `@global` 下的 slug。
 - `version`：期望同步的 Skill 版本。
 - `url`：Skill zip 包的云存储 HTTPS 链接。
-- `sha256`：发布制品的 SHA-256，小写 64 位十六进制字符串。
+- `sha256`：发布制品内容的 SHA-256，小写 64 位十六进制字符串。它是完整性依据，
+  不要求 URL 的文件名必须等于 SHA-256；CDN 自动生成 UUID 文件名也可以使用。
 
 ## 2. Manifest 配置
 
@@ -87,6 +88,7 @@ manifest 文件格式如下：
 - 每一项必须同时填写 `slug`、`version`、`url`、`sha256`。
 - `slug` 必须符合 SkillHub slug 规则。
 - `sha256` 必须是小写 64 位十六进制字符串，并与 URL 返回的原始 zip 字节一致。
+- `url` 最后路径段必须是 `.zip` 文件；文件名可以是 SHA-256、UUID 或 CDN 生成的不可变名称。
 - 同一个 `slug + version` 重复出现时，只处理第一条，后续重复项会被跳过。
 - manifest 最多处理前 100 条 entries。
 - 同一个 `slug` 的多个版本建议按从旧到新的顺序排列；运行时按 manifest 文件顺序处理，不做自动版本排序。
@@ -236,7 +238,7 @@ SKILLHUB_BUILTIN_SKILLS_ENABLED=false
 
 更新一个已有内置 Skill 的推荐步骤：
 
-1. 不要覆盖已经发布过的旧版本 zip 内容。
+1. 不要覆盖已经发布过的旧版本 zip 内容；URL 对应对象必须保持不可变。
 2. 在 `SKILL.md` 中提升 `version`。
 3. 重新打包并上传新的 zip 文件。
 4. 在 manifest 中新增一条同 `slug`、新 `version` 的记录。
@@ -279,7 +281,7 @@ SKILLHUB_BUILTIN_SKILLS_ENABLED=false
 - manifest JSON 格式合法。
 - 每个 item 都包含 `slug`、`version`、`url`、`sha256`。
 - 每个 `sha256` 都与 URL 下载到的原始 zip 字节一致。
-- URL 使用 `https://bjcdn.openstorage.cn/...` 或可信子域名。
+- URL 使用 `https://bjcdn.openstorage.cn/...` 或可信子域名，并以 `.zip` 结尾；文件名不必等于 SHA-256。
 - zip 根目录直接包含 `SKILL.md`，或只有一个顶层 Skill 目录且该目录包含 `SKILL.md`。
 - `SKILL.md name` 归一化后的 slug 与 manifest `slug` 一致。
 - `SKILL.md version` 与 manifest `version` 一致。

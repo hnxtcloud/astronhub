@@ -48,6 +48,11 @@ public class JpaSkillRepositoryAdapter implements SkillRepository {
     }
 
     @Override
+    public List<Skill> findByNamespaceIdInAndSlugIn(List<Long> namespaceIds, List<String> slugs) {
+        return delegate.findByNamespaceIdInAndSlugIn(namespaceIds, slugs);
+    }
+
+    @Override
     public Optional<Skill> findByNamespaceIdAndSlugAndOwnerId(Long namespaceId, String slug, String ownerId) {
         return delegate.findByNamespaceIdAndSlugAndOwnerId(namespaceId, slug, ownerId);
     }
@@ -83,8 +88,8 @@ public class JpaSkillRepositoryAdapter implements SkillRepository {
     }
 
     @Override
-    public Page<Skill> findByOwnerId(String ownerId, Pageable pageable) {
-        return delegate.findByOwnerId(ownerId, pageable);
+    public Page<Skill> findVisibleByOwnerId(String ownerId, Pageable pageable) {
+        return delegate.findVisibleByOwnerId(ownerId, pageable);
     }
 
     @Override

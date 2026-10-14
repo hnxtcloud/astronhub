@@ -16,6 +16,7 @@ public record SecurityAuditResponse(
         Integer findingsCount,
         List<SecurityFinding> findings,
         Double scanDurationSeconds,
+        String failureReason,
         Instant scannedAt,
         Instant createdAt
 ) {

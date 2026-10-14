@@ -103,9 +103,25 @@ const useReviewSkillDetailMock = vi.fn<() => unknown>(() => ({
   error: null,
 }))
 
+const useReviewAttemptsMock = vi.fn<() => unknown>(() => ({
+  data: [{
+    id: 13,
+    skillVersionId: 10,
+    namespace: 'global',
+    skillSlug: 'demo-skill',
+    version: '1.2.0',
+    status: 'PENDING',
+    submittedBy: 'local-admin',
+    submittedAt: '2026-03-19T00:00:00Z',
+  }],
+  isLoading: false,
+  isError: false,
+}))
+
 vi.mock('@/features/review/use-review-detail', () => ({
   useReviewDetail: () => useReviewDetailMock(),
   useReviewSkillDetail: () => useReviewSkillDetailMock(),
+  useReviewAttempts: () => useReviewAttemptsMock(),
   useApproveReview: () => ({
     mutate: vi.fn(),
     isPending: false,
@@ -139,6 +155,21 @@ describe('ReviewDetailPage', () => {
     userMock.platformRoles = ['SKILL_ADMIN']
     useReviewDetailMock.mockReset()
     useReviewSkillDetailMock.mockReset()
+    useReviewAttemptsMock.mockReset()
+    useReviewAttemptsMock.mockReturnValue({
+      data: [{
+        id: 13,
+        skillVersionId: 10,
+        namespace: 'global',
+        skillSlug: 'demo-skill',
+        version: '1.2.0',
+        status: 'PENDING',
+        submittedBy: 'local-admin',
+        submittedAt: '2026-03-19T00:00:00Z',
+      }],
+      isLoading: false,
+      isError: false,
+    })
     useReviewDetailMock.mockReturnValue({
       data: {
         id: 13,
@@ -203,6 +234,8 @@ describe('ReviewDetailPage', () => {
 
     expect(html).toContain('max-w-6xl mx-auto flex')
     expect(html).toContain('aria-expanded="false"')
+    expect(html).toContain('review.attemptHistory')
+    expect(html).toContain('reviewProgress.attemptNumber')
   })
 
   it('renders not-found state when the review record is missing', () => {

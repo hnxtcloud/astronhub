@@ -87,13 +87,6 @@ test.describe('Promotion review dashboard', () => {
         }),
       })
     })
-    await page.route('**/api/web/notifications/sse', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'text/event-stream',
-        body: '',
-      })
-    })
   })
 
   async function installPromotionRouteMock(page: Page, expectedSignatures: string[]) {

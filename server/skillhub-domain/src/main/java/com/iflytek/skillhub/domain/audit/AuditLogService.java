@@ -42,4 +42,16 @@ public class AuditLogService {
             createdAt
         ));
     }
+
+    @Transactional
+    public AuditLog recordOrganizationCreated(String actorUserId,
+                                              String organizationId,
+                                              String requestId) {
+        return auditLogRepository.save(AuditLog.organizationSuccess(
+                actorUserId,
+                "ORGANIZATION_CREATED",
+                organizationId,
+                requestId,
+                Instant.now(clock)));
+    }
 }

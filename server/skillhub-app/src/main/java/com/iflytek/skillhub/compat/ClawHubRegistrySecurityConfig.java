@@ -4,6 +4,7 @@ import com.iflytek.skillhub.auth.token.ApiTokenAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,12 +25,11 @@ public class ClawHubRegistrySecurityConfig {
         http
                 .securityMatcher(
                         new OrRequestMatcher(
-                                new AntPathRequestMatcher("/api/v1/labels"),
-                                new AntPathRequestMatcher("/api/web/labels")
+                                new AntPathRequestMatcher("/api/v1/labels", HttpMethod.GET.name()),
+                                new AntPathRequestMatcher("/api/web/labels", HttpMethod.GET.name())
                         )
                 )
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .csrf(csrf -> csrf.disable())
                 .requestCache(cache -> cache.disable())
                 .securityContext(context -> context.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

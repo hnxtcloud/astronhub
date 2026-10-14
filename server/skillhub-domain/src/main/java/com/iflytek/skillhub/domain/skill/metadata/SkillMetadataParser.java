@@ -1,7 +1,9 @@
 package com.iflytek.skillhub.domain.skill.metadata;
 
 import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -13,6 +15,9 @@ import java.util.Map;
 public class SkillMetadataParser {
 
     private static final String FRONTMATTER_DELIMITER = "---";
+    private static final int MAX_YAML_ALIASES = 20;
+    private static final int MAX_YAML_NESTING_DEPTH = 20;
+    private static final int MAX_YAML_CODE_POINTS = 200_000;
 
     public SkillMetadata parse(String content) {
         if (content == null || content.isBlank()) {
@@ -59,7 +64,12 @@ public class SkillMetadataParser {
 
     private Map<String, Object> parseFrontmatter(String yamlContent) {
         try {
-            Yaml yaml = new Yaml();
+            LoaderOptions loaderOptions = new LoaderOptions();
+            loaderOptions.setAllowDuplicateKeys(false);
+            loaderOptions.setMaxAliasesForCollections(MAX_YAML_ALIASES);
+            loaderOptions.setNestingDepthLimit(MAX_YAML_NESTING_DEPTH);
+            loaderOptions.setCodePointLimit(MAX_YAML_CODE_POINTS);
+            Yaml yaml = new Yaml(new SafeConstructor(loaderOptions));
             Object parsed = yaml.load(yamlContent);
             if (!(parsed instanceof Map)) {
                 throw new DomainBadRequestException("error.skill.metadata.yaml.notMap");

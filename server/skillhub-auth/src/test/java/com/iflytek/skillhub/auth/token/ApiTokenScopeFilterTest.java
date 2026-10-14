@@ -180,4 +180,42 @@ class ApiTokenScopeFilterTest {
         assertTrue(response.getErrorMessage().contains("Missing API token scope: skill:publish"));
         verify(chain, never()).doFilter(request, response);
     }
+
+    @Test
+    void shouldAuthorizeApplicationPathBehindForwardedPrefix() throws Exception {
+        AccessDeniedHandler handler = mock(AccessDeniedHandler.class);
+        ApiTokenScopeFilter filter = new ApiTokenScopeFilter(scopeService, handler);
+
+        PlatformPrincipal principal = new PlatformPrincipal(
+            "user-5",
+            "Erin",
+            "erin@example.com",
+            "",
+            "api_token",
+            Set.of("USER")
+        );
+        var authentication = new UsernamePasswordAuthenticationToken(
+            principal,
+            null,
+            List.of(
+                new SimpleGrantedAuthority("ROLE_USER"),
+                new SimpleGrantedAuthority("SCOPE_skill:read")
+            )
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        MockHttpServletRequest request = new MockHttpServletRequest(
+            "GET",
+            "/skillhub/api/cli/v1/namespaces/global/skills"
+        );
+        request.setContextPath("/skillhub");
+        request.setServletPath("/api/cli/v1/namespaces/global/skills");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+        verify(handler, never()).handle(eq(request), eq(response), any());
+    }
 }

@@ -27,28 +27,38 @@ import static org.mockito.Mockito.*;
 class NotificationServiceTest {
 
     @Mock private NotificationRepository notificationRepository;
+    @Mock private NotificationPreferenceService preferenceService;
     private Clock clock;
     private NotificationService service;
 
     @BeforeEach
     void setUp() {
         clock = Clock.fixed(Instant.parse("2026-03-19T10:00:00Z"), ZoneOffset.UTC);
-        service = new NotificationService(notificationRepository, clock);
+        service = new NotificationService(notificationRepository, preferenceService, clock);
     }
 
     @Test
-    void createNotification_shouldSaveAndReturn() {
-        Notification notification = new Notification("user-1", NotificationCategory.REVIEW,
-                "review.approved", "notification.review.approved",
-                "{\"skillName\":\"test\"}", "skill", 1L, Instant.now(clock));
-        when(notificationRepository.save(any())).thenReturn(notification);
+    void createNotification_shouldSaveWhenEnabled() {
+        when(preferenceService.isEnabled("user-1", NotificationCategory.REVIEW, NotificationChannel.IN_APP))
+                .thenReturn(true);
 
-        Notification result = service.create("user-1", NotificationCategory.REVIEW,
+        service.create("user-1", NotificationCategory.REVIEW,
                 "review.approved", "notification.review.approved",
                 "{\"skillName\":\"test\"}", "skill", 1L);
 
-        assertNotNull(result);
         verify(notificationRepository).save(any(Notification.class));
+    }
+
+    @Test
+    void createNotification_shouldSkipWhenPreferenceDisabled() {
+        when(preferenceService.isEnabled("user-1", NotificationCategory.REVIEW, NotificationChannel.IN_APP))
+                .thenReturn(false);
+
+        service.create("user-1", NotificationCategory.REVIEW,
+                "review.approved", "notification.review.approved",
+                "{\"skillName\":\"test\"}", "skill", 1L);
+
+        verifyNoInteractions(notificationRepository);
     }
 
     @Test

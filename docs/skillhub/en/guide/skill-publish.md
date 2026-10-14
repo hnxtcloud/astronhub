@@ -49,23 +49,44 @@ New version has serious issues, need to point `latest` tag to previous stable ve
 
 1. **Prepare Skill Package**
 
-Ensure skill package conforms to SkillHub specification:
-- Contains `skill.md` (skill description)
-- Contains `package.json` or `SKILL.md` (metadata)
-- Clear file structure, no sensitive information
+Prepare a skill directory with `SKILL.md` at its root:
+
+- Put both YAML frontmatter and the skill instructions in `SKILL.md`.
+- The frontmatter must contain `name` and `description`. Set `version` there when you need an explicit version.
+- `package.json` does not supply or replace this skill metadata.
+- Keep the package structure clear and exclude sensitive information.
+
+For example, save this as `my-skill/SKILL.md`:
+
+```markdown
+---
+name: my-skill
+description: Summarize a short text as numbered steps.
+version: 1.0.0
+---
+
+Summarize the supplied text as numbered steps.
+```
+
+When packaging an existing skill, keep its required scripts, references,
+`agents/` metadata, and license files together. Pass that skill directory
+(`./my-skill` in this example) to the publish command below.
 
 2. **Publish via CLI (Recommended)**
 
 ```bash
-# Configure registry
-export CLAWHUB_REGISTRY=http://localhost:8080
+# Configure the SkillHub registry
+export SKILLHUB_REGISTRY=http://localhost:8080
+export SKILLHUB_TOKEN=YOUR_API_TOKEN
 
 # Publish to default namespace
-npx clawhub publish ./my-skill
+npx @astron-team/skillhub@latest publish ./my-skill
 
 # Publish to specific namespace
-npx clawhub publish ./my-skill --namespace my-team
+npx @astron-team/skillhub@latest publish ./my-skill --namespace my-team
 ```
+
+> The ClawHub CLI publish and sync protocols are not compatible with SkillHub. Use the SkillHub CLI above for publishing.
 
 3. **Publish via Web UI**
 

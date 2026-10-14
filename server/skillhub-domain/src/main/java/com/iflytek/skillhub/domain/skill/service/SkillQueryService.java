@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -241,7 +242,8 @@ public class SkillQueryService {
                 skill.getUpdatedAt(),
                 canManageRestrictedSkill(skill, currentUserId, userNsRoles),
                 canSubmitPromotion(namespace, skill, publishedVersion, currentUserId, userNsRoles),
-                headlineVersion == null || "PUBLISHED".equals(headlineVersion.status()),
+                skill.getStatus() == SkillStatus.ACTIVE
+                        && (headlineVersion == null || "PUBLISHED".equals(headlineVersion.status())),
                 currentUserId == null || !Objects.equals(skill.getOwnerId(), currentUserId),
                 headlineVersion,
                 publishedVersion,
@@ -284,6 +286,47 @@ public class SkillQueryService {
         List<Skill> pageContent = accessibleSkills.subList(start, end);
 
         return new PageImpl<>(pageContent, pageable, accessibleSkills.size());
+    }
+
+    /**
+     * Lists only active, visible skills whose latest version can be installed.
+     *
+     * <p>This is intentionally separate from {@link #listSkillsByNamespace}:
+     * the portal discovery method also exposes skills without a published
+     * version, while the CLI sync manifest must contain concrete downloadable
+     * versions. Filtering happens before pagination so cursors remain stable.
+     */
+    public Page<Skill> listInstallableSkillsByNamespace(
+            String namespaceSlug,
+            String currentUserId,
+            Map<Long, NamespaceRole> userNsRoles,
+            Pageable pageable) {
+
+        Namespace namespace = findNamespace(namespaceSlug);
+        List<Skill> accessibleSkills = skillRepository
+                .findByNamespaceIdAndStatus(namespace.getId(), SkillStatus.ACTIVE)
+                .stream()
+                .filter(skill -> visibilityChecker.canAccess(skill, currentUserId, userNsRoles))
+                .toList();
+
+        Map<Long, SkillVersion> latestVersions = skillVersionRepository.findByIdIn(
+                        accessibleSkills.stream()
+                                .map(Skill::getLatestVersionId)
+                                .filter(Objects::nonNull)
+                                .distinct()
+                                .toList())
+                .stream()
+                .collect(Collectors.toMap(SkillVersion::getId, Function.identity()));
+
+        List<Skill> installableSkills = accessibleSkills.stream()
+                .filter(skill -> SkillInstallability.isInstallableVersion(latestVersions.get(skill.getLatestVersionId())))
+                .sorted(Comparator.comparing(Skill::getSlug)
+                        .thenComparing(Skill::getId, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+
+        int start = Math.min((int) pageable.getOffset(), installableSkills.size());
+        int end = Math.min(start + pageable.getPageSize(), installableSkills.size());
+        return new PageImpl<>(installableSkills.subList(start, end), pageable, installableSkills.size());
     }
 
     /**
@@ -579,6 +622,34 @@ public class SkillQueryService {
         );
     }
 
+    /** Resolves the exact version selected by an authenticated authoring flow. */
+    public ResolvedVersionDTO resolveVersionById(
+            Long versionId,
+            String currentUserId,
+            Map<Long, NamespaceRole> userNsRoles,
+            Set<String> platformRoles
+    ) {
+        SkillVersion version = skillVersionRepository.findById(versionId)
+                .orElseThrow(() -> new DomainBadRequestException("error.skill.version.notFound", versionId));
+        Skill skill = skillRepository.findById(version.getSkillId())
+                .orElseThrow(() -> new DomainBadRequestException("error.skill.notFound", version.getSkillId()));
+        Namespace namespace = namespaceRepository.findById(skill.getNamespaceId())
+                .orElseThrow(() -> new DomainBadRequestException(
+                        "error.namespace.id.notFound", skill.getNamespaceId()));
+        assertPublishedAccessible(namespace, skill, currentUserId, userNsRoles, platformRoles);
+        assertInstallableVersion(version, version.getVersion());
+        String fingerprint = computeFingerprint(version);
+        return new ResolvedVersionDTO(
+                skill.getId(), namespace.getSlug(), skill.getSlug(), version.getVersion(), version.getId(),
+                fingerprint, null,
+                String.format(
+                        "/api/v1/skills/%s/%s/versions/%s/download",
+                        encodePathSegment(namespace.getSlug()),
+                        encodePathSegment(skill.getSlug()),
+                        encodePathSegment(version.getVersion()))
+        );
+    }
+
     private Namespace findNamespace(String slug) {
         return namespaceRepository.findBySlug(slug)
                 .orElseThrow(() -> new DomainBadRequestException("error.namespace.slug.notFound", slug));
@@ -811,6 +882,15 @@ public class SkillQueryService {
             Skill skill,
             String currentUserId,
             Map<Long, NamespaceRole> userNsRoles) {
+        assertPublishedAccessible(namespace, skill, currentUserId, userNsRoles, Set.of());
+    }
+
+    private void assertPublishedAccessible(
+            Namespace namespace,
+            Skill skill,
+            String currentUserId,
+            Map<Long, NamespaceRole> userNsRoles,
+            Set<String> platformRoles) {
         if (namespace.getStatus() == NamespaceStatus.ARCHIVED && !isNamespaceMember(skill.getNamespaceId(), currentUserId, userNsRoles)) {
             throw new DomainForbiddenException("error.namespace.archived", namespace.getSlug());
         }
@@ -820,7 +900,7 @@ public class SkillQueryService {
         if (skill.isHidden() && !canManageRestrictedSkill(skill, currentUserId, userNsRoles)) {
             throw new DomainForbiddenException("error.skill.access.denied", skill.getSlug());
         }
-        if (!visibilityChecker.canAccess(skill, currentUserId, userNsRoles)) {
+        if (!visibilityChecker.canAccess(skill, currentUserId, userNsRoles, platformRoles)) {
             throw new DomainForbiddenException("error.skill.access.denied", skill.getSlug());
         }
     }

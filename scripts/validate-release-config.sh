@@ -380,14 +380,40 @@ if [ "${REDIS_BIND_ADDRESS:-127.0.0.1}" != "127.0.0.1" ]; then
   warn "REDIS_BIND_ADDRESS is not 127.0.0.1; confirm Redis exposure is intended"
 fi
 
-oauth_id="${OAUTH2_GITHUB_CLIENT_ID:-}"
-oauth_secret="${OAUTH2_GITHUB_CLIENT_SECRET:-}"
-if [ -n "$oauth_id" ] && [ -z "$oauth_secret" ]; then
-  error "OAUTH2_GITHUB_CLIENT_SECRET is required when OAUTH2_GITHUB_CLIENT_ID is set"
-fi
-if [ -n "$oauth_secret" ] && [ -z "$oauth_id" ]; then
-  error "OAUTH2_GITHUB_CLIENT_ID is required when OAUTH2_GITHUB_CLIENT_SECRET is set"
-fi
+for provider in GITHUB GITLAB FEISHU DINGTALK; do
+  eval "oauth_id=\"\${OAUTH2_${provider}_CLIENT_ID:-}\""
+  eval "oauth_secret=\"\${OAUTH2_${provider}_CLIENT_SECRET:-}\""
+  if [ -n "$oauth_id" ] && [ -z "$oauth_secret" ]; then
+    error "OAUTH2_${provider}_CLIENT_SECRET is required when OAUTH2_${provider}_CLIENT_ID is set"
+  fi
+  if [ -n "$oauth_secret" ] && [ -z "$oauth_id" ]; then
+    error "OAUTH2_${provider}_CLIENT_ID is required when OAUTH2_${provider}_CLIENT_SECRET is set"
+  fi
+done
+
+feishu_protocol="${OAUTH2_FEISHU_PROTOCOL_VERSION:-v3}"
+case "$feishu_protocol" in
+  v2|v3) ;;
+  *) error "OAUTH2_FEISHU_PROTOCOL_VERSION must be either v2 or v3" ;;
+esac
+
+# OAuth endpoints are sent directly to the provider. Validate them here so a
+# typo fails before the release container starts.
+for feishu_endpoint in OAUTH2_FEISHU_AUTHORIZATION_URI OAUTH2_FEISHU_TOKEN_URI OAUTH2_FEISHU_USER_INFO_URI OAUTH2_FEISHU_REDIRECT_URI; do
+  eval "feishu_endpoint_value=\${$feishu_endpoint:-}"
+  if [ -n "$feishu_endpoint_value" ]; then
+    validate_url "$feishu_endpoint"
+  fi
+done
+
+for dingtalk_endpoint in OAUTH2_DINGTALK_AUTHORIZE_URI OAUTH2_DINGTALK_BASE_URI OAUTH2_DINGTALK_REDIRECT_URI; do
+  eval "dingtalk_endpoint_value=\${$dingtalk_endpoint:-}"
+  if [ -n "$dingtalk_endpoint_value" ]; then
+    validate_url "$dingtalk_endpoint"
+  fi
+done
+validate_no_trailing_slash OAUTH2_DINGTALK_AUTHORIZE_URI
+validate_no_trailing_slash OAUTH2_DINGTALK_BASE_URI
 
 if [ "$errors" -gt 0 ]; then
   echo "Release config validation failed: $errors error(s), $warnings warning(s)." >&2

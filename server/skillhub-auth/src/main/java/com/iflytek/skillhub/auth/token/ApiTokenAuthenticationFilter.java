@@ -1,6 +1,7 @@
 package com.iflytek.skillhub.auth.token;
 
 import com.iflytek.skillhub.auth.entity.ApiToken;
+import com.iflytek.skillhub.auth.policy.RouteSecurityPolicyRegistry;
 import com.iflytek.skillhub.auth.rbac.PlatformPrincipal;
 import com.iflytek.skillhub.auth.rbac.PlatformRoleDefaults;
 import com.iflytek.skillhub.auth.repository.UserRoleBindingRepository;
@@ -114,7 +115,7 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
+        String path = RouteSecurityPolicyRegistry.requestPath(request);
         return !(path.startsWith("/api/v1/")
             || path.startsWith("/api/web/")
             || path.startsWith("/api/cli/"));

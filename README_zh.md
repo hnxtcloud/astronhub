@@ -174,7 +174,7 @@ cd skillhub
 make dev-all
 
 # 或者分别启动
-make dev-backend    # 仅后端
+make dev-server     # 仅后端
 make dev-web        # 仅前端
 ```
 
@@ -401,8 +401,9 @@ Agent Skill 目录——都可以直接发布到你的注册中心：
 git clone https://github.com/anthropics/skills
 
 # ……并将其发布到你的私有 SkillHub 注册中心
-export CLAWHUB_REGISTRY=https://skillhub.your-company.com
-npx clawhub publish ./skills/<分类>/<技能名>
+export SKILLHUB_REGISTRY=https://skillhub.your-company.com
+export SKILLHUB_TOKEN=YOUR_API_TOKEN
+npx @astron-team/skillhub@latest publish ./skills/<分类>/<技能名>
 ```
 
 > ⚖️ **许可提示**：转发布时请遵守每个技能各自的许可证。`anthropics/skills` 中大多数技能
@@ -431,15 +432,17 @@ npx clawhub search email
 npx clawhub install my-skill
 npx clawhub install my-namespace--my-skill
 
-# 发布到 global 空间
-npx clawhub publish ./my-skill --slug my-skill --version 1.0.0
-
-# 发布到如 my-space 这样的团队空间
-npx clawhub publish ./my-skill --slug my-space--my-skill --version 1.0.0
+# 发布请使用第一方 SkillHub CLI
+export SKILLHUB_REGISTRY=https://skillhub.your-company.com
+export SKILLHUB_TOKEN=YOUR_API_TOKEN
+npx @astron-team/skillhub@latest publish ./my-skill --namespace my-space
 ```
 
 其中 `my-space--my-skill` 是兼容层使用的 canonical slug，SkillHub 会将其解析为
 namespace `my-space` 和 skill slug `my-skill`。
+
+ClawHub 兼容范围包含搜索、查看和安装；其发布协议与 SkillHub 不兼容。
+发布请使用上面的第一方 CLI。
 
 > 💡 **提示**：上述命令不仅适用于 OpenClaw，通过指定安装目录（`--dir`），也可适用于其他的 CLI Coding Agent 或 Agent 助手。例如：`npx clawhub --dir ~/.claude/skills install my-skill`
 
@@ -450,6 +453,18 @@ namespace `my-space` 和 skill slug `my-skill`。
 [Hermes Agent](https://github.com/NousResearch/hermes-agent) 使用标准 `SKILL.md` 格式，并会递归发现 `$HERMES_HOME/skills/` 中的技能。通过 SkillHub CLI 的 `--dir` 参数即可把完整技能包安装到 Hermes，无需新增 registry 适配器；安装后可使用 `hermes skills list` 验证。
 
 📖 **[完整 Hermes Agent 集成指南 →](./docs/hermes-integration.md)**
+
+### [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
+
+[DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）会从 `.dsh/skills` 和共享的 `.agents/skills` 根目录发现标准 `SKILL.md` 技能包。使用第一方 SkillHub CLI 可直接安装到它的原生用户目录：
+
+```bash
+skillhub install my-skill --agent dsh --scope user
+```
+
+项目级安装会写入 `<仓库>/.dsh/skills`，请在仓库根目录执行。dsh 会监听技能根目录，因此安装后无需重启进程即可发现新技能。
+
+📖 **[完整 DeepSeek Harness 集成指南 →](./docs/dsh-integration.md)**
 
 ### [HarnessClaw Engine](https://github.com/harnessclaw/harnessclaw-engine)
 

@@ -39,10 +39,18 @@ export function useReviewDetail(taskId: number) {
   })
 }
 
-export function useReviewSkillDetail(taskId: number) {
+export function useReviewSkillDetail(taskId: number, enabled = true) {
   return useQuery({
     queryKey: ['reviews', taskId, 'skill-detail'],
     queryFn: () => getReviewSkillDetail(taskId),
+    enabled: enabled && !!taskId,
+  })
+}
+
+export function useReviewAttempts(taskId: number) {
+  return useQuery({
+    queryKey: ['reviews', taskId, 'attempts'],
+    queryFn: () => reviewApi.listAttempts(taskId),
     enabled: !!taskId,
   })
 }

@@ -37,10 +37,10 @@ class AccessPolicyTest {
     }
 
     @Test
-    void emailDomainPolicy_allowsUnverifiedEmailFromMatchingDomain() {
+    void emailDomainPolicy_deniesUnverifiedEmailFromMatchingDomain() {
         var policy = new EmailDomainAccessPolicy(Set.of("company.com"));
         var claims = new OAuthClaims("github", "123", "user@company.com", false, "user", Map.of());
-        assertThat(policy.evaluate(claims)).isEqualTo(AccessDecision.ALLOW);
+        assertThat(policy.evaluate(claims)).isEqualTo(AccessDecision.DENY);
     }
 
     @Test

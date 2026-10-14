@@ -8,8 +8,11 @@ vi.mock('react-i18next', async () => {
   return {
     ...actual,
     useTranslation: () => ({
-      t: (key: string, values?: Record<string, unknown>) =>
-        values?.count !== undefined ? `${key}:${values.count}` : key,
+      t: (key: string, values?: Record<string, unknown>) => {
+        if (values?.count !== undefined) return `${key}:${values.count}`
+        if (values?.reason !== undefined) return `${key}:${values.reason}`
+        return key
+      },
       i18n: { language: 'en' },
     }),
   }
@@ -26,6 +29,7 @@ function createAudit(overrides: Partial<SecurityAuditRecord> = {}): SecurityAudi
     findingsCount: 0,
     findings: [],
     scanDurationSeconds: null,
+    failureReason: null,
     scannedAt: '2026-03-20T10:00:00Z',
     createdAt: '2026-03-20T10:00:00Z',
     ...overrides,
@@ -109,13 +113,18 @@ describe('SecurityAuditSection', () => {
   })
 
   it('renders scan failed status when version scan failed before audit completion', () => {
-    mockAudits = [createAudit({ verdict: 'SUSPICIOUS', scannedAt: null })]
+    mockAudits = [createAudit({
+      verdict: 'SUSPICIOUS',
+      scannedAt: '2026-03-20T10:00:00Z',
+      failureReason: 'Scanner remained unavailable',
+    })]
     mockIsLoading = false
 
     const html = renderToStaticMarkup(<SecurityAuditSection skillId={1} versionId={10} versionStatus="SCAN_FAILED" />)
 
     expect(html).toContain('securityAudit.statusScanFailed')
     expect(html).not.toContain('securityAudit.statusScanning')
+    expect(html).toContain('Scanner remained unavailable')
   })
 
   it('renders the findings count', () => {

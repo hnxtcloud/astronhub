@@ -240,6 +240,46 @@ class SkillQueryServiceTest {
     }
 
     @Test
+    void installableNamespaceDiscoveryFiltersBeforePaginationAndSortsBySlug() throws Exception {
+        Namespace namespace = new Namespace("team-a", "Team A", "owner-1");
+        setId(namespace, 1L);
+        Skill ready = new Skill(1L, "ready", "owner-1", SkillVisibility.NAMESPACE_ONLY);
+        setId(ready, 10L);
+        ready.setLatestVersionId(100L);
+        Skill draft = new Skill(1L, "draft", "owner-1", SkillVisibility.NAMESPACE_ONLY);
+        setId(draft, 11L);
+        draft.setLatestVersionId(101L);
+        Skill publicReady = new Skill(1L, "public-ready", "owner-2", SkillVisibility.PUBLIC);
+        setId(publicReady, 12L);
+        publicReady.setLatestVersionId(102L);
+
+        SkillVersion readyVersion = new SkillVersion(10L, "1.0.0", "owner-1");
+        setId(readyVersion, 100L);
+        readyVersion.setStatus(SkillVersionStatus.PUBLISHED);
+        readyVersion.setDownloadReady(true);
+        SkillVersion draftVersion = new SkillVersion(11L, "1.0.0", "owner-1");
+        setId(draftVersion, 101L);
+        draftVersion.setStatus(SkillVersionStatus.DRAFT);
+        SkillVersion publicReadyVersion = new SkillVersion(12L, "2.0.0", "owner-2");
+        setId(publicReadyVersion, 102L);
+        publicReadyVersion.setStatus(SkillVersionStatus.PUBLISHED);
+        publicReadyVersion.setDownloadReady(true);
+
+        when(namespaceRepository.findBySlug("team-a")).thenReturn(Optional.of(namespace));
+        when(skillRepository.findByNamespaceIdAndStatus(1L, SkillStatus.ACTIVE))
+                .thenReturn(List.of(ready, draft, publicReady));
+        when(skillVersionRepository.findByIdIn(List.of(100L, 101L, 102L)))
+                .thenReturn(List.of(readyVersion, draftVersion, publicReadyVersion));
+
+        Page<Skill> result = service.listInstallableSkillsByNamespace(
+                "team-a", "viewer", Map.of(1L, NamespaceRole.MEMBER), PageRequest.of(0, 1));
+
+        assertEquals(2, result.getTotalElements());
+        assertEquals("public-ready", result.getContent().getFirst().getSlug());
+        assertTrue(result.hasNext());
+    }
+
+    @Test
     void versionContentRejectsPublicArchivedSkillForNonManager() throws Exception {
         Namespace namespace = new Namespace("global", "Global", "owner-1");
         setId(namespace, 1L);
@@ -706,6 +746,61 @@ class SkillQueryServiceTest {
     }
 
     @Test
+    void testResolveVersionById_ShouldKeepTheExactSelectedOwnerWhenSlugsCollide() throws Exception {
+        Namespace namespace = new Namespace("team", "Team", "owner-1");
+        setId(namespace, 1L);
+        Skill selected = new Skill(1L, "shared", "other-owner", SkillVisibility.PUBLIC);
+        setId(selected, 22L);
+        selected.setStatus(SkillStatus.ACTIVE);
+        selected.setLatestVersionId(220L);
+        SkillVersion selectedVersion = new SkillVersion(22L, "1.0.0", "other-owner");
+        setId(selectedVersion, 220L);
+        selectedVersion.setStatus(SkillVersionStatus.PUBLISHED);
+        selectedVersion.setDownloadReady(true);
+        SkillFile file = new SkillFile(220L, "SKILL.md", 10L, "text/markdown", "hash", "key");
+
+        when(skillVersionRepository.findById(220L)).thenReturn(Optional.of(selectedVersion));
+        when(skillRepository.findById(22L)).thenReturn(Optional.of(selected));
+        when(namespaceRepository.findById(1L)).thenReturn(Optional.of(namespace));
+        when(skillFileRepository.findByVersionId(220L)).thenReturn(List.of(file));
+
+        SkillQueryService.ResolvedVersionDTO result = service.resolveVersionById(
+                220L, "current-owner", Map.of(1L, NamespaceRole.MEMBER), Set.of());
+
+        assertEquals(22L, result.skillId());
+        assertEquals(220L, result.versionId());
+        assertEquals("team", result.namespace());
+        assertEquals("shared", result.slug());
+        verify(skillRepository, never()).findByNamespaceIdAndSlug(anyLong(), anyString());
+    }
+
+    @Test
+    void testResolveVersionById_ShouldAllowSuperAdminToSelectPrivatePublishedSkill() throws Exception {
+        Namespace namespace = new Namespace("team", "Team", "namespace-owner");
+        setId(namespace, 1L);
+        Skill selected = new Skill(1L, "private-member", "skill-owner", SkillVisibility.PRIVATE);
+        setId(selected, 22L);
+        selected.setStatus(SkillStatus.ACTIVE);
+        selected.setLatestVersionId(220L);
+        SkillVersion selectedVersion = new SkillVersion(22L, "1.0.0", "skill-owner");
+        setId(selectedVersion, 220L);
+        selectedVersion.setStatus(SkillVersionStatus.PUBLISHED);
+        selectedVersion.setDownloadReady(true);
+        SkillFile file = new SkillFile(220L, "SKILL.md", 10L, "text/markdown", "hash", "key");
+
+        when(skillVersionRepository.findById(220L)).thenReturn(Optional.of(selectedVersion));
+        when(skillRepository.findById(22L)).thenReturn(Optional.of(selected));
+        when(namespaceRepository.findById(1L)).thenReturn(Optional.of(namespace));
+        when(skillFileRepository.findByVersionId(220L)).thenReturn(List.of(file));
+
+        SkillQueryService.ResolvedVersionDTO result = service.resolveVersionById(
+                220L, "super-admin", Map.of(), Set.of("SUPER_ADMIN"));
+
+        assertEquals(220L, result.versionId());
+        assertEquals("private-member", result.slug());
+    }
+
+    @Test
     void testResolveVersion_ShouldRejectDownloadUnavailableLatestVersion() throws Exception {
         String namespaceSlug = "global";
         String skillSlug = "not-ready";
@@ -1169,6 +1264,57 @@ class SkillQueryServiceTest {
         assertEquals("1.0.0", result.headlineVersion().version());
         assertEquals("PUBLISHED", result.headlineVersion().status());
         assertEquals("PUBLISHED", result.resolutionMode());
+        assertTrue(result.canInteract());
+    }
+
+    @Test
+    void testGetSkillDetail_ShouldDisableInteractionForArchivedSkill() throws Exception {
+        String namespaceSlug = "test-ns";
+        String skillSlug = "test-skill";
+        String ownerId = "owner-1";
+        Map<Long, NamespaceRole> userNsRoles = Map.of();
+
+        Namespace namespace = new Namespace(namespaceSlug, "Test NS", ownerId);
+        setId(namespace, 1L);
+        Skill skill = new Skill(1L, skillSlug, ownerId, SkillVisibility.PUBLIC);
+        setId(skill, 1L);
+        skill.setStatus(SkillStatus.ARCHIVED);
+        skill.setLatestVersionId(11L);
+
+        SkillVersion published = new SkillVersion(1L, "1.0.0", ownerId);
+        setId(published, 11L);
+        published.setStatus(SkillVersionStatus.PUBLISHED);
+
+        when(namespaceRepository.findBySlug(namespaceSlug)).thenReturn(Optional.of(namespace));
+        when(skillRepository.findByNamespaceIdAndSlug(1L, skillSlug)).thenReturn(List.of(skill));
+        when(skillVersionRepository.findById(11L)).thenReturn(Optional.of(published));
+
+        SkillQueryService.SkillDetailDTO result = service.getSkillDetail(namespaceSlug, skillSlug, ownerId, userNsRoles);
+
+        assertNotNull(result.headlineVersion());
+        assertEquals("PUBLISHED", result.headlineVersion().status());
+        assertFalse(result.canInteract());
+    }
+
+    @Test
+    void testGetSkillDetail_ShouldKeepInteractionForActiveSkillWithoutHeadlineVersion() throws Exception {
+        String namespaceSlug = "test-ns";
+        String skillSlug = "test-skill";
+        String ownerId = "owner-1";
+
+        Namespace namespace = new Namespace(namespaceSlug, "Test NS", ownerId);
+        setId(namespace, 1L);
+        Skill skill = new Skill(1L, skillSlug, ownerId, SkillVisibility.PUBLIC);
+        setId(skill, 1L);
+        skill.setStatus(SkillStatus.ACTIVE);
+
+        when(namespaceRepository.findBySlug(namespaceSlug)).thenReturn(Optional.of(namespace));
+        when(skillRepository.findByNamespaceIdAndSlug(1L, skillSlug)).thenReturn(List.of(skill));
+
+        SkillQueryService.SkillDetailDTO result = service.getSkillDetail(
+                namespaceSlug, skillSlug, ownerId, Map.of());
+
+        assertNull(result.headlineVersion());
         assertTrue(result.canInteract());
     }
 

@@ -77,6 +77,8 @@ spec:
               {{- $profiles = printf "%s,redis-sentinel" $profiles }}
               {{- end }}
               value: {{ $profiles | quote }}
+            - name: SKILLHUB_SUITE_REVIEW_WRITES_ENABLED
+              value: {{ .Values.server.suiteReviewWritesEnabled | quote }}
 
             # Database
             - name: SPRING_DATASOURCE_URL
@@ -352,6 +354,56 @@ spec:
                   name: {{ include "skillhub.secretName" . }}
                   key: oauth2-github-client-secret
                   optional: true
+
+            # OAuth2 Feishu (optional)
+            - name: OAUTH2_FEISHU_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "skillhub.secretName" . }}
+                  key: oauth2-feishu-client-id
+                  optional: true
+            - name: OAUTH2_FEISHU_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "skillhub.secretName" . }}
+                  key: oauth2-feishu-client-secret
+                  optional: true
+            - name: OAUTH2_FEISHU_AUTHORIZATION_URI
+              value: {{ .Values.oauth2.feishu.authorizationUri | default "https://accounts.feishu.cn/open-apis/authen/v1/authorize" | quote }}
+            - name: OAUTH2_FEISHU_PROTOCOL_VERSION
+              value: {{ .Values.oauth2.feishu.protocolVersion | default "v3" | quote }}
+            - name: OAUTH2_FEISHU_TOKEN_URI
+              value: {{ .Values.oauth2.feishu.tokenUri | default "https://accounts.feishu.cn/oauth/v3/token" | quote }}
+            - name: OAUTH2_FEISHU_USER_INFO_URI
+              value: {{ .Values.oauth2.feishu.userInfoUri | default "https://open.feishu.cn/open-apis/authen/v1/user_info" | quote }}
+            {{- with .Values.oauth2.feishu.redirectUri }}
+            - name: OAUTH2_FEISHU_REDIRECT_URI
+              value: {{ . | quote }}
+            {{- end }}
+
+            # OAuth2 DingTalk (optional)
+            - name: OAUTH2_DINGTALK_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "skillhub.secretName" . }}
+                  key: oauth2-dingtalk-client-id
+                  optional: true
+            - name: OAUTH2_DINGTALK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "skillhub.secretName" . }}
+                  key: oauth2-dingtalk-client-secret
+                  optional: true
+            - name: OAUTH2_DINGTALK_AUTHORIZE_URI
+              value: {{ .Values.oauth2.dingtalk.authorizeBaseUri | quote }}
+            - name: OAUTH2_DINGTALK_BASE_URI
+              value: {{ .Values.oauth2.dingtalk.apiBaseUri | quote }}
+            {{- with .Values.oauth2.dingtalk.redirectUri }}
+            - name: OAUTH2_DINGTALK_REDIRECT_URI
+              value: {{ . | quote }}
+            {{- end }}
+            - name: OAUTH2_DINGTALK_DISPLAY_NAME
+              value: {{ .Values.oauth2.dingtalk.displayName | quote }}
 
             {{- if .Values.server.javaOpts }}
             - name: JAVA_OPTS

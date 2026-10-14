@@ -7,6 +7,20 @@ export interface WhoAmIResponse {
   email?: string
 }
 
+export interface DeviceCodeResponse {
+  deviceCode: string
+  userCode: string
+  verificationUri: string
+  expiresIn: number
+  interval: number
+}
+
+export interface DeviceTokenResponse {
+  accessToken?: string | null
+  tokenType?: string | null
+  error?: string | null
+}
+
 export interface SearchItem {
   namespace: string
   slug: string
@@ -42,6 +56,30 @@ export interface PublishResponse {
   slug: string
   version: string
   visibility: string
+  status: string
+}
+
+export interface NamespaceSyncItem {
+  namespace: string
+  slug: string
+  version: string
+  versionId: number
+  fingerprint: string
+  updatedAt: string
+  visibility: string
+  downloadUrl: string
+}
+
+export interface NamespaceSyncResponse {
+  items: NamespaceSyncItem[]
+  nextCursor?: string | null
+}
+
+export interface SubmitReviewResponse {
+  skillId: number
+  versionId: number
+  action: string
+  status: string
 }
 
 export interface DryRunResponse {
@@ -50,6 +88,58 @@ export interface DryRunResponse {
   warnings: string[]
   resolvedSlug: string | null
   resolvedVersion: string | null
+}
+
+export interface ServerMetadata {
+  apiBase?: string
+  capabilities?: string[]
+}
+
+export interface SuiteInstallMember {
+  skillId: number
+  skillVersionId: number
+  namespace: string
+  slug: string
+  version: string
+  fingerprint: string
+  downloadUrl: string
+  position: number
+  entry: boolean
+}
+
+export interface SuiteInstallPlan {
+  operationId: string
+  namespace: string
+  slug: string
+  version: string
+  fingerprint: string
+  members: SuiteInstallMember[]
+}
+
+export interface SuiteDetailMember {
+  skillId: number
+  skillVersionId: number
+  namespace: string
+  slug: string
+  version: string
+  fingerprint: string
+  position: number
+  entry: boolean
+  blockingReason?: string | null
+}
+
+export interface SuiteDetail {
+  id: number
+  versionId: number
+  namespace: string
+  slug: string
+  displayName: string
+  summary?: string | null
+  version: string
+  status: string
+  visibility: string
+  available: boolean
+  members: SuiteDetailMember[]
 }
 
 interface PublicErrorFields {
@@ -70,6 +160,92 @@ export class SkillHubClient {
     return this.getJson('/auth/whoami')
   }
 
+  async requestDeviceCode(): Promise<DeviceCodeResponse> {
+    return this.postPublicJson('/api/v1/auth/device/code')
+  }
+
+  async pollDeviceToken(deviceCode: string): Promise<DeviceTokenResponse> {
+    return this.postPublicJson('/api/v1/auth/device/token', { deviceCode })
+  }
+
+  async serverMetadata(): Promise<ServerMetadata> {
+    let response: Response
+    try {
+      response = await this.fetchImpl(`${this.registry}/.well-known/clawhub.json`)
+    } catch {
+      throw new CliError('registry unreachable', EXIT.network, { registry: this.registry, next: 'check network or pass --registry' })
+    }
+    if (!response.ok) return {}
+    let body: unknown
+    try {
+      body = await response.json()
+    } catch {
+      // Older registries and reverse proxies may return an HTML landing page at this path.
+      return {}
+    }
+    return typeof body === 'object' && body !== null ? body as ServerMetadata : {}
+  }
+
+  async suiteInstallPlan(
+    namespace: string,
+    slug: string,
+    version?: string,
+    idempotencyKey?: string
+  ): Promise<SuiteInstallPlan> {
+    const params = version ? `?version=${encodeURIComponent(version)}` : ''
+    const url = `${this.registry}/api/v1/suites/${encodeURIComponent(namespace)}/${encodeURIComponent(slug)}/install-plan${params}`
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      let response: Response
+      try {
+        response = await this.fetchImpl(url, {
+          method: 'POST',
+          headers: { ...this.headers(), ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}) }
+        })
+      } catch {
+        if (attempt === 0) continue
+        throw new CliError('registry unreachable', EXIT.network, { registry: this.registry, next: 'check network or pass --registry' })
+      }
+      if (attempt === 0 && [502, 503, 504].includes(response.status)) continue
+      try {
+        return await this.handleJsonResponse<SuiteInstallPlan>(response)
+      } catch (error) {
+        // A successful response whose body is truncated is safe to retry with the same key.
+        if (attempt === 0 && !(error instanceof CliError)) continue
+        throw error
+      }
+    }
+    throw new CliError('registry unreachable', EXIT.network, { registry: this.registry })
+  }
+
+  async suiteDetail(namespace: string, slug: string, version?: string): Promise<SuiteDetail> {
+    const params = version ? `?version=${encodeURIComponent(version)}` : ''
+    let response: Response
+    try {
+      response = await this.fetchImpl(
+        `${this.registry}/api/v1/suites/${encodeURIComponent(namespace)}/${encodeURIComponent(slug)}${params}`,
+        { headers: this.headers() }
+      )
+    } catch {
+      throw new CliError('registry unreachable', EXIT.network, { registry: this.registry, next: 'check network or pass --registry' })
+    }
+    if (response.status === 404) {
+      const error = await this.createResponseError(response, 'json')
+      throw new CliError(error.message, error.exitCode, { ...error.details, status: 404 })
+    }
+    return this.handleJsonResponse<SuiteDetail>(response)
+  }
+
+  async downloadFromUrl(downloadUrl: string): Promise<Response> {
+    let response: Response
+    try {
+      response = await this.fetchImpl(new URL(downloadUrl, `${this.registry}/`).toString(), { headers: this.headers() })
+    } catch {
+      throw new CliError('registry unreachable', EXIT.network, { registry: this.registry, next: 'check network or pass --registry' })
+    }
+    if (!response.ok) throw await this.createResponseError(response, 'download')
+    return response
+  }
+
   async search(query: string, limit: number): Promise<SearchResponse> {
     const params = new URLSearchParams({ q: query, limit: String(limit) })
     return this.getJson(`/skills/search?${params}`)
@@ -78,6 +254,12 @@ export class SkillHubClient {
   async resolve(namespace: string, slug: string, version?: string): Promise<ResolveResponse> {
     const params = version ? `?version=${encodeURIComponent(version)}` : ''
     return this.getJson(`/skills/${namespace}/${slug}/resolve${params}`)
+  }
+
+  async listNamespaceSkills(namespace: string, cursor?: string, limit = 100): Promise<NamespaceSyncResponse> {
+    const params = new URLSearchParams({ limit: String(limit) })
+    if (cursor) params.set('cursor', cursor)
+    return this.getJson(`/namespaces/${encodeURIComponent(namespace)}/skills?${params}`)
   }
 
   async downloadUrl(namespace: string, slug: string, version?: string): Promise<string> {
@@ -105,10 +287,17 @@ export class SkillHubClient {
     return this.deleteJson(`/skills/${namespace}/${slug}`)
   }
 
-  async publish(namespace: string, file: Blob, visibility: string, fileName = 'skill.zip'): Promise<PublishResponse> {
+  async publish(
+    namespace: string,
+    file: Blob,
+    visibility: string,
+    fileName = 'skill.zip',
+    rejectExistingVersion = false
+  ): Promise<PublishResponse> {
     const formData = new FormData()
     formData.append('file', file, fileName)
     formData.append('visibility', visibility)
+    if (rejectExistingVersion) formData.append('rejectExistingVersion', 'true')
     let response: Response
     try {
       response = await this.fetchImpl(`${this.registry}/api/cli/v1/skills/${namespace}/publish`, {
@@ -122,10 +311,17 @@ export class SkillHubClient {
     return this.handleJsonResponse<PublishResponse>(response)
   }
 
-  async validatePublish(namespace: string, file: Blob, visibility: string, fileName = 'skill.zip'): Promise<DryRunResponse> {
+  async validatePublish(
+    namespace: string,
+    file: Blob,
+    visibility: string,
+    fileName = 'skill.zip',
+    rejectExistingVersion = false
+  ): Promise<DryRunResponse> {
     const formData = new FormData()
     formData.append('file', file, fileName)
     formData.append('visibility', visibility)
+    if (rejectExistingVersion) formData.append('rejectExistingVersion', 'true')
     let response: Response
     try {
       response = await this.fetchImpl(`${this.registry}/api/cli/v1/skills/${namespace}/publish/validate`, {
@@ -139,6 +335,28 @@ export class SkillHubClient {
     return this.handleJsonResponse<DryRunResponse>(response)
   }
 
+  async submitReview(
+    namespace: string,
+    slug: string,
+    version: string,
+    targetVisibility: 'PUBLIC' | 'NAMESPACE_ONLY'
+  ): Promise<SubmitReviewResponse> {
+    let response: Response
+    try {
+      response = await this.fetchImpl(
+        `${this.registry}/api/v1/skills/${encodeURIComponent(namespace)}/${encodeURIComponent(slug)}/submit-review`,
+        {
+          method: 'POST',
+          headers: { ...this.headers(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ version, targetVisibility })
+        }
+      )
+    } catch {
+      throw new CliError('registry unreachable', EXIT.network, { registry: this.registry, next: 'check network or pass --registry' })
+    }
+    return this.handleJsonResponse<SubmitReviewResponse>(response)
+  }
+
   private async getJson<T>(path: string): Promise<T> {
     let response: Response
     try {
@@ -146,6 +364,20 @@ export class SkillHubClient {
         headers: this.headers()
       })
     } catch (err) {
+      throw new CliError('registry unreachable', EXIT.network, { registry: this.registry, next: 'check network or pass --registry' })
+    }
+    return this.handleJsonResponse<T>(response)
+  }
+
+  private async postPublicJson<T>(path: string, body?: Record<string, unknown>): Promise<T> {
+    let response: Response
+    try {
+      response = await this.fetchImpl(`${this.registry}${path}`, {
+        method: 'POST',
+        headers: body ? { 'Content-Type': 'application/json' } : {},
+        ...(body ? { body: JSON.stringify(body) } : {})
+      })
+    } catch {
       throw new CliError('registry unreachable', EXIT.network, { registry: this.registry, next: 'check network or pass --registry' })
     }
     return this.handleJsonResponse<T>(response)
@@ -178,7 +410,7 @@ export class SkillHubClient {
       exitCode = EXIT.auth
     } else if (response.status === 404) {
       fallback = kind === 'download' ? 'skill or version not found' : 'resource not found'
-    } else if (response.status === 502 || response.status === 503) {
+    } else if (response.status === 502 || response.status === 503 || response.status === 504) {
       fallback = kind === 'download'
         ? `download failed with status ${response.status}`
         : `registry returned ${response.status}`

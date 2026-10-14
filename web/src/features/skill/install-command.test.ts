@@ -5,8 +5,10 @@ import {
   InstallCommand,
   buildInstallCommand,
   buildInstallTarget,
+  buildSkillhubCoordinate,
   buildSkillhubInstallCommand,
   getBaseUrl,
+  isPortableSkillVersion,
 } from './install-command'
 
 vi.mock('react-i18next', () => ({
@@ -69,15 +71,29 @@ describe('install-command', () => {
   })
 
   it('builds a one-line SkillHub npx command for the global namespace', () => {
-    expect(buildSkillhubInstallCommand('global', 'my-skill', 'https://skill.xfyun.cn')).toBe(
-      'npx @astron-team/skillhub@latest install my-skill --registry https://skill.xfyun.cn',
+    expect(buildSkillhubCoordinate('global', 'my-skill')).toBe('@global/my-skill')
+    expect(buildSkillhubInstallCommand('global', 'my-skill', 'https://skill.xfyun.cn', '1.2.3')).toBe(
+      'npx @astron-team/skillhub@latest install @global/my-skill --version 1.2.3 --registry https://skill.xfyun.cn',
     )
   })
 
   it('builds a one-line SkillHub npx command with namespace for team skills', () => {
+    expect(buildSkillhubCoordinate('team-alpha', 'my-skill')).toBe('@team-alpha/my-skill')
     expect(buildSkillhubInstallCommand('team-alpha', 'my-skill', 'https://skill.xfyun.cn')).toBe(
-      'npx @astron-team/skillhub@latest install my-skill --namespace team-alpha --registry https://skill.xfyun.cn',
+      'npx @astron-team/skillhub@latest install @team-alpha/my-skill --registry https://skill.xfyun.cn',
     )
+  })
+
+  it('does not generate a cross-shell command for an unsafe version token', () => {
+    expect(isPortableSkillVersion('20260818.075232')).toBe(true)
+    expect(isPortableSkillVersion('1.0.0-beta+build.1')).toBe(true)
+    expect(isPortableSkillVersion('1.0.0&echo INJECTED')).toBe(false)
+    expect(buildSkillhubInstallCommand(
+      'global',
+      'my-skill',
+      'https://skill.xfyun.cn',
+      '1.0.0&echo INJECTED',
+    )).toBe('')
   })
 
   it('uses the runtime app base url when available', () => {
@@ -125,18 +141,19 @@ describe('install-command', () => {
     expect(html).not.toContain('flex-1 rounded-md')
   })
 
-  it('renders ClawHub CLI as the default install method', () => {
+  it('renders SkillHub CLI as the default install method', () => {
     setMockWindow('https://app.example.com')
 
     const html = renderToStaticMarkup(createElement(InstallCommand, {
       namespace: 'team-alpha',
       slug: 'meeting-minutes-generator',
+      version: '2.0.0',
     }))
 
     expect(html).toContain('skillDetail.installMethodClawhub')
     expect(html).toContain('skillDetail.installMethodSkillhub')
     expect(html).toContain('aria-selected="true"')
-    expect(html).toContain('npx clawhub install team-alpha--meeting-minutes-generator --registry https://app.example.com')
-    expect(html).not.toContain('npx @astron-team/skillhub@latest install meeting-minutes-generator --namespace team-alpha --registry https://app.example.com')
+    expect(html).toContain('npx @astron-team/skillhub@latest install @team-alpha/meeting-minutes-generator --version 2.0.0 --registry https://app.example.com')
+    expect(html).not.toContain('npx clawhub install team-alpha--meeting-minutes-generator --registry https://app.example.com')
   })
 })

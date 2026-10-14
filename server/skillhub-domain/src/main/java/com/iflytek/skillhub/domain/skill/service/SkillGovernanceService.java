@@ -1,5 +1,6 @@
 package com.iflytek.skillhub.domain.skill.service;
 
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.audit.AuditLogService;
 import com.iflytek.skillhub.domain.event.SkillStatusChangedEvent;
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
@@ -205,7 +206,7 @@ public class SkillGovernanceService {
                 null,
                 clientIp,
                 userAgent,
-                "{\"version\":\"" + version.getVersion().replace("\"", "\\\"") + "\"}"
+                AuditDetail.of("version", version.getVersion())
         );
     }
 
@@ -259,10 +260,40 @@ public class SkillGovernanceService {
         return savedVersion;
     }
 
+    /**
+     * Yanks a published version on behalf of a platform admin. Callers are
+     * expected to have enforced the admin role before invoking this method.
+     */
     @Transactional
     public SkillVersion yankVersion(Long versionId, String actorUserId, String clientIp, String userAgent, String reason) {
-        SkillVersion version = skillVersionRepository.findById(versionId)
+        SkillVersion version = skillVersionRepository.findByIdForUpdate(versionId)
             .orElseThrow(() -> new DomainNotFoundException("error.skill.version.notFound", versionId));
+        return yankVersionInternal(version, actorUserId, clientIp, userAgent, reason);
+    }
+
+    /**
+     * Yanks a published version on behalf of the skill owner or a namespace
+     * ADMIN/OWNER, using the same lifecycle permission rule as archive and
+     * delete-version.
+     */
+    @Transactional
+    public SkillVersion yankVersion(Skill skill,
+                                    SkillVersion version,
+                                    String actorUserId,
+                                    Map<Long, NamespaceRole> userNamespaceRoles,
+                                    String clientIp,
+                                    String userAgent,
+                                    String reason) {
+        assertCanManageLifecycle(skill, actorUserId, userNamespaceRoles);
+        return yankVersionInternal(version, actorUserId, clientIp, userAgent, reason);
+    }
+
+    private SkillVersion yankVersionInternal(SkillVersion version,
+                                             String actorUserId,
+                                             String clientIp,
+                                             String userAgent,
+                                             String reason) {
+        Long versionId = version.getId();
         if (version.getStatus() != SkillVersionStatus.PUBLISHED) {
             throw new DomainBadRequestException("error.skill.version.notPublished", version.getVersion());
         }
@@ -311,7 +342,7 @@ public class SkillGovernanceService {
         if (reason == null || reason.isBlank()) {
             return null;
         }
-        return "{\"reason\":\"" + reason.replace("\"", "\\\"") + "\"}";
+        return AuditDetail.of("reason", reason);
     }
 
     private Instant currentInstant() {

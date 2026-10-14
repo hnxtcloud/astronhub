@@ -8,6 +8,7 @@ import com.iflytek.skillhub.domain.skill.metadata.SkillMetadataParser;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,7 +65,7 @@ public class SkillPackageValidator {
         this.maxSingleFileSize = maxSingleFileSize;
         this.maxTotalPackageSize = maxTotalPackageSize;
         this.allowedExtensions = allowedExtensions.stream()
-                .map(String::toLowerCase)
+                .map(extension -> extension.toLowerCase(Locale.ROOT))
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
     }
 
@@ -138,7 +139,8 @@ public class SkillPackageValidator {
     }
 
     private boolean hasAllowedExtension(String normalizedPath) {
-        return allowedExtensions.stream().anyMatch(normalizedPath::endsWith);
+        String lowercasePath = normalizedPath.toLowerCase(Locale.ROOT);
+        return allowedExtensions.stream().anyMatch(lowercasePath::endsWith);
     }
 
     private String formatMetadataError(LocalizedDomainException exception) {

@@ -11,11 +11,14 @@ import com.iflytek.skillhub.auth.entity.IdentityBinding;
 import com.iflytek.skillhub.auth.entity.Role;
 import com.iflytek.skillhub.auth.entity.UserRoleBinding;
 import com.iflytek.skillhub.auth.oauth.AccountDisabledException;
+import com.iflytek.skillhub.auth.oauth.AccountMergedException;
 import com.iflytek.skillhub.auth.oauth.OAuthClaims;
 import com.iflytek.skillhub.auth.oauth.AccountPendingException;
+import com.iflytek.skillhub.auth.oauth.SystemAccountLoginException;
 import com.iflytek.skillhub.auth.rbac.PlatformPrincipal;
 import com.iflytek.skillhub.auth.repository.IdentityBindingRepository;
 import com.iflytek.skillhub.auth.repository.UserRoleBindingRepository;
+import com.iflytek.skillhub.domain.event.UserActivatedEvent;
 import com.iflytek.skillhub.domain.namespace.GlobalNamespaceMembershipService;
 import com.iflytek.skillhub.domain.user.UserAccount;
 import com.iflytek.skillhub.domain.user.UserAccountRepository;
@@ -29,6 +32,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,11 +53,15 @@ class IdentityBindingServiceTest {
     @Mock
     private GlobalNamespaceMembershipService globalNamespaceMembershipService;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private IdentityBindingService service;
 
     @BeforeEach
     void setUp() {
-        service = new IdentityBindingService(bindingRepo, userRepo, roleBindingRepo, globalNamespaceMembershipService);
+        service = new IdentityBindingService(bindingRepo, userRepo, roleBindingRepo,
+                globalNamespaceMembershipService, eventPublisher, new ImmediateTransactionOperations());
     }
 
     @Test
@@ -72,9 +83,47 @@ class IdentityBindingServiceTest {
         ArgumentCaptor<UserAccount> userCaptor = ArgumentCaptor.forClass(UserAccount.class);
         verify(userRepo).save(userCaptor.capture());
         verify(globalNamespaceMembershipService).ensureMember(userCaptor.getValue().getId());
-        verify(bindingRepo).save(any(IdentityBinding.class));
+        verify(bindingRepo).saveAndFlush(any(IdentityBinding.class));
         assertThat(principal.displayName()).isEqualTo("alice");
         assertThat(principal.oauthProvider()).isEqualTo("github");
+    }
+
+    @Test
+    void bindOrCreate_publishesActivationForActiveNewUsers() {
+        OAuthClaims claims = new OAuthClaims(
+                "github",
+                "gh_1",
+                "alice@example.com",
+                true,
+                "alice",
+                Map.of()
+        );
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.empty());
+        when(userRepo.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(roleBindingRepo.findByUserId(any())).thenReturn(List.of());
+
+        service.bindOrCreate(claims, UserStatus.ACTIVE);
+
+        ArgumentCaptor<UserActivatedEvent> eventCaptor = ArgumentCaptor.forClass(UserActivatedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        assertThat(eventCaptor.getValue().username()).isEqualTo("alice");
+        assertThat(eventCaptor.getValue().email()).isEqualTo("alice@example.com");
+    }
+
+    @Test
+    void bindOrCreate_doesNotPublishActivationForReturningUsers() {
+        OAuthClaims claims = new OAuthClaims("github", "gh_1", "alice@example.com", true, "alice", Map.of());
+        UserAccount existing = new UserAccount("usr_1", "alice", "alice@example.com", null);
+        existing.setStatus(UserStatus.ACTIVE);
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1"))
+                .thenReturn(Optional.of(new IdentityBinding("usr_1", "github", "gh_1", "alice")));
+        when(userRepo.findById("usr_1")).thenReturn(Optional.of(existing));
+        when(userRepo.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(roleBindingRepo.findByUserId(any())).thenReturn(List.of());
+
+        service.bindOrCreate(claims, UserStatus.ACTIVE);
+
+        verify(eventPublisher, never()).publishEvent(any(UserActivatedEvent.class));
     }
 
     @Test
@@ -131,10 +180,82 @@ class IdentityBindingServiceTest {
 
         when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.of(binding));
         when(userRepo.findById("usr_1")).thenReturn(Optional.of(user));
-        when(userRepo.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         assertThatThrownBy(() -> service.bindOrCreate(claims, UserStatus.ACTIVE))
                 .isInstanceOf(AccountDisabledException.class);
+    }
+
+    @Test
+    void bindOrCreate_existingMergedUser_throwsBeforeProfileUpdate() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "attacker@example.com", true, "attacker", Map.of()
+        );
+        IdentityBinding binding = new IdentityBinding("usr_1", "github", "gh_1", "alice");
+        UserAccount user = new UserAccount("usr_1", "alice", "alice@example.com", null);
+        user.setStatus(UserStatus.MERGED);
+
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.of(binding));
+        when(userRepo.findById("usr_1")).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> service.bindOrCreate(claims, UserStatus.ACTIVE))
+                .isInstanceOf(AccountMergedException.class);
+
+        assertThat(user.getDisplayName()).isEqualTo("alice");
+        assertThat(user.getEmail()).isEqualTo("alice@example.com");
+        verify(userRepo, never()).save(any(UserAccount.class));
+    }
+
+    @Test
+    void bindOrCreate_existingSystemAccount_throwsBeforeProfileUpdate() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "attacker@example.com", true, "attacker", Map.of()
+        );
+        IdentityBinding binding = new IdentityBinding("system_1", "github", "gh_1", "system");
+        UserAccount user = UserAccount.systemAccount("system_1", "system", null, null);
+
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.of(binding));
+        when(userRepo.findById("system_1")).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> service.bindOrCreate(claims, UserStatus.ACTIVE))
+                .isInstanceOf(SystemAccountLoginException.class);
+
+        assertThat(user.getDisplayName()).isEqualTo("system");
+        assertThat(user.getEmail()).isNull();
+        verify(userRepo, never()).save(any(UserAccount.class));
+    }
+
+    @Test
+    void bindOrCreate_unverifiedEmailDoesNotPopulateNewAccount() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "unverified@example.com", false, "alice", Map.of()
+        );
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.empty());
+        when(userRepo.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(roleBindingRepo.findByUserId(any())).thenReturn(List.of());
+
+        service.bindOrCreate(claims, UserStatus.ACTIVE);
+
+        ArgumentCaptor<UserAccount> userCaptor = ArgumentCaptor.forClass(UserAccount.class);
+        verify(userRepo).save(userCaptor.capture());
+        assertThat(userCaptor.getValue().getEmail()).isNull();
+    }
+
+    @Test
+    void bindOrCreate_unverifiedEmailDoesNotOverwriteExistingEmail() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "unverified@example.com", false, "alice", Map.of()
+        );
+        IdentityBinding binding = new IdentityBinding("usr_1", "github", "gh_1", "alice");
+        UserAccount user = new UserAccount("usr_1", "alice", "verified@example.com", null);
+
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.of(binding));
+        when(userRepo.findById("usr_1")).thenReturn(Optional.of(user));
+        when(userRepo.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(roleBindingRepo.findByUserId("usr_1")).thenReturn(List.of());
+
+        service.bindOrCreate(claims, UserStatus.ACTIVE);
+
+        assertThat(user.getEmail()).isEqualTo("verified@example.com");
     }
 
     @Test
@@ -178,5 +299,137 @@ class IdentityBindingServiceTest {
 
         assertThatThrownBy(() -> service.createPendingUserIfAbsent(claims))
                 .isInstanceOf(AccountDisabledException.class);
+    }
+
+    @Test
+    void createPendingUserIfAbsent_existingPendingBinding_throwsAccountPending() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "alice@example.com", true, "alice", Map.of()
+        );
+        IdentityBinding binding = new IdentityBinding("usr_1", "github", "gh_1", "alice");
+        UserAccount user = new UserAccount("usr_1", "alice", "alice@example.com", null);
+        user.setStatus(UserStatus.PENDING);
+
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.of(binding));
+        when(userRepo.findById("usr_1")).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> service.createPendingUserIfAbsent(claims))
+                .isInstanceOf(AccountPendingException.class);
+        verify(userRepo, never()).save(any(UserAccount.class));
+        verify(bindingRepo, never()).save(any(IdentityBinding.class));
+    }
+
+    @Test
+    void createPendingUserIfAbsent_existingMergedBinding_throwsAccountMerged() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "alice@example.com", true, "alice", Map.of()
+        );
+        IdentityBinding binding = new IdentityBinding("usr_1", "github", "gh_1", "alice");
+        UserAccount user = new UserAccount("usr_1", "alice", "alice@example.com", null);
+        user.setStatus(UserStatus.MERGED);
+
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.of(binding));
+        when(userRepo.findById("usr_1")).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> service.createPendingUserIfAbsent(claims))
+                .isInstanceOf(AccountMergedException.class);
+    }
+
+    @Test
+    void createPendingUserIfAbsent_existingSystemBinding_throwsSystemAccountLogin() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "alice@example.com", true, "alice", Map.of()
+        );
+        IdentityBinding binding = new IdentityBinding("system_1", "github", "gh_1", "system");
+        UserAccount user = UserAccount.systemAccount("system_1", "system", null, null);
+
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.of(binding));
+        when(userRepo.findById("system_1")).thenReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> service.createPendingUserIfAbsent(claims))
+                .isInstanceOf(SystemAccountLoginException.class);
+    }
+
+    @Test
+    void createPendingUserIfAbsent_unverifiedEmailDoesNotPopulateAccount() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "unverified@example.com", false, "alice", Map.of()
+        );
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1")).thenReturn(Optional.empty());
+        when(userRepo.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.createPendingUserIfAbsent(claims);
+
+        ArgumentCaptor<UserAccount> userCaptor = ArgumentCaptor.forClass(UserAccount.class);
+        verify(userRepo).save(userCaptor.capture());
+        assertThat(userCaptor.getValue().getEmail()).isNull();
+    }
+
+    @Test
+    void bindOrCreate_concurrentInsertReturnsWinningPrincipal() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "alice@example.com", true, "alice", Map.of()
+        );
+        IdentityBinding winningBinding = new IdentityBinding("usr_winner", "github", "gh_1", "alice");
+        UserAccount winningUser = new UserAccount("usr_winner", "alice", "alice@example.com", null);
+        winningUser.setStatus(UserStatus.ACTIVE);
+
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1"))
+                .thenReturn(Optional.empty(), Optional.of(winningBinding));
+        when(userRepo.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bindingRepo.saveAndFlush(any(IdentityBinding.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate binding"));
+        when(userRepo.findById("usr_winner")).thenReturn(Optional.of(winningUser));
+        when(roleBindingRepo.findByUserId("usr_winner")).thenReturn(List.of());
+
+        PlatformPrincipal principal = service.bindOrCreate(claims, UserStatus.ACTIVE);
+
+        assertThat(principal.userId()).isEqualTo("usr_winner");
+        assertThat(principal.platformRoles()).containsExactly("USER");
+        verify(globalNamespaceMembershipService, never()).ensureMember(any());
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
+    void bindOrCreate_rethrowsUnexpectedIntegrityFailureWhenNoWinnerExists() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "alice@example.com", true, "alice", Map.of()
+        );
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1"))
+                .thenReturn(Optional.empty(), Optional.empty());
+        when(userRepo.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bindingRepo.saveAndFlush(any(IdentityBinding.class)))
+                .thenThrow(new DataIntegrityViolationException("unrelated integrity failure"));
+
+        assertThatThrownBy(() -> service.bindOrCreate(claims, UserStatus.ACTIVE))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("unrelated integrity failure");
+    }
+
+    @Test
+    void createPendingUserIfAbsent_concurrentInsertUsesWinningAccountState() {
+        OAuthClaims claims = new OAuthClaims(
+                "github", "gh_1", "alice@example.com", true, "alice", Map.of()
+        );
+        IdentityBinding winningBinding = new IdentityBinding("usr_winner", "github", "gh_1", "alice");
+        UserAccount winningUser = new UserAccount("usr_winner", "alice", "alice@example.com", null);
+        winningUser.setStatus(UserStatus.PENDING);
+
+        when(bindingRepo.findByProviderCodeAndSubject("github", "gh_1"))
+                .thenReturn(Optional.empty(), Optional.of(winningBinding));
+        when(userRepo.save(any(UserAccount.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bindingRepo.saveAndFlush(any(IdentityBinding.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate binding"));
+        when(userRepo.findById("usr_winner")).thenReturn(Optional.of(winningUser));
+
+        assertThatThrownBy(() -> service.createPendingUserIfAbsent(claims))
+                .isInstanceOf(AccountPendingException.class);
+    }
+
+    private static final class ImmediateTransactionOperations implements TransactionOperations {
+        @Override
+        public <T> T execute(TransactionCallback<T> action) {
+            return action.doInTransaction(null);
+        }
     }
 }

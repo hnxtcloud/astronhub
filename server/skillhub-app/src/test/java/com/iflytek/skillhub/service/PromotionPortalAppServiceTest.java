@@ -134,6 +134,37 @@ class PromotionPortalAppServiceTest {
         );
     }
 
+    @Test
+    void approvePromotion_escapesMultiLineReviewCommentIntoValidJson() {
+        // Regression: the detail column is JSONB. A reviewer pressing Enter used
+        // to produce a raw newline inside the JSON string, so the audit insert
+        // failed after the promotion had already been approved.
+        String comment = "looks good\nbut rename it \"foo\"\tfirst\\done";
+        PromotionRequest promotion = promotionRequest(PROMOTION_ID, SUBMITTER_ID);
+        when(rbacService.getUserRoleCodes(REVIEWER_ID)).thenReturn(Set.of("SKILL_ADMIN"));
+        when(promotionService.approvePromotion(PROMOTION_ID, REVIEWER_ID, comment, Set.of("SKILL_ADMIN")))
+                .thenReturn(promotion);
+        when(governanceQueryRepository.getPromotionResponse(promotion)).thenReturn(response(promotion));
+
+        service.approvePromotion(
+                PROMOTION_ID,
+                comment,
+                REVIEWER_ID,
+                new AuditRequestContext("127.0.0.1", "JUnit")
+        );
+
+        verify(auditLogService).record(
+                eq(REVIEWER_ID),
+                eq("PROMOTION_APPROVE"),
+                eq("PROMOTION_REQUEST"),
+                eq(PROMOTION_ID),
+                eq(null),
+                eq("127.0.0.1"),
+                eq("JUnit"),
+                eq("{\"comment\":\"looks good\\nbut rename it \\\"foo\\\"\\tfirst\\\\done\"}")
+        );
+    }
+
     private PromotionResponseDto response(PromotionRequest request) {
         return new PromotionResponseDto(
                 request.getId(),

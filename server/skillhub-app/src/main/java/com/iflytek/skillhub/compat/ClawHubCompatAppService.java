@@ -12,6 +12,7 @@ import com.iflytek.skillhub.compat.dto.ClawHubUnstarResponse;
 import com.iflytek.skillhub.compat.dto.ClawHubWhoamiResponse;
 import com.iflytek.skillhub.controller.support.MultipartPackageExtractor;
 import com.iflytek.skillhub.controller.support.ZipPackageExtractor;
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.audit.AuditLogService;
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
 import com.iflytek.skillhub.domain.shared.exception.DomainNotFoundException;
@@ -345,7 +346,7 @@ public class ClawHubCompatAppService {
                 confirmWarnings
         );
         recordCompatPublishAudit(principal.userId(), result.version().getId(), clientIp, userAgent,
-                "{\"namespace\":\"" + namespace + "\",\"slug\":\"" + extracted.payload().slug() + "\"}");
+                AuditDetail.of("namespace", namespace, "slug", extracted.payload().slug()));
         return new ClawHubPublishResponse(result.skillId().toString(), result.version().getId().toString());
     }
 
@@ -364,7 +365,7 @@ public class ClawHubCompatAppService {
                 confirmWarnings
         );
         recordCompatPublishAudit(principal.userId(), result.version().getId(), clientIp, userAgent,
-                "{\"namespace\":\"" + namespace + "\"}");
+                AuditDetail.of("namespace", namespace));
         return new ClawHubPublishResponse(result.skillId().toString(), result.version().getId().toString());
     }
 

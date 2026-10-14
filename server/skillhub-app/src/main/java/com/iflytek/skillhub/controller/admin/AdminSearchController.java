@@ -2,6 +2,7 @@ package com.iflytek.skillhub.controller.admin;
 
 import com.iflytek.skillhub.auth.rbac.PlatformPrincipal;
 import com.iflytek.skillhub.controller.BaseApiController;
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.dto.ApiResponse;
 import com.iflytek.skillhub.dto.ApiResponseFactory;
 import com.iflytek.skillhub.domain.audit.AuditLogService;
@@ -48,7 +49,7 @@ public class AdminSearchController extends BaseApiController {
                 requestIdAccessor.current(),
                 httpRequest.getRemoteAddr(),
                 httpRequest.getHeader("User-Agent"),
-                "{\"scope\":\"ALL\"}"
+                AuditDetail.of("scope", "ALL")
         );
         return ok("response.success.updated", null);
     }

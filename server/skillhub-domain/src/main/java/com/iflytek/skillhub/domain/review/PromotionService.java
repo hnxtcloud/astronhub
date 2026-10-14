@@ -1,5 +1,6 @@
 package com.iflytek.skillhub.domain.review;
 
+import com.iflytek.skillhub.domain.audit.AuditDetail;
 import com.iflytek.skillhub.domain.event.PromotionApprovedEvent;
 import com.iflytek.skillhub.domain.event.PromotionRejectedEvent;
 import com.iflytek.skillhub.domain.event.PromotionSubmittedEvent;
@@ -266,7 +267,7 @@ public class PromotionService {
                 "PROMOTION_REQUEST",
                 promotionId,
                 "Promotion approved",
-                "{\"status\":\"APPROVED\"}"
+                AuditDetail.of("status", "APPROVED")
         );
 
         return savedRequest;
@@ -323,7 +324,7 @@ public class PromotionService {
                 "PROMOTION_REQUEST",
                 promotionId,
                 "Promotion rejected",
-                "{\"status\":\"REJECTED\"}"
+                AuditDetail.of("status", "REJECTED")
         );
 
         return request;
