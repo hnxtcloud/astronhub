@@ -15,9 +15,9 @@
 - [白泽灵台](research/baizelingtai-pi-astronhub-updates.md)：单候选原始 JSON，Windows ZIP，同源匿名访问；当前安装由独立维护窗口完成。
 - [Intelli Dev](research/intelli-dev-astronhub-updates.md)：GitLab tags 发现版本、raw 文件获取、electron-updater YAML/安装包/blockmap；已有安装执行器。
 
-发布管理操作见[软件更新快照发布](skillhub/guide/software-updates.md)，其中明确原始文件集合、安装包确认、元数据校验、匿名开关和渠道目标的管理边界。读取协议和原生安装按后续实施票独立验收。
+发布管理操作见[软件更新快照发布](skillhub/guide/software-updates.md)，其中明确原始文件集合、安装包确认、元数据校验、匿名开关和渠道目标的管理边界。读取协议的 HTTP 契约、实际原生安装及完整差分分别记录验收结果。
 
-已合入实施票 07–09：不可变更新快照、完整资产上传与发布管理、按应用治理的 GitLab tags/raw、固定历史地址及流式传输，以及 Generic、白泽更新源和配置展示。票 10 提供绑定应用/token 的独立机器入口、一次性凭据管理、完整产物上传工具和恢复校验，详见[机器发版运维说明](software-machine-publishing.md)。实际 GenericProvider、白泽解析器与版本比较函数已接受真实 HTTP 响应并核对完整下载摘要；机器 HTTP 与上传工具合同已验证。现有客户端迁移、完整差分和原生安装须独立验收，不能由服务端协议通过代替。
+已合入实施票 07–10：不可变更新快照、完整资产上传与发布管理、按应用治理的 GitLab tags/raw、固定历史地址及流式传输，以及 Generic、白泽更新源和配置展示。绑定应用/token 的独立机器入口、一次性凭据管理、完整产物上传工具和恢复校验见[机器发版运维说明](software-machine-publishing.md)。票 11 正在进行统一集成验证与审查修复，尚未关闭。实际 GenericProvider、白泽解析器与版本比较函数已接受真实 HTTP 响应并核对完整下载摘要；机器 HTTP 与上传工具合同已验证。现有客户端迁移、完整差分和原生安装须独立验收，不能由服务端协议通过代替。
 
 ## 领域与分发边界
 
