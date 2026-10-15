@@ -19,6 +19,7 @@ CREATE TABLE software_update_release (
     published_by VARCHAR(128),
     entity_version BIGINT NOT NULL DEFAULT 0,
     CONSTRAINT uk_software_update_identity UNIQUE (application_id, tag, target_os, target_arch, channel, variant),
+    CONSTRAINT uk_software_update_machine_identity UNIQUE (application_id, machine_version, target_os, target_arch, channel, variant),
     CONSTRAINT ck_software_update_status CHECK (status IN ('DRAFT','PUBLISHED','WITHDRAWN')),
     CONSTRAINT ck_software_update_channel CHECK (channel IN ('stable','preview')),
     CONSTRAINT ck_software_update_protocol CHECK (protocol IN ('ELECTRON','BAIZE'))
@@ -54,7 +55,7 @@ CREATE TABLE software_asset_upload (
     state VARCHAR(20) NOT NULL DEFAULT 'RESERVED',
     expires_at TIMESTAMPTZ NOT NULL,
     entity_version BIGINT NOT NULL DEFAULT 0,
-    CONSTRAINT ck_software_asset_upload_state CHECK (state IN ('RESERVED','COMPLETED','CLEANUP','CLEANED'))
+    CONSTRAINT ck_software_asset_upload_state CHECK (state IN ('RESERVED','COMPLETED','CLEANUP','DELETE_USED','CLEANED'))
 );
 CREATE INDEX idx_software_asset_upload_cleanup ON software_asset_upload(state,expires_at);
 

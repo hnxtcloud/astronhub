@@ -11,6 +11,7 @@ public enum SoftwarePackageFormat {
     DEB,
     RPM,
     ZIP,
+    DMG,
     TAR_GZ,
     TAR_XZ;
 

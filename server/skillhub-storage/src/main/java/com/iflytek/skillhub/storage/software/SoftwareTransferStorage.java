@@ -40,6 +40,11 @@ public interface SoftwareTransferStorage {
     /** Aborts the provider upload session and discards all session temp bytes. */
     void abortUpload(String storageSessionId, String objectKey);
 
+    /** Abort with a verifiable outcome; capacity must remain reserved when this fails. */
+    default void abortUploadVerified(String storageSessionId, String objectKey) {
+        abortUpload(storageSessionId, objectKey);
+    }
+
     /** Exact byte size of a stored object. */
     long objectSize(String objectKey);
 

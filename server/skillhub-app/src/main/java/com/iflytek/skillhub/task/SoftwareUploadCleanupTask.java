@@ -50,7 +50,12 @@ public class SoftwareUploadCleanupTask {
         for (SoftwareUploadSession session : expired) {
             reclaimIdleSession(session.getId(), now);
         }
-        long retentionHours = policyService.findActive().config().failedTempRetentionHours();
+        var policy = policyService.findActive();
+        if (policy == null) {
+            logger.warn("Software policy is not initialized; deferring stale completing-upload cleanup");
+            return;
+        }
+        long retentionHours = policy.config().failedTempRetentionHours();
         Instant completingCutoff = now.minus(Duration.ofHours(retentionHours));
         List<SoftwareUploadSession> staleCompleting =
                 sessionService.findStaleCompleting(completingCutoff, BATCH_SIZE);

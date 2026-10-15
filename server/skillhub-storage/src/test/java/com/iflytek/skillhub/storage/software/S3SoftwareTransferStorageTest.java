@@ -94,6 +94,14 @@ class S3SoftwareTransferStorageTest {
     }
 
     @Test
+    void verifiedAbortReportsProviderFailureSoReservedBytesCannotBeReleased() {
+        when(s3Client.abortMultipartUpload(any(AbortMultipartUploadRequest.class)))
+                .thenThrow(software.amazon.awssdk.services.s3.model.S3Exception.builder().statusCode(503).message("unavailable").build());
+        assertThatThrownBy(() -> storage.abortUploadVerified("upload-1", OBJECT_KEY))
+                .isInstanceOf(StorageAccessException.class);
+    }
+
+    @Test
     void commitChunk_uploadsStagedBytesWithPartNumber() throws Exception {
         when(s3Client.createMultipartUpload(any(CreateMultipartUploadRequest.class)))
                 .thenReturn(CreateMultipartUploadResponse.builder().uploadId("upload-1").build());

@@ -24,7 +24,7 @@ public final class SoftwareUpdateRules {
     public static void identity(String version, String tag, String os, String arch, String channel,
             String variant, String protocol, String piVersion) {
         version(version);
-        if (!(version.equals(tag) || ("v" + version).equals(tag) || ("V" + version).equals(tag))) invalid("tag");
+        if (tag == null || tag.length() > 255 || !(version.equals(tag) || ("v" + version).equals(tag) || ("V" + version).equals(tag))) invalid("tag");
         try {
             SoftwareTargetOs.valueOf(os);
             SoftwareTargetArch.valueOf(arch);

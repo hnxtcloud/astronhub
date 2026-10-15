@@ -15,6 +15,8 @@
 - [白泽灵台](research/baizelingtai-pi-astronhub-updates.md)：单候选原始 JSON，Windows ZIP，同源匿名访问；当前安装由独立维护窗口完成。
 - [Intelli Dev](research/intelli-dev-astronhub-updates.md)：GitLab tags 发现版本、raw 文件获取、electron-updater YAML/安装包/blockmap；已有安装执行器。
 
+发布管理操作见[软件更新快照发布](skillhub/guide/software-updates.md)，其中明确原始文件集合、安装包确认、元数据校验、匿名开关和渠道目标的管理边界。读取协议和原生安装按后续实施票独立验收。
+
 ## 领域与分发边界
 
 ```text

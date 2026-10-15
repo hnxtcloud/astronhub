@@ -214,6 +214,20 @@ public class S3SoftwareTransferStorage implements SoftwareTransferStorage {
     }
 
     @Override
+    public void abortUploadVerified(String storageSessionId, String objectKey) {
+        try {
+            s3Client.abortMultipartUpload(AbortMultipartUploadRequest.builder()
+                    .bucket(properties.getBucket()).key(objectKey).uploadId(storageSessionId).build());
+        } catch (software.amazon.awssdk.services.s3.model.S3Exception ex) {
+            // A completed/already-aborted multipart session is also a confirmed absence.
+            if (ex.statusCode() != 404) throw new StorageAccessException("abortUploadVerified", objectKey, ex);
+        } catch (RuntimeException ex) {
+            throw new StorageAccessException("abortUploadVerified", objectKey, ex);
+        }
+        deleteSessionStaging(storageSessionId);
+    }
+
+    @Override
     public long objectSize(String objectKey) {
         try {
             return s3Client.headObject(HeadObjectRequest.builder()

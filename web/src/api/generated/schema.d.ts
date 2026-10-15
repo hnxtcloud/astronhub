@@ -634,6 +634,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/software/apps/{applicationId}/update-source": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["source_1"];
+        put: operations["source"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/apps/{applicationId}/update-channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["channel"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/namespaces/{slug}/members/{userId}/role": {
         parameters: {
             query?: never;
@@ -2774,7 +2806,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/software/settings/validate": {
+    "/api/v1/admin/software/update-releases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_8"];
+        put?: never;
+        post: operations["create_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/update-releases/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/update-releases/{id}/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -2784,6 +2848,70 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["validate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/update-releases/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["publish_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/update-releases/{id}/package-assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["link"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/update-releases/{id}/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/settings/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["validate_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3392,7 +3520,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["publish_3"];
+        post: operations["publish_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5736,6 +5864,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/software/update-releases/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/software/settings/history": {
         parameters: {
             query?: never;
@@ -5775,7 +5919,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_8"];
+        get: operations["list_9"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5839,7 +5983,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_9"];
+        get: operations["list_10"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6181,6 +6325,22 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["deleteSkillById_1"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/software/update-releases/{id}/assets/{assetId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["removeAsset"];
         options?: never;
         head?: never;
         patch?: never;
@@ -6671,7 +6831,7 @@ export interface components {
             targetArch: "X86" | "X86_64" | "ARM64" | "NOARCH" | "UNKNOWN";
             targetDistro?: string;
             /** @enum {string} */
-            format: "MSI" | "EXE" | "DEB" | "RPM" | "ZIP" | "TAR_GZ" | "TAR_XZ";
+            format: "MSI" | "EXE" | "DEB" | "RPM" | "ZIP" | "DMG" | "TAR_GZ" | "TAR_XZ";
             note?: string;
         };
         SoftwareRecommendationSetRequest: {
@@ -6805,6 +6965,55 @@ export interface components {
             categoryName?: string;
             /** Format: date-time */
             createdAt?: string;
+        };
+        SoftwareUpdateSourceRequest: {
+            anonymousEnabled: boolean;
+        };
+        ApiResponseSoftwareUpdateSourceResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareUpdateSourceResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareUpdateChannelResponse: {
+            /** Format: int64 */
+            id?: number;
+            slug?: string;
+            virtualProjectPath?: string;
+            targetOs?: string;
+            targetArch?: string;
+            channel?: string;
+            variant?: string;
+            /** Format: int64 */
+            targetReleaseId?: number;
+        };
+        SoftwareUpdateSourceResponse: {
+            /** Format: int64 */
+            applicationId?: number;
+            anonymousEnabled?: boolean;
+            channels?: components["schemas"]["SoftwareUpdateChannelResponse"][];
+        };
+        SoftwareUpdateChannelRequest: {
+            slug?: string;
+            virtualProjectPath?: string;
+            targetOs?: string;
+            targetArch?: string;
+            channel?: string;
+            variant?: string;
+            /** Format: int64 */
+            targetReleaseId?: number;
+        };
+        ApiResponseSoftwareUpdateChannelResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareUpdateChannelResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
         };
         AdminLabelUpdateRequest: {
             /** @enum {string} */
@@ -7620,6 +7829,86 @@ export interface components {
             sha256?: string;
             /** Format: int64 */
             byteSize?: number;
+        };
+        SoftwareUpdateCreateRequest: {
+            /** Format: int64 */
+            catalogReleaseId: number;
+            machineVersion?: string;
+            tag?: string;
+            targetOs?: string;
+            targetArch?: string;
+            channel?: string;
+            variant?: string;
+            protocol?: string;
+            piVersion?: string;
+        };
+        ApiResponseSoftwareUpdateReleaseResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareUpdateReleaseResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareReleaseAssetResponse: {
+            /** Format: int64 */
+            id?: number;
+            relativePath?: string;
+            role?: string;
+            /** Format: int64 */
+            packageRevisionId?: number;
+            /** Format: int64 */
+            byteSize?: number;
+            sha256?: string;
+            sha512Base64?: string;
+        };
+        SoftwareUpdateReleaseResponse: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            applicationId?: number;
+            /** Format: int64 */
+            catalogReleaseId?: number;
+            machineVersion?: string;
+            tag?: string;
+            targetOs?: string;
+            targetArch?: string;
+            channel?: string;
+            variant?: string;
+            protocol?: string;
+            piVersion?: string;
+            status?: string;
+            releaseNotes?: string;
+            /** Format: date-time */
+            publishedAt?: string;
+            assets?: components["schemas"]["SoftwareReleaseAssetResponse"][];
+        };
+        ApiResponseSoftwareUpdateValidationResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareUpdateValidationResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SoftwareUpdateValidationResponse: {
+            valid?: boolean;
+        };
+        SoftwareUpdatePackageLinkRequest: {
+            /** Format: int64 */
+            packageRevisionId: number;
+            relativePath: string;
+        };
+        ApiResponseSoftwareReleaseAssetResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareReleaseAssetResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
         };
         ApiResponseSoftwareSettingsValidationResponse: {
             /** Format: int32 */
@@ -9556,6 +9845,15 @@ export interface components {
             /** Format: int64 */
             byteSize?: number;
             sha256?: string;
+        };
+        ApiResponseListSoftwareUpdateReleaseResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SoftwareUpdateReleaseResponse"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
         };
         ApiResponsePageResponseSoftwarePolicyRevisionResponse: {
             /** Format: int32 */
@@ -11656,6 +11954,80 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseSoftwareAppSummaryResponse"];
+                };
+            };
+        };
+    };
+    source_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUpdateSourceResponse"];
+                };
+            };
+        };
+    };
+    source: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareUpdateSourceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUpdateSourceResponse"];
+                };
+            };
+        };
+    };
+    channel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                applicationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareUpdateChannelRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUpdateChannelResponse"];
                 };
             };
         };
@@ -15255,7 +15627,171 @@ export interface operations {
             };
         };
     };
+    list_8: {
+        parameters: {
+            query?: {
+                catalogReleaseId?: number;
+                applicationId?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListSoftwareUpdateReleaseResponse"];
+                };
+            };
+        };
+    };
+    create_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareUpdateCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUpdateReleaseResponse"];
+                };
+            };
+        };
+    };
+    withdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUpdateReleaseResponse"];
+                };
+            };
+        };
+    };
     validate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUpdateValidationResponse"];
+                };
+            };
+        };
+    };
+    publish_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUpdateReleaseResponse"];
+                };
+            };
+        };
+    };
+    link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SoftwareUpdatePackageLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareReleaseAssetResponse"];
+                };
+            };
+        };
+    };
+    upload: {
+        parameters: {
+            query: {
+                path: string;
+                role: string;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareReleaseAssetResponse"];
+                };
+            };
+        };
+    };
+    validate_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -16296,7 +16832,7 @@ export interface operations {
             };
         };
     };
-    publish_3: {
+    publish_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -19878,6 +20414,28 @@ export interface operations {
             };
         };
     };
+    get_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSoftwareUpdateReleaseResponse"];
+                };
+            };
+        };
+    };
     history_2: {
         parameters: {
             query?: {
@@ -19922,7 +20480,7 @@ export interface operations {
             };
         };
     };
-    list_8: {
+    list_9: {
         parameters: {
             query?: {
                 status?: string;
@@ -20014,7 +20572,7 @@ export interface operations {
             };
         };
     };
-    list_9: {
+    list_10: {
         parameters: {
             query?: {
                 status?: string;
@@ -20521,6 +21079,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseSkillDeleteResponse"];
+                };
+            };
+        };
+    };
+    removeAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                assetId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseVoid"];
                 };
             };
         };
