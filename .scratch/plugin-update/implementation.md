@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：内网 Git 原生市场发布，以及 Generic 与白泽灵台更新源。票 01、02、03、04、07、08 已完成并合入；票 06 仍等待票 05，其余由明确阻塞关系推进。
+当前 frontier：发布恢复/重试/渠道撤回，以及 Generic 与白泽灵台更新源。票 01、02、03、04、05、07、08 已完成并合入；票 06 依赖全部解除，其余由明确阻塞关系推进。
 
 票 03 已合入并关闭；后续恢复票复用其实施工作树。08 代理路由子任务已随 08 主实施分支合入。
 
@@ -131,6 +131,13 @@ Base branch: codex/software-center-phase1
 - 最终 UI 分轮 13 + 1 项通过；此前 worker 启动超时轮未计通过。完整类型检查及定向零警告 ESLint 通过。实际联合 03/04/08 契约生成已随分支合入，未手改生成文件。
 - 生产 PostgreSQL/Flyway、Docker staging、真实内网 Git/npm 和客户端安装仍保留独立验收；投影中的持久回执夹具不替代实际渠道执行。
 - 合并无冲突、`git diff --check` 通过；90 个用户原有文件 SHA256 与合并前及票 02 清单一致。未额外构建、推送、建 PR 或清理工作树。
+
+## Merge checkpoint — ticket 05
+
+- 完整工作分支 tip `d055a760`（含集成 `ec1f8727`）以 `40babeec` 合入；票 05 关闭，票 06 依赖全部解除。Git adapter 沿用同一队列，未新建发布调度器。
+- 合并代理核查最终实际 14 项全通过且无跳过：真实 Springdoc 1、非事务 Git HTTP 5、回执验证 3、真实 bare Git 5。早轮 03/04 独立回归 13 项通过；其漏登录失败和 OpenAPI 跳过未算整体成功，最终重跑已补齐。
+- 最终 UI 3 文件 4 项、完整 TypeScript、定向 ESLint 和实际 SDK 生成通过。原生 Claude/Codex 隔离注册/安装证据与真实企业 Git/认证/宿主运行、Docker staging 保持分开；普通用户设置未改变。
+- 合并无冲突、`git diff --check` 通过，90 个用户原有文件 SHA256 与合并前及票 02 清单一致；未额外构建、推送、建 PR 或清理工作树。
 
 ## Frontend regression checkpoint — 2026-10-15
 
