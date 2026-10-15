@@ -4,7 +4,7 @@
 
 **Blocked by:** 01,02
 
-**Status:** claimed
+**Status:** done
 
 **Assignee:** plugin_ticket02 / codex/plugin-download-governance
 
@@ -17,7 +17,7 @@
 
 ## Evidence
 
-实现分支 `codex/plugin-download-governance`，首实现提交 `f523e845`；已合入 npm 04 和 GitLab 08 的集成基线 `247df02b`。状态在合并至 integration 后由合并代理关闭。
+实现分支 `codex/plugin-download-governance`，功能提交 `f523e845`、`59db5713`；最终 tip `0974d2c1` 已含最新集成 `c2215031`，以 `fc85802e` 合入并由合并代理关闭。
 
 - 新增固定已发布版本详情、历史、原始 ZIP/TGZ 下载、清单内文件列表及纯文本预览。预览校验完整归档摘要，拒绝穿越、链接、二进制和超过 256 KiB 的文本；不执行脚本或渲染 HTML。
 - 公共元信息允许匿名读取；下载、文件预览和安装说明鉴权。私有、命名空间内插件每次重新检查实时权限；旧所有者离开命名空间后不再保有受限访问权。
@@ -34,3 +34,5 @@
 - 最终 TypeScript `tsc --noEmit`、相关变更 ESLint（零警告）和 `git diff --check` 均通过，日志路径记录于外部 `ticket03.md`。
 
 本机没有 Docker CLI，未执行 PostgreSQL/Flyway + 容器 staging，也未运行真实内网 Git/npm 目标或宿主安装。回执投影使用明确持久夹具验证，不声称该测试完成了原生渠道发布；真实 npm 及隔离 Pi 安装证据沿用 04 的独立验收记录，部署与原生验证继续由 11 汇总。
+
+合并代理核查实际最终联合日志 45 项通过（domain 5 + app 40，含 7 项新 HTTP 与真实 Springdoc）；UI 最终 13 项及离线导入独立 1 项均通过，初始 worker 启动超时轮未计通过。最终类型检查和定向零警告 ESLint 通过。合并无冲突，未手改联合 03/04/08 生成契约，`git diff --check` 通过；用户原有 90 个文件 SHA256 与合并前及票 02 清单一致。票 06 仍等待票 05。

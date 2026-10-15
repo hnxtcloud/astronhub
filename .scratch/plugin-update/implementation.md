@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：插件下载/历史版本/组件治理、内网 Git 原生市场发布，以及 Generic 与白泽灵台更新源。票 01、02、04、07、08 已完成并合入；票 09 解除阻塞，票 06 仍等待票 03、05，其余由明确阻塞关系推进。
+当前 frontier：内网 Git 原生市场发布，以及 Generic 与白泽灵台更新源。票 01、02、03、04、07、08 已完成并合入；票 06 仍等待票 05，其余由明确阻塞关系推进。
 
 票 03 已认领，由完成票 02 的实施代理在 `codex/plugin-download-governance` 独立分支继续，迁移预留 V78；08 代理路由子任务已交付 `dc2184d7`，须先汇入 08 主实施分支，不单独关闭 08。
 
@@ -122,6 +122,14 @@ Base branch: codex/software-center-phase1
 - 实际 Nginx 48 项代理检查通过；已安装 electron-updater 6.8.9 DataSplitter 接受真实 HTTP multipart fixture，精确结果 `0189`。这仅验收解析器契约，完整差分、全量回退、原生安装和签名仍未验收。
 - 生成契约无冲突合入，最终联合 Springdoc 重导出由集成统一处理；未手工修改 schema。生产数据库、真实 S3、Helm 渲染和 Docker staging 限制保持明确。
 - `git diff --check` 通过，用户原有 90 个文件 SHA256 与合并前及票 02 清单完全一致；未重复构建、推送、建 PR 或清理工作树。
+
+## Merge checkpoint — ticket 03
+
+- 完整工作分支 tip `0974d2c1`（已含最新集成 `c2215031`）以 `fc85802e` 合入；票 03 关闭。票 06 仍阻塞于票 05，不提前认领。
+- 实际最终联合 reactor 45 项通过（domain 5 + app 40），包括 7 项新 HTTP 行为、01/02/04 回归和真实 Springdoc 导出。独立组件 ACL、下架和确定性版本选择均有 HTTP 证据。
+- 最终 UI 分轮 13 + 1 项通过；此前 worker 启动超时轮未计通过。完整类型检查及定向零警告 ESLint 通过。实际联合 03/04/08 契约生成已随分支合入，未手改生成文件。
+- 生产 PostgreSQL/Flyway、Docker staging、真实内网 Git/npm 和客户端安装仍保留独立验收；投影中的持久回执夹具不替代实际渠道执行。
+- 合并无冲突、`git diff --check` 通过；90 个用户原有文件 SHA256 与合并前及票 02 清单一致。未额外构建、推送、建 PR 或清理工作树。
 
 ## Frontend regression checkpoint — 2026-10-15
 
