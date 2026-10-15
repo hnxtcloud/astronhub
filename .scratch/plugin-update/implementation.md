@@ -66,7 +66,7 @@ Base branch: codex/software-center-phase1
 ## Contract checkpoint — 2026-10-15
 
 - 票 01 已合并并关闭（`91e2962a`、`49cc3fc3`），票 02 开始扩展三宿主和批量归档；票 07 继续补齐完整资产管理，未提前关闭。
-- `scripts/export-openapi-test.ps1` 成功导出实际 Springdoc 契约，再以 openapi-typescript 生成前端类型。首批插件管理页面已改为引用生成类型，软件快照基础契约同时进入生成文件；后续端点合并后还须重新生成。
+- `scripts/export-openapi-test.ps1` 成功导出实际 Springdoc 契约，再以 openapi-typescript 生成前端类型。首批插件管理页面已改为引用生成类型，既有软件接口的 MACOS 枚举同时进入生成文件；软件快照 DTO 尚无控制器引用，须在票 07 管理端点合并后重新生成。
 - 全前端 `tsc --noEmit`、插件 API/页面定向 ESLint、管理页面 fetch 边界交互测试 1 条均通过；日志为 `.scratch/plugin-update-{openapi,typecheck,contract-lint,ui-contract}.log`。这些检查不代替最终全量检查或 Docker staging。
 
 ## Merge checkpoint — ticket 01
