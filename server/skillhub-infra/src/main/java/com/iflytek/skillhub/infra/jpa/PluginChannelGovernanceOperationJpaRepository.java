@@ -2,19 +2,22 @@ package com.iflytek.skillhub.infra.jpa;
 
 import com.iflytek.skillhub.domain.plugin.*;
 
-import jakarta.persistence.LockModeType;
-
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
 
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * Use the same native FOR UPDATE as the channel ledger: it retains a real pessimistic write lock
+ * on both PostgreSQL and the H2 fixture, without dialect-specific FOR NO KEY UPDATE generation.
+ */
 public interface PluginChannelGovernanceOperationJpaRepository
         extends JpaRepository<PluginChannelGovernanceOperation, Long>,
                 PluginChannelGovernanceOperationRepository {
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select o from PluginChannelGovernanceOperation o where o.id=:id")
+    @Query(
+            value = "SELECT * FROM plugin_channel_governance_operation WHERE id=:id FOR UPDATE",
+            nativeQuery = true)
     Optional<PluginChannelGovernanceOperation> findByIdForUpdate(Long id);
 
     @Query(

@@ -2772,6 +2772,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/releases/{id}/publication-replans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply a previewed audited plan revision without changing approval or successful channels */
+        post: operations["apply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/releases/{id}/publication-replans/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview an explicit replacement target for a blocked or definitively failed channel */
+        post: operations["preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/plugin-management/releases/{id}/npm-prerequisites": {
         parameters: {
             query?: never;
@@ -2800,6 +2834,57 @@ export interface paths {
         put?: never;
         /** Super-admin approval of a validated draft, followed by independent publication */
         post: operations["direct"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/releases/{id}/channel-governance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue audited withdrawal without replacing publication evidence */
+        post: operations["governance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/releases/{id}/channel-governance/{operationId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry or reconcile a withdrawal at its original immutable target */
+        post: operations["retry_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/releases/{id}/channel-governance/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview explicit native index withdrawal and retained remote history */
+        post: operations["governancePreview"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2974,7 +3059,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload ZIP or TGZ for bounded offline candidate preview without running scripts */
-        post: operations["preview"];
+        post: operations["preview_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2991,7 +3076,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Create selected plugin drafts with isolated results and immutable content conflicts */
-        post: operations["apply"];
+        post: operations["apply_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3553,7 +3638,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["retry_1"];
+        post: operations["retry_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6316,6 +6401,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/releases/{id}/publication-recovery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inspect original and selected channel plans with immutable revision history */
+        get: operations["read_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/plugin-management/releases/{id}/publication-channels": {
         parameters: {
             query?: never;
@@ -6325,6 +6427,23 @@ export interface paths {
         };
         /** Read immutable approved channel plans and durable receipts */
         get: operations["channels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/releases/{id}/publication-attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Page durable publication and withdrawal attempt history */
+        get: operations["attempts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8790,6 +8909,104 @@ export interface components {
             lastError?: string;
             receipt?: string;
         };
+        ReplanRequest: {
+            channel: string;
+            /** Format: int64 */
+            targetRevisionId: number;
+            /** Format: int32 */
+            expectedRevision?: number;
+            reason: string;
+            previewDigest?: string;
+        };
+        ApiResponseListRecoveryChannelView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["RecoveryChannelView"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        AttemptView: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int32 */
+            planRevision: number;
+            action: string;
+            outcome: string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            heartbeatAt: string;
+            /** Format: date-time */
+            leaseUntil: string;
+            /** Format: date-time */
+            finishedAt?: string;
+            receipt?: string;
+            errorCode?: string;
+            lateReceipt?: string;
+            /** Format: int64 */
+            operationId?: number;
+        };
+        GovernanceOperationView: {
+            /** Format: int64 */
+            id: number;
+            action: string;
+            state: string;
+            /** Format: int32 */
+            planRevision: number;
+            snapshot: string;
+            sourceReceipt?: string;
+            requestedBy: string;
+            reason: string;
+            /** Format: date-time */
+            createdAt: string;
+            receipt?: string;
+            lastError?: string;
+        };
+        PlanRevisionView: {
+            /** Format: int32 */
+            revision: number;
+            snapshot: string;
+            requestedBy?: string;
+            reason: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        RecoveryChannelView: {
+            /** Format: int64 */
+            id?: number;
+            channel: string;
+            state: string;
+            originalSnapshot: string;
+            effectiveSnapshot: string;
+            /** Format: int32 */
+            planRevision: number;
+            sourceDisabled: boolean;
+            receipt?: string;
+            lastError?: string;
+            /** Format: date-time */
+            leaseUntil?: string;
+            plans: components["schemas"]["PlanRevisionView"][];
+            attempts?: components["schemas"]["AttemptView"][];
+            operations?: components["schemas"]["GovernanceOperationView"][];
+        };
+        ApiResponseReplanPreview: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["ReplanPreview"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ReplanPreview: {
+            channel: string;
+            /** Format: int32 */
+            expectedRevision: number;
+            snapshot: string;
+            digest: string;
+        };
         ApiResponsePrerequisitesView: {
             /** Format: int32 */
             code?: number;
@@ -8812,6 +9029,31 @@ export interface components {
             installCommand?: string;
             registryConfiguration?: string;
             runtimeTest?: string;
+        };
+        GovernanceRequest: {
+            channel: string;
+            action: string;
+            /** Format: int32 */
+            expectedRevision?: number;
+            reason: string;
+            previewDigest?: string;
+        };
+        ApiResponseGovernancePreview: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["GovernancePreview"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        GovernancePreview: {
+            channel: string;
+            action: string;
+            /** Format: int32 */
+            expectedRevision: number;
+            effect: string;
+            digest: string;
         };
         PluginProjectCreateRequest: {
             /** Format: int64 */
@@ -10998,6 +11240,21 @@ export interface components {
             content: string;
             /** Format: int64 */
             bytes: number;
+        };
+        ApiResponseAttemptPage: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["AttemptPage"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        AttemptPage: {
+            items: components["schemas"]["AttemptView"][];
+            /** Format: int32 */
+            page: number;
+            hasMore: boolean;
         };
         ApiResponseListGitIntentView: {
             /** Format: int32 */
@@ -17023,6 +17280,58 @@ export interface operations {
             };
         };
     };
+    apply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplanRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListRecoveryChannelView"];
+                };
+            };
+        };
+    };
+    preview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReplanRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseReplanPreview"];
+                };
+            };
+        };
+    };
     prerequisites: {
         parameters: {
             query?: never;
@@ -17067,6 +17376,81 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponsePluginReleaseView"];
+                };
+            };
+        };
+    };
+    governance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GovernanceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListRecoveryChannelView"];
+                };
+            };
+        };
+    };
+    retry_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                operationId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListRecoveryChannelView"];
+                };
+            };
+        };
+    };
+    governancePreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GovernanceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseGovernancePreview"];
                 };
             };
         };
@@ -17408,7 +17792,7 @@ export interface operations {
             };
         };
     };
-    preview: {
+    preview_1: {
         parameters: {
             query: {
                 namespaceId: number;
@@ -17436,7 +17820,7 @@ export interface operations {
             };
         };
     };
-    apply: {
+    apply_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -18308,7 +18692,7 @@ export interface operations {
             };
         };
     };
-    retry_1: {
+    retry_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -22710,6 +23094,28 @@ export interface operations {
             };
         };
     };
+    read_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListRecoveryChannelView"];
+                };
+            };
+        };
+    };
     channels: {
         parameters: {
             query?: never;
@@ -22728,6 +23134,31 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseListChannelView"];
+                };
+            };
+        };
+    };
+    attempts: {
+        parameters: {
+            query: {
+                channel: string;
+                page?: number;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseAttemptPage"];
                 };
             };
         };
