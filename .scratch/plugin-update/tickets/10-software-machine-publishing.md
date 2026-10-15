@@ -28,3 +28,10 @@
 - 实际 Springdoc 导出后生成 SDK；当前导出 446 paths / 480 schemas，机器/grant 21 paths，两个 raw binary requestBody 均 required。最终合并后的契约与回归另记集成票。
 
 真实 PostgreSQL/Flyway、S3、Docker staging、真实签名原生安装、完整差分及客户端迁移仍属于 11 的独立验收，不由本票的合成合同测试替代。
+
+### 合并后复核
+
+- 功能提交 `62a9848d`；`84710a47` 已合并集成 `a743c704`，保留真实 Intelli 原生合同和 Git 运行时部署修复。唯一 docs/28 冲突已语义合并。
+- `.scratch-machine-merged-final.log`：81 项通过（auth 62、logger 11、真实机器 HTTP/工具 7、实导 OpenAPI 1），无失败/错误/跳过。实际 OpenAPI 仍为 446 paths / 480 schemas，重新生成 SDK 后无额外差异。
+- `.scratch-machine-ui-final.log`：新凭据 UI 1 项再次通过；原 admin UI 5 项在 `.scratch-machine-admin-ui-green.log`。`.scratch-machine-cli-boundary-final.log` 2 项和 `.scratch-machine-proxy-final.log` 57 项再次通过。
+- 范围内 ESLint 与初次完整 TypeScript typecheck 均通过；最终合并后完整 TypeScript typecheck 也通过（`.scratch-machine-merged-typecheck.log`）。用户指南已同步机器凭据、完整工具和流式代理操作。
