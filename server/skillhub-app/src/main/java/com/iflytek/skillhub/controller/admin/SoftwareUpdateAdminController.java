@@ -45,6 +45,10 @@ public class SoftwareUpdateAdminController extends BaseApiController {
         return ok("response.success.created", updates.linkPackage(id, body.packageRevisionId(), body.relativePath(), actor.userId()));
     }
     @PostMapping(value = "/update-releases/{id}/assets", consumes = "application/octet-stream")
+    @io.swagger.v3.oas.annotations.Operation(summary = "Upload bounded original update asset bytes")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
+            content = @io.swagger.v3.oas.annotations.media.Content(mediaType = "application/octet-stream",
+                    schema = @io.swagger.v3.oas.annotations.media.Schema(type = "string", format = "binary")))
     public ApiResponse<SoftwareReleaseAssetResponse> upload(@PathVariable Long id, @RequestParam String path,
             @RequestParam String role, HttpServletRequest request, @AuthenticationPrincipal PlatformPrincipal actor) throws IOException {
         try (var body = request.getInputStream()) {

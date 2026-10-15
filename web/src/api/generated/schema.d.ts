@@ -3051,6 +3051,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Upload bounded original update asset bytes */
         post: operations["upload_1"];
         delete?: never;
         options?: never;
@@ -15528,7 +15529,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/zip": string;
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -15765,7 +15770,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -16473,7 +16482,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
         responses: {
             /** @description OK */
             200: {

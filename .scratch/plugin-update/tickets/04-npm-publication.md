@@ -6,6 +6,8 @@
 
 **Status:** implemented-awaiting-integration
 
+**Assignee:** npm_publication / codex/plugin-npm-publication
+
 **Spec coverage:** P5
 
 - [x] 原包名/版本保留；同内容复用、冲突拒绝；不运行 lifecycle scripts、不回退公网（真实本机无 uplink registry 和 wire 验证）

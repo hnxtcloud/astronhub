@@ -2,15 +2,16 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { fetchJson, getCsrfHeaders } from '@/api/client'
+import type { components } from '@/api/generated/schema'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 
-// Integration exports these named Springdoc records before final generated-alias reconciliation.
-interface ImportLimits { packageBytes: number; repositoryBytes: number; expandedBytes: number; files: number; candidates: number }
-interface ImportCandidate { id: string; directory: string; runtime: string; nativeName?: string | null; version?: string | null; suggestedSlug?: string | null; status: string; error?: string | null; inventoryJson?: string | null; manifestJson?: string | null }
-interface ImportPreview { id: string; namespaceId: number; repository: boolean; expiresAt: string; candidates: ImportCandidate[] }
-interface ImportResults { results: Array<{candidateId: string; status: string; projectId?: number | null; releaseId?: number | null; error?: string | null}> }
-interface Selection { candidateId: string; projectId?: number; slug?: string; visibility: 'PRIVATE' | 'NAMESPACE_ONLY' | 'PUBLIC' }
+type ImportLimits = components['schemas']['PluginImportLimits']
+type ImportCandidate = components['schemas']['ImportCandidateView']
+type ImportPreview = components['schemas']['ImportPreviewView']
+type ImportResults = components['schemas']['ImportResultsView']
+type GeneratedSelection = components['schemas']['ImportSelection']
+type Selection = Omit<GeneratedSelection, 'visibility'> & { visibility: NonNullable<GeneratedSelection['visibility']> }
 const base='/api/v1/plugin-management'
 const selectClass='h-10 w-full rounded-md border border-input bg-background px-3 text-sm'
 export function PluginOfflineImportPanel({ reviewer, namespaces, projects }: {
@@ -25,7 +26,7 @@ export function PluginOfflineImportPanel({ reviewer, namespaces, projects }: {
  const upload=useMutation({mutationFn:()=>fetchJson<ImportPreview>(`${base}/imports?namespaceId=${encodeURIComponent(namespace)}&format=${file?.name.toLowerCase().endsWith('.zip')?'ZIP':'TGZ'}&repository=${repository}`,{
   method:'POST',headers:getCsrfHeaders({'Content-Type':'application/octet-stream'}),body:file,timeoutMs:300000,
  }),onSuccess:result=>{setPreview(result);setSelected({})}})
- const apply=useMutation({mutationFn:()=>fetchJson<ImportResults>(`${base}/imports/${preview?.id}/apply`,{method:'POST',headers:getCsrfHeaders({'Content-Type':'application/json'}),body:JSON.stringify({selections:Object.values(selected)}),timeoutMs:300000}),onSuccess:()=>queries.invalidateQueries({queryKey:['plugin-management']})})
+ const apply=useMutation({mutationFn:()=>fetchJson<ImportResults>(`${base}/imports/${preview?.id}/apply`,{method:'POST',headers:getCsrfHeaders({'Content-Type':'application/json'}),body:JSON.stringify({selections:Object.values(selected)} satisfies components['schemas']['ImportSelectionRequest']),timeoutMs:300000}),onSuccess:()=>queries.invalidateQueries({queryKey:['plugin-management']})})
  const toggle=(candidate:ImportCandidate,checked:boolean)=>setSelected(current=>{
   const next={...current};if(checked)next[candidate.id]={candidateId:candidate.id,slug:candidate.suggestedSlug??'',visibility:'PRIVATE'};else delete next[candidate.id];return next
  })

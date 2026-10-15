@@ -4,7 +4,11 @@
 
 **Blocked by:** 07
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+**Assignee:** software_ticket07_resume / codex/gitlab-update-reads
+
+**Proxy support:** plugin_ticket02 / codex/update-proxy-routing（先合入主实施分支，再整体集成）
 
 **Spec coverage:** U3、U4
 

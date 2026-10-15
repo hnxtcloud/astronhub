@@ -67,7 +67,7 @@ export function PluginNpmAdminPanel() {
       <p>{t('pluginNpm.attempts')}: {value.attemptCount}</p>
       {value.lastError && <p role="alert" className="text-destructive">{value.lastError}</p>}
       <details><summary>{t('pluginNpm.inspect')}</summary><pre className="overflow-auto whitespace-pre-wrap text-xs">{value.requirementsJson}</pre>{value.receipt && <pre className="overflow-auto whitespace-pre-wrap text-xs">{value.receipt}</pre>}</details>
-      {value.state !== 'SUCCEEDED' && <Button className="mt-2" variant="outline" disabled={publish.isPending || value.state === 'RUNNING' || !value.id} onClick={() => value.id && publish.mutate(value.id)}>{t('pluginNpm.confirm')}</Button>}
+      {value.state !== 'SUCCEEDED' && <Button className="mt-2" variant="outline" disabled={publish.isPending || !value.id} onClick={() => value.id && publish.mutate(value.id)}>{t('pluginNpm.confirm')}</Button>}
     </article>)}</div>
     {[settings.error, uploads.error, configure.error, upload.error, publish.error].filter(Boolean).map((error, index) => <p role="alert" className="mt-2 text-sm text-destructive" key={index}>{error instanceof Error ? error.message : t('pluginNpm.failed')}</p>)}
   </details>

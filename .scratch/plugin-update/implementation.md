@@ -38,6 +38,13 @@ Base branch: codex/software-center-phase1
 
 当前 frontier：插件下载/历史版本/组件治理、内网 npm 插件发布及依赖上传、内网 Git 原生市场发布，以及按应用匿名的 GitLab 更新读取。票 01、02、07 已完成并合入；票 03、04、05 的导入依赖已解除，其余由明确阻塞关系推进。
 
+票 03 已认领，由完成票 02 的实施代理在 `codex/plugin-download-governance` 独立分支继续，迁移预留 V78；08 代理路由子任务已交付 `dc2184d7`，须先汇入 08 主实施分支，不单独关闭 08。
+
+## Migration reservations
+
+- 已合入：01 使用 V74、07 使用 V75、02 使用 V76。
+- 在途/后续预留：08 使用 V77（如需要）、03 使用 V78、04 使用 V79、05 使用 V80。分配新迁移前重新检查集成和在途工作树；后续票不得复用这些编号。
+
 ## Verification seams
 
 领域服务（规则与不可变性）、HTTP（权限与完整流程）、原生解析器/外部渠道适配器（协议与冲突恢复）、页面操作（管理流程）。用户在上述边界已说明后于 2026-10-15 再次明确调用 implement-spec，按这些推荐边界继续；无需重复询问。真实客户端安装保留独立验收。
@@ -76,6 +83,12 @@ Base branch: codex/software-center-phase1
 - 生成 OpenAPI、临时前端类型替换及统一回归属于票 11；不手改生成文件。真实 npm/Git、生产 PostgreSQL 争用与客户端安装尚未验收。
 - 合并未触及用户原有 `CONTEXT.md` 和无关 `.scratch/`，90 个既有文件 SHA256 前后一致；未清理实施工作树。
 
+## Combined contract checkpoint — 2026-10-15
+
+- 票 07 和 02 已分别合并关闭（`95172ec4`/`de385314`、`5e01fc77`/`852969f9`）。票 04 正在实现 npm 发布，票 08 正在实现 GitLab 读取；代理路由子任务先汇入票 08 主实施分支，不独立宣布接口完成。
+- 通过实际 Springdoc 重新导出联合控制器契约：398 paths、430 schemas。三个流式上传端点补充真实二进制请求体元数据，经导出结果逐项核对 required/media type/binary schema；没有手写生成文件。
+- 导入界面的临时 API 类型已替换为生成别名；初始插件写操作也引用生成请求类型。联合契约的全前端 TypeScript 检查、导入界面定向 ESLint 和 `git diff --check` 通过。日志为 `.scratch/plugin-update-{combined,binary}-openapi.log`、`.scratch/plugin-combined-contract-{typecheck,lint}.log`。
+
 ## Merge checkpoint — ticket 07
 
 - 完整工作分支 tip `86d22c89`（含 `4f524920`、`3bc4cdda` 及最新集成）以 `95172ec4` 合入；票 07 关闭，票 08 可开始。不是只合并早期模型切片。
@@ -91,3 +104,8 @@ Base branch: codex/software-center-phase1
 - 实际隔离 Nginx 1.28 在根路径和 `/hub/` 均让声明 101 MiB 的导入请求进入后端，未实际传送大包实体。GitLab 编码路径及 `/updates`、`/releases` 仍保留票 08 验收，不能从此准入探针推断已通过。
 - 未手改生成契约；导入临时严格类型仍须由真实 Springdoc 导出后替换。真实内网渠道、原生安装和 Docker staging 继续保留后续验收。
 - 合并无冲突、`git diff --check` 通过；90 个用户原有文件 SHA256 保持不变；未清理工作树或重跑无必要构建。
+
+## Frontend regression checkpoint — 2026-10-15
+
+- 在已合入 01、02、07 及联合生成契约的集成分支运行完整 `pnpm test`：232 个文件、955 条测试全部通过。全量 `pnpm lint` 同时通过。日志为 `.scratch/plugin-integrated-frontend-{tests,lint}.log`。
+- 这轮不包含在途 04/08 或后续票，不能作为最终集成验收。现有 pnpm 配置迁移提示与 jsdom navigation 提示未导致失败；不把提示等同于新增功能故障。
