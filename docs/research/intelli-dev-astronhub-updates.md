@@ -2,6 +2,8 @@
 
 日期：2026-10-14。范围：`C:/Project/intelli-dev-release/intelli-dev/client` 当前源码和安装的更新库；不代表当前分发包或运行实例已完成验收。未读取含实际凭据的构建配置，未启动 Electron、更新应用或访问私有 GitLab。
 
+实施进度（2026-10-15）：本文缺口描述保留调研时的基线；软件快照及 GitLab 读取已分别按票 07、08 合入，当前能力与剩余验收见[更新渠道设计](../28-software-release-update-channels.md)及[操作指南](../skillhub/guide/software-updates.md)。尚未修改或迁移实际客户端。
+
 ## 结论
 
 Intelli Dev 已有检测、下载和安装执行链路，使用 electron-updater generic provider；现有外围检测和文件获取仍绑定 GitLab。因此 AstronHub 能通过提供有限的 GitLab 读取兼容接口替代它的分发源，但当前软件中心尚未提供这些接口，也没有完整的发布资产模型。不能仅将已有软件详情 API 当作更新源。

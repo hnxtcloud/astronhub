@@ -20,10 +20,10 @@ public final class PluginManagementDtos {
                                       String runtimeTestResult, @Size(max = 10000) String testEnvironment) {}
     public record PluginProjectView(Long id, Long namespaceId, String namespace, String slug, String displayName,
             String summary, String ownerId, PluginVisibility visibility, PluginProjectStatus status,
-            boolean hidden, Long latestReleaseId, boolean canManage, boolean canReview, List<PluginReleaseView> releases) {}
+            boolean hidden, Long latestReleaseId, boolean canManage, boolean canReview, boolean canGovern, List<PluginReleaseView> releases) {}
     public record PluginReleaseView(Long id, Long projectId, String version, PluginReleaseStatus status,
             String changelog, Instant createdAt, Instant publishedAt, List<PluginDistributionView> distributions,
-            List<PluginReviewView> reviews, PluginPublicationView publication) {}
+            List<PluginReviewView> reviews, PluginPublicationView publication, Instant yankedAt, String yankedBy, String yankReason) {}
     public record PluginDistributionView(Long id, String runtimeKey, String nativeName, String nativeVersion,
             String sha256, PluginCompatibilityEvidence compatibilityEvidence, PluginSecurityAssessment securityAssessment,
             String inventoryJson, String manifestJson) {}

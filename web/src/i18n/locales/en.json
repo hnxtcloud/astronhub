@@ -2975,5 +2975,37 @@
     "offlineCaution": "Direct dependency checks do not verify a complete offline installation. Ranges remain unresolved; review Node, platform, peer dependencies and external services separately. Runtime testing remains unverified. No public fallback is used.",
     "noRegistry": "No eligible internal npm target is configured for this Pi archive. Public publication requires the original npm TGZ.",
     "installHelp": "Use a user-owned npm registry context and user installation credentials. This command sets the registry only for this invocation; it contains no publisher token."
+  },
+  "pluginAccess": {
+    "publishedVersion": "Published version",
+    "downloadArchive": "Download archive",
+    "generateInstall": "Generate installation instructions",
+    "notRuntimeVerified": "The package manifest was validated. These commands have not been verified in your runtime.",
+    "browseFiles": "Browse package files",
+    "components": "Linked components",
+    "componentIndependence": "Links reference existing fixed versions. Each component keeps its own permissions and lifecycle; unavailable components are omitted. Linking does not create, publish or install a component.",
+    "unlink": "Remove link",
+    "governance": "Catalog governance",
+    "externalCopies": "Hiding, archiving, restricting visibility or yanking stops AstronHub access. Copies already distributed through Git, npm or downloads remain available outside AstronHub. Publication history is retained.",
+    "reason": "Governance reason",
+    "changeVisibility": "Change visibility",
+    "yank": "Yank version",
+    "yankedReason": "Yanked reason",
+    "componentKind": "Component kind",
+    "componentVersion": "Fixed version / MCP revision number",
+    "link": "Link existing component",
+    "actions": {
+      "HIDE": "Hide",
+      "SHOW": "Show",
+      "ARCHIVE": "Archive",
+      "RESTORE": "Restore"
+    },
+    "preparation": {
+      "CLAUDE_LOCAL": "Download the archive, verify its SHA256 and extract it to the directory in the command. Then start Claude.",
+      "PI_LOCAL": "Download and verify the tgz. Extract it to the directory in the command, preserving package/, then run the command.",
+      "CODEX_LOCAL": "Download and verify the archive. Within ./astronhub-local, extract the plugin to the local source path in the JSON below and save the JSON as .agents/marketplace.json. Run these commands from the parent directory.",
+      "PI_NPM": "This fixed package was published to the displayed internal registry. Use the command for your shell. Only this invocation selects that registry; configure your own read credentials if needed. Node, OS/CPU, dependencies and external services remain installation prerequisites."
+    },
+    "posixShell": "POSIX shell"
   }
 }
