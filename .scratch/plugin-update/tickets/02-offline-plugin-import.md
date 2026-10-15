@@ -4,7 +4,9 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+**Assignee:** plugin_ticket02 / codex/plugin-offline-import
 
 **Spec coverage:** P2、P3
 
