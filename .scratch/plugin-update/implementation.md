@@ -127,3 +127,7 @@ Base branch: codex/software-center-phase1
 
 - 在已合入 01、02、07 及联合生成契约的集成分支运行完整 `pnpm test`：232 个文件、955 条测试全部通过。全量 `pnpm lint` 同时通过。日志为 `.scratch/plugin-integrated-frontend-{tests,lint}.log`。
 - 这轮不包含在途 04/08 或后续票，不能作为最终集成验收。现有 pnpm 配置迁移提示与 jsdom navigation 提示未导致失败；不把提示等同于新增功能故障。
+
+## Native Pi installation checkpoint — 2026-10-15
+
+- 实际发布组件 → 本地无上游 Verdaccio → 隔离 Pi 1.2.0 的固定版本安装通过，原始 TGZ 和安装后 Skill 字节一致，测试 registry 已停止；完整边界及首次失败探针见票 11。此结果不代替最终集成、复杂插件运行或目标内网环境验收。
