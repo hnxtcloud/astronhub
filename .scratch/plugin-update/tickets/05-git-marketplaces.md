@@ -4,7 +4,9 @@
 
 **Blocked by:** 01,02
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+**Assignee:** npm_publication / codex/plugin-git-marketplaces
 
 **Migration reservation:** V80
 

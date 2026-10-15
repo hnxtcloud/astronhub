@@ -40,6 +40,8 @@ Base branch: codex/software-center-phase1
 
 票 03 已认领，由完成票 02 的实施代理在 `codex/plugin-download-governance` 独立分支继续，迁移预留 V78；08 代理路由子任务已交付 `dc2184d7`，须先汇入 08 主实施分支，不单独关闭 08。
 
+票 05 已认领，由票 04 实施代理在 `codex/plugin-git-marketplaces` 独立分支继续，复用已合入的渠道适配器和单队列；迁移预留 V80。
+
 ## Migration reservations
 
 - 已合入：01 使用 V74、07 使用 V75、02 使用 V76。
