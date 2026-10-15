@@ -4,9 +4,9 @@
 
 **Blocked by:** 07
 
-**Status:** claimed
+**Status:** done
 
-**Handoff:** ready-for-merge（合并代理复核后关闭）
+**Handoff:** merged（合并代理已复核并关闭）
 
 **Assignee:** software_ticket07_resume / codex/gitlab-update-reads
 
@@ -29,3 +29,4 @@
 - 最终路径/响应体注解后的实际 Springdoc 导出 `.scratch-software-gitlab-openapi.log` 单项通过；导出为 401 paths / 433 schemas，已逐项检查 tags 裸数组、binary 响应和所有模板路径必填参数，再以 openapi-typescript 重新生成 SDK，未手改生成文件。
 - 生成契约后的全前端 TypeScript、代理前缀配置/测试文件定向 ESLint、`git diff --check` 通过，日志 `.scratch-software-gitlab-typecheck.log`、`.scratch-software-gitlab-lint.log`。
 - 功能提交 `0faf8753`；已在 `0ea658fc` 合入最新集成 `a3bff27f`（包含票 04），无冲突；合并后全前端 TypeScript 再次通过，日志 `.scratch-software-gitlab-merged-typecheck.log`。生成契约自动合并保留双方新增接口；最终联合 Springdoc 重导出由集成票统一核对。
+- 完整工作分支 tip `76c4fc93` 已以 `10526b81` 合入主集成，无冲突。合并代理核查两轮实际 59 项后端成功、最后实际 Springdoc 导出成功、合并票 04 后完整类型检查，以及真实 Nginx 48 项和已安装 DataSplitter 接受 HTTP multipart 字节 `0189` 的日志。该解析器结果不等同完整差分/回退/安装。`git diff --check` 通过；90 个用户原有文件 SHA256 同合并前及票 02 清单一致。未手改生成契约、未启动额外构建或清理工作树。

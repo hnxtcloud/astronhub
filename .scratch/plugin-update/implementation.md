@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：插件下载/历史版本/组件治理、内网 Git 原生市场发布，以及按应用匿名的 GitLab 更新读取。票 01、02、04、07 已完成并合入；票 06 仍等待票 03、05，票 08 尚未交付，其余由明确阻塞关系推进。
+当前 frontier：插件下载/历史版本/组件治理、内网 Git 原生市场发布，以及 Generic 与白泽灵台更新源。票 01、02、04、07、08 已完成并合入；票 09 解除阻塞，票 06 仍等待票 03、05，其余由明确阻塞关系推进。
 
 票 03 已认领，由完成票 02 的实施代理在 `codex/plugin-download-governance` 独立分支继续，迁移预留 V78；08 代理路由子任务已交付 `dc2184d7`，须先汇入 08 主实施分支，不单独关闭 08。
 
@@ -113,6 +113,14 @@ Base branch: codex/software-center-phase1
 - 实际最终日志 26 项通过：领域 2、app 24，包含真实本机无 uplink Verdaccio 发布、原字节复用/冲突及第二版本发布后首版完整性。合并最新集成后实际 Springdoc/领域/HTTP 7 项通过；页面 2 项、全量 TypeScript 和定向 ESLint 通过。
 - SDK 由实际 Springdoc 导出生成；合并无冲突，无生成文件手工修改。原生 Pi 安装、用户真实内网 registry、生产 PostgreSQL 迁移、Docker staging 尚未验收；版本范围未解析、不宣称完整离线安装。完整心跳/尝试历史/显式重新规划保留票 06。
 - `git diff --check` 通过；用户原有 90 个文件 SHA256 同时与合并前及票 02 旧清单一致。未推送、建 PR、清理工作树或重复构建。
+
+## Merge checkpoint — ticket 08
+
+- 完整工作分支 tip `76c4fc93`（含票 04 和代理 helper）以 `10526b81` 合入主集成；票 08 关闭，票 09 解除阻塞。唯一额外集成文档认领提交正常保留。
+- 合并代理核查实际两轮 reactor 均通过 59 项（auth 33 + app 26），包含根路径和 `/hub` 的真实嵌入 Tomcat 各 8 项、日志边界 9 项及实际 Springdoc 导出。最后注解后的单项真实导出与票 04 合并后全前端 TypeScript 也通过。
+- 实际 Nginx 48 项代理检查通过；已安装 electron-updater 6.8.9 DataSplitter 接受真实 HTTP multipart fixture，精确结果 `0189`。这仅验收解析器契约，完整差分、全量回退、原生安装和签名仍未验收。
+- 生成契约无冲突合入，最终联合 Springdoc 重导出由集成统一处理；未手工修改 schema。生产数据库、真实 S3、Helm 渲染和 Docker staging 限制保持明确。
+- `git diff --check` 通过，用户原有 90 个文件 SHA256 与合并前及票 02 清单完全一致；未重复构建、推送、建 PR 或清理工作树。
 
 ## Frontend regression checkpoint — 2026-10-15
 
