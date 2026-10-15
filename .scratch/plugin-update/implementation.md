@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：发布恢复/重试/渠道撤回，以及 Generic 与白泽灵台更新源。票 01、02、03、04、05、07、08 已完成并合入；票 06 依赖全部解除，其余由明确阻塞关系推进。
+当前 frontier：发布恢复/重试/渠道撤回，以及受控机器发版入口与运维说明。票 01、02、03、04、05、07、08、09 已完成并合入；票 06、10 依赖全部解除，其余由明确阻塞关系推进。
 
 票 03 已合入并关闭；后续恢复票复用其实施工作树。08 代理路由子任务已随 08 主实施分支合入。
 
@@ -138,6 +138,14 @@ Base branch: codex/software-center-phase1
 - 合并代理核查最终实际 14 项全通过且无跳过：真实 Springdoc 1、非事务 Git HTTP 5、回执验证 3、真实 bare Git 5。早轮 03/04 独立回归 13 项通过；其漏登录失败和 OpenAPI 跳过未算整体成功，最终重跑已补齐。
 - 最终 UI 3 文件 4 项、完整 TypeScript、定向 ESLint 和实际 SDK 生成通过。原生 Claude/Codex 隔离注册/安装证据与真实企业 Git/认证/宿主运行、Docker staging 保持分开；普通用户设置未改变。
 - 合并无冲突、`git diff --check` 通过，90 个用户原有文件 SHA256 与合并前及票 02 清单一致；未额外构建、推送、建 PR 或清理工作树。
+
+## Merge checkpoint — ticket 09
+
+- 完整工作分支 tip `c4cee5a8` 以 `372230df` 合入，保留主分支额外原生 Git 升级证据 `465498a3`；票 09 关闭，票 10 解除阻塞。
+- 合并代理核查实际完整 reactor 86 项通过；后续日期缓存及客户端版本边界修复后，最新代码 48 项通过（根与 `/hub` 各 14、元数据 11、日志 9），均无失败/错误/跳过。已安装 GenericProvider/下载摘要与白泽原始解析器在真实 HTTP 上运行；合成样本不等于原生安装、差分或回退。
+- 最终 source/admin 单文件各 5 项 UI 通过，初始 worker 超时轮未计通过；实际生成契约后及合并前端类型检查、定向 lint 通过。生成 SDK/语言资源自动合并，未手改 schema；最终联合 Springdoc 留集成统一核对。
+- 生产 PostgreSQL/S3、Docker/Helm、签名及真实 Windows/macOS 安装、完整差分/回退保持未验收。无票 09 迁移，无客户端仓库改动。
+- `git diff --check` 通过，90 个用户原有文件 SHA256 同合并前及票 02 清单一致；未额外构建、推送、建 PR 或清理工作树。
 
 ## Frontend regression checkpoint — 2026-10-15
 

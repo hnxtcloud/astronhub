@@ -4,9 +4,9 @@
 
 **Blocked by:** 08
 
-**Status:** claimed
+**Status:** done
 
-**Handoff:** ready-for-merge（合并代理复核后关闭）
+**Handoff:** merged（合并代理已复核并关闭）
 
 **Assignee:** software_ticket07_resume / codex/native-update-feeds
 
@@ -33,3 +33,4 @@
 - 原生版本边界进一步实测：semver 将两个超限数字预发布标识比较为相等；白泽原始比较函数使用 BigInt，但有 100 字符上限。新增两项红测后，发布规则扩展到数字预发布标识和白泽版本长度。最终 `.scratch-software-native-exact-clients-final.log` 48 项通过，0 failures/errors/skips，脚本使用白泽原始比较函数的隔离执行与原始 parseFeed；没有加载白泽服务模块。覆盖当前最新代码、两个实际 native HTTP 子进程及更新后的版本校验 11 项。
 - V81 未使用；真实 PostgreSQL/S3、Docker staging、原生 Windows/macOS 签名及安装、旧版 blockmap 定位、完整差分/全量回退保留票 11 独立验收。
 - 功能提交 `c9e9e8c9`；已在 `bd2302b2` 合入最新集成 `ec1f8727`。唯一冲突是 docs28 进度段落，已合并两边事实；生成 SDK、语言资源和鉴权策略自动合并。合并后全前端 TypeScript 再次通过（`.scratch-software-native-merged-typecheck.log`），工作树干净，最终联合 Springdoc 由集成票统一核对。
+- 集成关闭：完整分支 tip `c4cee5a8` 以 `372230df` 合入当前集成（保留额外原生升级证据提交 `465498a3`）。合并代理核查完整 86 项、后续最新代码 48 项均通过，单文件 source/admin 各 5 项 UI 通过，类型检查及定向 lint 无错误。生成 SDK 和语言资源自动合并，无手改；最终联合契约仍由集成统一核对。`git diff --check` 通过，90 个用户原有文件 SHA256 与合并前及票 02 清单一致；未额外构建、推送、建 PR 或清理工作树。票 10 解除阻塞；原生解析/合成字节完整下载不等于真实安装、差分或回退。
