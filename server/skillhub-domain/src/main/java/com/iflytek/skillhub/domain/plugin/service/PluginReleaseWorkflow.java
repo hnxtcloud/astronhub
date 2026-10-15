@@ -1,14 +1,34 @@
 package com.iflytek.skillhub.domain.plugin.service;
 
-import com.iflytek.skillhub.domain.namespace.*;
-import com.iflytek.skillhub.domain.plugin.*;
-import com.iflytek.skillhub.domain.shared.exception.*;
+import com.iflytek.skillhub.domain.namespace.Namespace;
+import com.iflytek.skillhub.domain.namespace.NamespaceRepository;
+import com.iflytek.skillhub.domain.namespace.NamespaceStatus;
+import com.iflytek.skillhub.domain.plugin.PluginCompatibilityEvidence;
+import com.iflytek.skillhub.domain.plugin.PluginDistribution;
+import com.iflytek.skillhub.domain.plugin.PluginDistributionRepository;
+import com.iflytek.skillhub.domain.plugin.PluginProject;
+import com.iflytek.skillhub.domain.plugin.PluginProjectRepository;
+import com.iflytek.skillhub.domain.plugin.PluginProjectStatus;
+import com.iflytek.skillhub.domain.plugin.PluginPublicationTask;
+import com.iflytek.skillhub.domain.plugin.PluginPublicationTaskRepository;
+import com.iflytek.skillhub.domain.plugin.PluginRelease;
+import com.iflytek.skillhub.domain.plugin.PluginReleaseRepository;
+import com.iflytek.skillhub.domain.plugin.PluginReleaseStatus;
+import com.iflytek.skillhub.domain.plugin.PluginReviewDecision;
+import com.iflytek.skillhub.domain.plugin.PluginReviewDecisionRepository;
+import com.iflytek.skillhub.domain.plugin.PluginVersions;
+import com.iflytek.skillhub.domain.plugin.PluginVisibility;
+import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
+import com.iflytek.skillhub.domain.shared.exception.DomainForbiddenException;
+import com.iflytek.skillhub.domain.shared.exception.DomainNotFoundException;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PluginReleaseWorkflow {
@@ -19,33 +39,45 @@ public class PluginReleaseWorkflow {
     private final PluginReviewDecisionRepository reviews;
     private final PluginPublicationTaskRepository tasks;
 
-    public PluginReleaseWorkflow(NamespaceRepository namespaces, PluginProjectRepository projects,
-            PluginReleaseRepository releases, PluginDistributionRepository distributions,
-            PluginReviewDecisionRepository reviews, PluginPublicationTaskRepository tasks) {
-        this.namespaces = namespaces; this.projects = projects; this.releases = releases;
-        this.distributions = distributions; this.reviews = reviews; this.tasks = tasks;
+    public PluginReleaseWorkflow(
+            NamespaceRepository namespaces,
+            PluginProjectRepository projects,
+            PluginReleaseRepository releases,
+            PluginDistributionRepository distributions,
+            PluginReviewDecisionRepository reviews,
+            PluginPublicationTaskRepository tasks) {
+        this.namespaces = namespaces;
+        this.projects = projects;
+        this.releases = releases;
+        this.distributions = distributions;
+        this.reviews = reviews;
+        this.tasks = tasks;
     }
 
     public PluginProject requireProject(Long projectId) {
-        return projects.findById(projectId).orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
+        return projects.findById(projectId)
+                .orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
     }
 
     @Transactional
-    public PluginProject updateProject(Long projectId, String displayName, String summary, PluginActor actor) {
-        PluginProject project = projects.findByIdForUpdate(projectId)
-                .orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
+    public PluginProject updateProject(
+            Long projectId, String displayName, String summary, PluginActor actor) {
+        PluginProject project =
+                projects.findByIdForUpdate(projectId)
+                        .orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
         requireWritable(project, actor);
         project.updateProfile(displayName, summary, actor.userId());
         return projects.save(project);
     }
 
     @Transactional
-    public PluginRelease createRelease(Long projectId, String version, String changelog, PluginActor actor) {
-        PluginProject project = projects.findByIdForUpdate(projectId)
-                .orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
+    public PluginRelease createRelease(
+            Long projectId, String version, String changelog, PluginActor actor) {
+        PluginProject project =
+                projects.findByIdForUpdate(projectId)
+                        .orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
         requireWritable(project, actor);
-        if (!PluginVersions.valid(version)
-                || (changelog != null && changelog.length() > 30000)) {
+        if (!PluginVersions.valid(version) || (changelog != null && changelog.length() > 30000)) {
             throw new DomainBadRequestException("error.plugin.version");
         }
         if (releases.findByProjectIdAndVersion(projectId, version).isPresent()) {
@@ -60,46 +92,88 @@ public class PluginReleaseWorkflow {
     public PluginRelease updateDraft(Long releaseId, String changelog, PluginActor actor) {
         PluginRelease release = locked(releaseId);
         requireWritable(requireProject(release.getProjectId()), actor);
-        if (changelog != null && changelog.length() > 30000) { throw new DomainBadRequestException("error.plugin.metadata"); }
+        if (changelog != null && changelog.length() > 30000) {
+            throw new DomainBadRequestException("error.plugin.metadata");
+        }
         release.setChangelog(changelog);
         return releases.save(release);
     }
 
     @Transactional
-    public PluginDistribution attachArchive(Long releaseId, String objectKey, String sha256, String nativeName,
-            String nativeVersion, String inventoryJson, String manifestJson, PluginActor actor) {
-        return attachArchive(releaseId, "claude-code", objectKey, sha256, nativeName, nativeVersion, inventoryJson, manifestJson, actor);
+    public PluginDistribution attachArchive(
+            Long releaseId,
+            String objectKey,
+            String sha256,
+            String nativeName,
+            String nativeVersion,
+            String inventoryJson,
+            String manifestJson,
+            PluginActor actor) {
+        return attachArchive(
+                releaseId,
+                "claude-code",
+                objectKey,
+                sha256,
+                nativeName,
+                nativeVersion,
+                inventoryJson,
+                manifestJson,
+                actor);
     }
 
     @Transactional
-    public PluginDistribution attachArchive(Long releaseId, String runtime, String objectKey, String sha256, String nativeName,
-            String nativeVersion, String inventoryJson, String manifestJson, PluginActor actor) {
+    public PluginDistribution attachArchive(
+            Long releaseId,
+            String runtime,
+            String objectKey,
+            String sha256,
+            String nativeName,
+            String nativeVersion,
+            String inventoryJson,
+            String manifestJson,
+            PluginActor actor) {
         PluginRelease release = locked(releaseId);
         requireWritable(requireProject(release.getProjectId()), actor);
         release.requireDraft();
-        if (!Set.of("claude-code", "codex", "pi").contains(runtime) || !release.getVersion().equals(nativeVersion)) {
+        if (!Set.of("claude-code", "codex", "pi").contains(runtime)
+                || !release.getVersion().equals(nativeVersion)) {
             throw new DomainBadRequestException("error.plugin.archiveConflict");
         }
-        List<PluginDistribution> existing = distributions.findByReleaseIdOrderByRuntimeKey(releaseId);
+        List<PluginDistribution> existing =
+                distributions.findByReleaseIdOrderByRuntimeKey(releaseId);
         if (existing.stream().anyMatch(d -> runtime.equals(d.getRuntimeKey()))) {
             throw new DomainBadRequestException("error.plugin.archiveConflict");
         }
-        return distributions.save(PluginDistribution.hostedArchive(releaseId, runtime, objectKey,
-                sha256, nativeName, nativeVersion, inventoryJson, manifestJson));
+        return distributions.save(
+                PluginDistribution.hostedArchive(
+                        releaseId,
+                        runtime,
+                        objectKey,
+                        sha256,
+                        nativeName,
+                        nativeVersion,
+                        inventoryJson,
+                        manifestJson));
     }
 
     public boolean canManageRead(PluginProject project, PluginActor actor) {
-        return actor.userId() != null && (actor.reviewer() || actor.namespaceAdmin(project.getNamespaceId())
-                || (actor.userId().equals(project.getOwnerId()) && actor.namespaceRoles().containsKey(project.getNamespaceId())));
+        return actor.userId() != null
+                && (actor.reviewer()
+                        || actor.namespaceAdmin(project.getNamespaceId())
+                        || (actor.userId().equals(project.getOwnerId())
+                                && actor.namespaceRoles().containsKey(project.getNamespaceId())));
     }
 
     public void requireDownload(PluginRelease release, PluginActor actor, boolean inspection) {
         PluginProject project = requireProject(release.getProjectId());
         if (inspection) {
-            if (!canManageRead(project, actor)) { throw new DomainForbiddenException("error.plugin.permission"); }
+            if (!canManageRead(project, actor)) {
+                throw new DomainForbiddenException("error.plugin.permission");
+            }
             return;
         }
-        if (release.getStatus() != PluginReleaseStatus.PUBLISHED || project.isHidden()
+        if (release.getStatus() != PluginReleaseStatus.PUBLISHED
+                || project.isHidden()
                 || project.getStatus() != PluginProjectStatus.ACTIVE) {
             throw new DomainNotFoundException("error.plugin.releaseNotFound");
         }
@@ -136,17 +210,28 @@ public class PluginReleaseWorkflow {
 
     @Transactional
     public PluginRelease completeHosted(Long releaseId) {
+        return completeChannel(releaseId, "HOSTED");
+    }
+
+    @Transactional
+    public PluginRelease completeChannel(Long releaseId, String channel) {
         PluginRelease release = locked(releaseId);
-        PluginProject project = projects.findByIdForUpdate(release.getProjectId())
-                .orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
+        PluginProject project =
+                projects.findByIdForUpdate(release.getProjectId())
+                        .orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
         requireActive(project);
-        PluginPublicationTask task = tasks.findByReleaseId(releaseId)
-                .orElseThrow(() -> new DomainBadRequestException("error.plugin.reviewState"));
-        if ("SUCCEEDED".equals(task.getStatus())) { return release; }
+        PluginPublicationTask task =
+                tasks.findByReleaseId(releaseId)
+                        .orElseThrow(
+                                () -> new DomainBadRequestException("error.plugin.reviewState"));
+        if ("SUCCEEDED".equals(task.getStatus())) {
+            return release;
+        }
         if (release.getStatus() != PluginReleaseStatus.PENDING_REVIEW) {
             throw new DomainBadRequestException("error.plugin.reviewState");
         }
-        task.completeHosted(); tasks.save(task);
+        task.completeChannel(channel);
+        tasks.save(task);
         if ("SUCCEEDED".equals(task.getStatus())) {
             release.publish(); releases.save(release);
             refreshPublishedSelection(project);
@@ -156,16 +241,25 @@ public class PluginReleaseWorkflow {
 
     public void requireWritable(PluginProject project, PluginActor actor) {
         requireActive(project);
-        if (actor.userId() == null || (!actor.superAdmin() && !actor.namespaceAdmin(project.getNamespaceId())
-                && !(actor.userId().equals(project.getOwnerId()) && actor.namespaceRoles().containsKey(project.getNamespaceId())))) {
+        if (actor.userId() == null
+                || (!actor.superAdmin()
+                        && !actor.namespaceAdmin(project.getNamespaceId())
+                        && !(actor.userId().equals(project.getOwnerId())
+                                && actor.namespaceRoles().containsKey(project.getNamespaceId())))) {
             throw new DomainForbiddenException("error.plugin.permission");
         }
     }
 
     public void requireActive(PluginProject project) {
-        Namespace namespace = namespaces.findById(project.getNamespaceId())
-                .orElseThrow(() -> new DomainNotFoundException("error.plugin.namespaceNotFound"));
-        if (namespace.getStatus() != NamespaceStatus.ACTIVE || project.getStatus() != PluginProjectStatus.ACTIVE) {
+        Namespace namespace =
+                namespaces
+                        .findById(project.getNamespaceId())
+                        .orElseThrow(
+                                () ->
+                                        new DomainNotFoundException(
+                                                "error.plugin.namespaceNotFound"));
+        if (namespace.getStatus() != NamespaceStatus.ACTIVE
+                || project.getStatus() != PluginProjectStatus.ACTIVE) {
             throw new DomainBadRequestException("error.plugin.namespaceInactive");
         }
     }
@@ -181,8 +275,13 @@ public class PluginReleaseWorkflow {
     }
 
     @Transactional
-    public PluginPublicationTask approve(Long releaseId, String notes, String testResult, String environment,
-                                          PluginActor actor, boolean direct) {
+    public PluginPublicationTask approve(
+            Long releaseId,
+            String notes,
+            String testResult,
+            String environment,
+            PluginActor actor,
+            boolean direct) {
         if (!actor.reviewer() || (direct && !actor.superAdmin())) {
             throw new DomainForbiddenException("error.plugin.permission");
         }
@@ -194,12 +293,22 @@ public class PluginReleaseWorkflow {
         if (tasks.findByReleaseId(releaseId).isPresent()) {
             throw new DomainBadRequestException("error.plugin.alreadyApproved");
         }
-        if (direct) { release.submit(); releases.save(release); }
+        if (direct) {
+            release.submit();
+            releases.save(release);
+        }
         if (release.getStatus() != PluginReleaseStatus.PENDING_REVIEW) {
             throw new DomainBadRequestException("error.plugin.reviewState");
         }
-        saveReview(releaseId, actor, direct ? "DIRECT_APPROVED" : "APPROVED", notes, testResult, environment);
-        List<PluginDistribution> archives = distributions.findByReleaseIdOrderByRuntimeKey(releaseId);
+        saveReview(
+                releaseId,
+                actor,
+                direct ? "DIRECT_APPROVED" : "APPROVED",
+                notes,
+                testResult,
+                environment);
+        List<PluginDistribution> archives =
+                distributions.findByReleaseIdOrderByRuntimeKey(releaseId);
         Set<String> channels = new TreeSet<>();
         channels.add("HOSTED");
         if (project.getVisibility() == PluginVisibility.PUBLIC) {
@@ -207,35 +316,65 @@ public class PluginReleaseWorkflow {
                 channels.add("pi".equals(archive.getRuntimeKey()) ? "NPM" : "GIT");
             }
         }
-        String snapshot = archives.stream().map(a -> a.getRuntimeKey() + ":" + a.getIntegrityDigest())
-                .sorted().collect(Collectors.joining("\n"));
-        return tasks.save(new PluginPublicationTask(releaseId, actor.userId(), String.join(",", channels),
-                project.getVisibility().name() + "\n" + release.getVersion() + "\n" + snapshot));
+        String snapshot =
+                archives.stream()
+                        .map(a -> a.getRuntimeKey() + ":" + a.getIntegrityDigest())
+                        .sorted()
+                        .collect(Collectors.joining("\n"));
+        return tasks.save(
+                new PluginPublicationTask(
+                        releaseId,
+                        actor.userId(),
+                        String.join(",", channels),
+                        project.getVisibility().name()
+                                + "\n"
+                                + release.getVersion()
+                                + "\n"
+                                + snapshot));
     }
 
     @Transactional
-    public PluginReviewDecision reject(Long releaseId, String notes, String testResult, String environment, PluginActor actor) {
-        if (!actor.reviewer()) { throw new DomainForbiddenException("error.plugin.permission"); }
+    public PluginReviewDecision reject(
+            Long releaseId,
+            String notes,
+            String testResult,
+            String environment,
+            PluginActor actor) {
+        if (!actor.reviewer()) {
+            throw new DomainForbiddenException("error.plugin.permission");
+        }
         PluginRelease release = locked(releaseId);
         requireActive(requireProject(release.getProjectId()));
-        if (release.getStatus() != PluginReleaseStatus.PENDING_REVIEW || tasks.findByReleaseId(releaseId).isPresent()) {
+        if (release.getStatus() != PluginReleaseStatus.PENDING_REVIEW
+                || tasks.findByReleaseId(releaseId).isPresent()) {
             throw new DomainBadRequestException("error.plugin.reviewState");
         }
-        PluginReviewDecision decision = saveReview(releaseId, actor, "REJECTED", notes, testResult, environment);
-        release.reject(); releases.save(release);
+        PluginReviewDecision decision =
+                saveReview(releaseId, actor, "REJECTED", notes, testResult, environment);
+        release.reject();
+        releases.save(release);
         return decision;
     }
 
-    private PluginReviewDecision saveReview(Long releaseId, PluginActor actor, String decision, String notes,
-                                            String testResult, String environment) {
+    private PluginReviewDecision saveReview(
+            Long releaseId,
+            PluginActor actor,
+            String decision,
+            String notes,
+            String testResult,
+            String environment) {
         String result = testResult == null ? "UNKNOWN" : testResult;
-        if (notes == null || notes.isBlank() || notes.length() > 10000
+        if (notes == null
+                || notes.isBlank()
+                || notes.length() > 10000
                 || !Set.of("UNKNOWN", "PASSED", "FAILED").contains(result)
                 || (!"UNKNOWN".equals(result) && (environment == null || environment.isBlank()))
                 || (environment != null && environment.length() > 10000)) {
             throw new DomainBadRequestException("error.plugin.reviewEvidence");
         }
-        return reviews.save(new PluginReviewDecision(releaseId, actor.userId(), decision, notes, result, environment));
+        return reviews.save(
+                new PluginReviewDecision(
+                        releaseId, actor.userId(), decision, notes, result, environment));
     }
 
     public PluginRelease readRelease(Long releaseId) { return releases.findById(releaseId).orElseThrow(() -> new DomainNotFoundException("error.plugin.releaseNotFound")); }
@@ -246,11 +385,18 @@ public class PluginReleaseWorkflow {
     }
 
     private void requireValidated(PluginRelease release) {
-        List<PluginDistribution> archives = distributions.findByReleaseIdOrderByRuntimeKey(release.getId());
-        if (archives.isEmpty() || archives.stream().anyMatch(d ->
-                d.getCompatibilityEvidence() != PluginCompatibilityEvidence.MANIFEST_VALIDATED
-                || d.getIntegrityDigest() == null || !d.getIntegrityDigest().matches("[a-f0-9]{64}")
-                || !"HOSTED_ARCHIVE".equals(d.getSourceType()))) {
+        List<PluginDistribution> archives =
+                distributions.findByReleaseIdOrderByRuntimeKey(release.getId());
+        if (archives.isEmpty()
+                || archives.stream()
+                        .anyMatch(
+                                d ->
+                                        d.getCompatibilityEvidence()
+                                                        != PluginCompatibilityEvidence
+                                                                .MANIFEST_VALIDATED
+                                                || d.getIntegrityDigest() == null
+                                                || !d.getIntegrityDigest().matches("[a-f0-9]{64}")
+                                                || !"HOSTED_ARCHIVE".equals(d.getSourceType()))) {
             throw new DomainBadRequestException("error.plugin.validationRequired");
         }
     }
