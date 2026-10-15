@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：离线单包和仓库批量导入；软件发行资产上传与完整发布（进行中）。插件草稿、版本与审核管理闭环已完成并合入；其余由明确阻塞关系推进。
+当前 frontier：离线单包和仓库批量导入（进行中）；按应用匿名的 GitLab 更新读取。插件草稿/审核与软件发行资产完整发布均已完成并合入；票 08 解除阻塞，其余由明确阻塞关系推进。
 
 ## Verification seams
 
@@ -75,3 +75,11 @@ Base branch: codex/software-center-phase1
 - 验证：领域 2、既有项目约束 1、路由政策 33、HTTP 4 通过；新增归档歧义红测修复后 ZIP 9 通过；页面交互 1、TypeScript 和定向 ESLint 通过。原始最终 reactor 曾包含归档红测失败，不将该轮整体描述为成功。
 - 生成 OpenAPI、临时前端类型替换及统一回归属于票 11；不手改生成文件。真实 npm/Git、生产 PostgreSQL 争用与客户端安装尚未验收。
 - 合并未触及用户原有 `CONTEXT.md` 和无关 `.scratch/`，90 个既有文件 SHA256 前后一致；未清理实施工作树。
+
+## Merge checkpoint — ticket 07
+
+- 完整工作分支 tip `86d22c89`（含 `4f524920`、`3bc4cdda` 及最新集成）以 `95172ec4` 合入；票 07 关闭，票 08 可开始。不是只合并早期模型切片。
+- 实际最终 reactor 日志通过 25 项：模拟 S3 SDK 8、领域 2、原生元数据 8、真实 H2/本地存储 HTTP 6、实际 Springdoc 导出 1；0 failures/errors。页面 8 项、全前端类型检查及定向 lint 通过；没有把 SDK 模拟描述为真实 S3。
+- 实际 Springdoc 3.0.1 导出 394 paths / 420 schemas 后重新生成前端契约，软件管理控制器、页面及生成类型均已合入。最终统一契约和回归仍在票 11。
+- 真实 PostgreSQL/Flyway V75、S3、Docker staging 和 Windows/macOS 原生安装尚未验证；GitLab 读取、generic/白泽 feed、机器发布继续分别由票 08–10 实施。
+- 合并无冲突，`git diff --check` 通过；用户现有 90 个文件 SHA256 保持不变，未清理工作树。
