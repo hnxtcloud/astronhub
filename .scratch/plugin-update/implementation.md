@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：发布恢复/重试/渠道撤回，以及受控机器发版入口与运维说明。票 01、02、03、04、05、07、08、09 已完成并合入；票 06、10 依赖全部解除，其余由明确阻塞关系推进。
+当前 frontier：发布恢复/重试/渠道撤回。票 01、02、03、04、05、07、08、09、10 已完成并合入；票 11 仍等待票 06，不提前关闭最终集成验收。
 
 票 03 已合入并关闭；后续恢复票复用其实施工作树。08 代理路由子任务已随 08 主实施分支合入。
 
@@ -146,6 +146,14 @@ Base branch: codex/software-center-phase1
 - 最终 source/admin 单文件各 5 项 UI 通过，初始 worker 超时轮未计通过；实际生成契约后及合并前端类型检查、定向 lint 通过。生成 SDK/语言资源自动合并，未手改 schema；最终联合 Springdoc 留集成统一核对。
 - 生产 PostgreSQL/S3、Docker/Helm、签名及真实 Windows/macOS 安装、完整差分/回退保持未验收。无票 09 迁移，无客户端仓库改动。
 - `git diff --check` 通过，90 个用户原有文件 SHA256 同合并前及票 02 清单一致；未额外构建、推送、建 PR 或清理工作树。
+
+## Merge checkpoint — ticket 10
+
+- 完整工作分支 tip `71469f6b`（已含主集成 `a743c704`）以 `700f2ca2` 合入；票 10 关闭，票 11 仍等待票 06。
+- 合并代理核查实际最终 81 项零失败/错误/跳过（auth 62、日志 11、真实 Tomcat 机器 HTTP/实际 Python 工具 7、实际 Springdoc 导出 1）。实际导出文件复核为 446 paths / 480 schemas，SDK 未手改。
+- 最终新 UI 1、既有管理 UI 5、CLI 子进程 2、真实 Nginx 57 项通过；完整 TypeScript 与定向 lint 通过。Nginx 大 body 仅为请求头准入探针，不作大文件实际传输验收。
+- 生产 PostgreSQL/Flyway、真实 S3、Docker/Helm、签名原生安装、完整差分/回退及首次客户端迁移继续票 11 独立验收；合成字节与工具合同不替代这些行为。
+- 合并无冲突、`git diff --check` 通过；90 个用户原有文件 SHA256 与合并前及票 02 清单一致。未额外构建、推送、建 PR 或清理工作树。
 
 ## Frontend regression checkpoint — 2026-10-15
 

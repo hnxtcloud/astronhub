@@ -4,7 +4,7 @@
 
 **Blocked by:** 07,08,09
 
-**Status:** claimed
+**Status:** done
 
 **Assignee:** software_ticket07_resume
 
@@ -35,3 +35,4 @@
 - `.scratch-machine-merged-final.log`：81 项通过（auth 62、logger 11、真实机器 HTTP/工具 7、实导 OpenAPI 1），无失败/错误/跳过。实际 OpenAPI 仍为 446 paths / 480 schemas，重新生成 SDK 后无额外差异。
 - `.scratch-machine-ui-final.log`：新凭据 UI 1 项再次通过；原 admin UI 5 项在 `.scratch-machine-admin-ui-green.log`。`.scratch-machine-cli-boundary-final.log` 2 项和 `.scratch-machine-proxy-final.log` 57 项再次通过。
 - 范围内 ESLint 与初次完整 TypeScript typecheck 均通过；最终合并后完整 TypeScript typecheck 也通过（`.scratch-machine-merged-typecheck.log`）。用户指南已同步机器凭据、完整工具和流式代理操作。
+- 完整工作分支 tip `71469f6b` 以 `700f2ca2` 无冲突合入主集成，由合并代理关闭。实际复核最终 81 项后端零失败/错误/跳过、446 paths / 480 schemas 的实际导出、UI 1 + 5、CLI 2、Nginx 57、类型检查和定向 lint 日志。生成契约未手改；`git diff --check` 通过，90 个用户原有文件 SHA256 同合并前及票 02 清单一致。未额外构建、推送、建 PR 或清理工作树；票 11 仍等待票 06。
