@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：发布恢复/重试/渠道撤回。票 01、02、03、04、05、07、08、09、10 已完成并合入；票 11 仍等待票 06，不提前关闭最终集成验收。
+当前 frontier：完整集成与原生渠道验收（票 11，ready-for-agent）。票 01–10 已完成并合入；票 11 的依赖全部解除，仍须完成最终回归、双轴审查及限制记录，不提前关闭。
 
 票 03 已合入并关闭；后续恢复票复用其实施工作树。08 代理路由子任务已随 08 主实施分支合入。
 
@@ -131,6 +131,14 @@ Base branch: codex/software-center-phase1
 - 最终 UI 分轮 13 + 1 项通过；此前 worker 启动超时轮未计通过。完整类型检查及定向零警告 ESLint 通过。实际联合 03/04/08 契约生成已随分支合入，未手改生成文件。
 - 生产 PostgreSQL/Flyway、Docker staging、真实内网 Git/npm 和客户端安装仍保留独立验收；投影中的持久回执夹具不替代实际渠道执行。
 - 合并无冲突、`git diff --check` 通过；90 个用户原有文件 SHA256 与合并前及票 02 清单一致。未额外构建、推送、建 PR 或清理工作树。
+
+## Merge checkpoint — ticket 06
+
+- 完整工作分支 tip `3d74be0d`（含集成 `25ecf5c9`、最终 native FOR UPDATE 修正和 SDK/证据）以 `582e8317` 合入；票 06 关闭。票 11 依赖全部解除并可开始，仍保持未关闭。
+- 合并代理核查最终实际 HTTP/导出 13 项全部通过：Git 6、恢复 5、真实 TCP 心跳 1、实际 Springdoc 1，零失败/错误/跳过。早轮 43 项含一失败与显式 H2 dialect 初始化失败均未记为整体成功。
+- 实际导出 453 paths / 493 schemas，SDK 重新生成零漂移且实际文件 SHA256 与记录一致；串行完整 TypeScript、UI 2 项、定向 lint 通过。未手工修改生成文件或启动额外构建。
+- 生产 PostgreSQL/Flyway、Docker staging、真实内网部署与原生运行边界保留票 11；最终广泛回归及 Standards/Spec 双轴审查由集成统一执行。
+- 合并无冲突、`git diff --check` 通过，90 个用户原有文件 SHA256 同合并前及票 02 清单一致；未推送、建 PR 或清理工作树。
 
 ## Merge checkpoint — ticket 05
 
