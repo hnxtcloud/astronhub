@@ -2970,5 +2970,32 @@
     "offlineCaution": "Direct dependency checks do not verify a complete offline installation. Ranges remain unresolved; review Node, platform, peer dependencies and external services separately. Runtime testing remains unverified. No public fallback is used.",
     "noRegistry": "No eligible internal npm target is configured for this Pi archive. Public publication requires the original npm TGZ.",
     "installHelp": "Use a user-owned npm registry context and user installation credentials. This command sets the registry only for this invocation; it contains no publisher token."
+  },
+  "pluginGit": {
+    "title": "Internal Git marketplaces",
+    "description": "Assign one repository branch to a namespace. Only approved PUBLIC Claude Code and Codex files are exported. New revisions affect future approvals. Existing plans keep their targets.",
+    "namespace": "Namespace",
+    "remote": "Publish repository",
+    "fetchUrl": "Public fetch URL",
+    "sameRemote": "Use publish repository URL",
+    "branch": "Branch",
+    "credential": "Publisher credential reference",
+    "select": "Select…",
+    "save": "Save new target revision",
+    "operatorConfiguration": "An operator must provide exact allowed Git URLs and named credentials. The repository must already exist.",
+    "saved": "Target revision saved",
+    "current": "Current configuration",
+    "historical": "Historical configuration",
+    "ready": "Credential configured",
+    "unavailable": "Credential unavailable",
+    "historyCaution": "Existing public Git history is retained. Changing configuration cannot retract cloned copies or retarget approved plans.",
+    "failed": "Operation failed",
+    "intents": "Git publication intents",
+    "intentHelp": "Each intended parent, tree and commit is recorded before push. An intent alone is not successful publication; use the channel receipt for confirmed history.",
+    "commit": "Intended commit",
+    "parent": "Expected parent",
+    "tree": "Exact tree",
+    "plan": "Approved plan digest",
+    "initial": "Initial branch"
   }
 }

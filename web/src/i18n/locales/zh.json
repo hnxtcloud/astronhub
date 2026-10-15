@@ -2967,5 +2967,32 @@
     "offlineCaution": "直接依赖检查不能证明完整离线可安装。版本范围保留未解析，请分别确认 Node、平台、peer 依赖及外部服务。运行测试仍未验证，不回退公网。",
     "noRegistry": "此 Pi 发行物尚无符合条件的内网源。公开发布要求原始 npm TGZ。",
     "installHelp": "请使用用户自己的 npm registry 配置及安装凭据。此命令仅为单次调用指定源，不含服务器发布凭据。"
+  },
+  "pluginGit": {
+    "title": "内网 Git 原生市场",
+    "description": "每个命名空间配置一个仓库分支，仅导出已批准的 PUBLIC Claude Code / Codex 文件。新修订影响之后的审批，历史计划保留原目标。",
+    "namespace": "命名空间",
+    "remote": "发布仓库",
+    "fetchUrl": "公开获取 URL",
+    "sameRemote": "使用发布仓库 URL",
+    "branch": "分支",
+    "credential": "发布凭据引用",
+    "select": "请选择…",
+    "save": "保存新目标修订",
+    "operatorConfiguration": "请运维提供精确允许的 Git URL 及命名凭据，并预先创建仓库。",
+    "saved": "目标修订已保存",
+    "current": "当前配置",
+    "historical": "历史配置",
+    "ready": "凭据已配置",
+    "unavailable": "凭据不可用",
+    "historyCaution": "已公开的 Git 历史会保留。修改配置不能撤回已有克隆副本，也不会改写已批准计划的目标。",
+    "failed": "操作失败",
+    "intents": "Git 发布意图",
+    "intentHelp": "推送前记录预期父提交、树及 commit。意图不代表发布成功，请以渠道成功结果为准。",
+    "commit": "拟推送 commit",
+    "parent": "预期父提交",
+    "tree": "原始内容树",
+    "plan": "审批计划摘要",
+    "initial": "首次创建分支"
   }
 }

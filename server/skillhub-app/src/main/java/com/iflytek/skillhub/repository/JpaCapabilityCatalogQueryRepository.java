@@ -104,7 +104,7 @@ public class JpaCapabilityCatalogQueryRepository implements CapabilityCatalogQue
                 "select p, n, r" + PLUGIN_FROM + " and n.slug = :namespace and p.slug = :slug", Object[].class);
         bind(query, "", userId, namespaceRoles, isPluginAdmin(platformRoles));
         query.setParameter("namespace", namespace).setParameter("slug", slug).setMaxResults(1);
-        return query.getResultStream().findFirst()
+        return query.getResultList().stream().findFirst()
                 .map(row -> toPlugin((PluginProject) row[0], (Namespace) row[1], (PluginRelease) row[2]));
     }
 
@@ -132,7 +132,7 @@ public class JpaCapabilityCatalogQueryRepository implements CapabilityCatalogQue
                 "select e, n, r" + MCP_FROM + " and n.slug = :namespace and e.slug = :slug", Object[].class);
         bind(query, "", userId, namespaceRoles, isMcpAdmin(platformRoles));
         query.setParameter("namespace", namespace).setParameter("slug", slug).setMaxResults(1);
-        return query.getResultStream().findFirst()
+        return query.getResultList().stream().findFirst()
                 .map(row -> toMcp((McpServerEntry) row[0], (Namespace) row[1], (McpEntryRevision) row[2]));
     }
 
