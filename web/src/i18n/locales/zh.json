@@ -841,7 +841,11 @@
     "tabRevocationHistory": "撤销历史",
     "revocationEmpty": "暂无撤销申请",
     "revocationHistoryEmpty": "暂无已处理的撤销记录",
-    "revocationStatus": { "PENDING": "待审核", "APPROVED": "已撤销", "REJECTED": "已拒绝" },
+    "revocationStatus": {
+      "PENDING": "待审核",
+      "APPROVED": "已撤销",
+      "REJECTED": "已拒绝"
+    },
     "revocationActors": "申请人 {{submitter}} · 审核人 {{reviewer}}",
     "revocationReviewComment": "审核意见：{{comment}}",
     "revocationLoadError": "无法读取撤销申请，请稍后重试。",
@@ -1332,7 +1336,11 @@
     "revocationHistoryItem": "{{date}} · {{status}}",
     "revocationHistoryLoading": "正在读取撤销记录…",
     "revocationHistoryError": "无法读取撤销记录，请稍后重试。",
-    "revocationStatus": { "PENDING": "待审核", "APPROVED": "已撤销", "REJECTED": "已拒绝" },
+    "revocationStatus": {
+      "PENDING": "待审核",
+      "APPROVED": "已撤销",
+      "REJECTED": "已拒绝"
+    },
     "promotionConfirmTitle": "确认提交提升申请",
     "promotionConfirmDescription": "确认将“{{skill}}”的 v{{version}} 提交为提升到全局空间的申请吗？",
     "promotionSuccessTitle": "提升申请已提交",
@@ -2773,5 +2781,40 @@
       "VERSION_UNAVAILABLE": "版本不可用",
       "VISIBILITY_INCOMPATIBLE": "可见性不兼容"
     }
+  },
+  "softwareUpdates": {
+    "title": "更新发行快照",
+    "immutableHint": "发布后的快照不可修改；文件或目标变更需要创建新快照。",
+    "machineVersion": "机器版本号",
+    "os": "操作系统",
+    "arch": "架构",
+    "channel": "渠道",
+    "variant": "变体",
+    "protocol": "更新协议",
+    "piVersion": "Pi 版本",
+    "create": "创建更新草稿",
+    "path": "相对路径 / 上传目录",
+    "installer": "已发布安装包",
+    "chooseInstaller": "选择已确认并发布的安装包",
+    "link": "关联安装包",
+    "uploadHint": "上传原始辅助文件。单文件时路径为完整相对路径，多文件时为目标目录；安装包沿用原有上传和确认流程。",
+    "role": "资产用途",
+    "files": "文件",
+    "upload": "上传资产",
+    "validate": "校验",
+    "publish": "发布快照",
+    "valid": "校验通过",
+    "withdraw": "撤出更新",
+    "remove": "移除资产",
+    "sourceTitle": "更新源和渠道",
+    "anonymousHint": "匿名读取默认关闭。开启后，能访问本服务器的客户端可读取已发布更新文件。",
+    "anonymous": "允许匿名读取更新",
+    "channelSlug": "渠道标识",
+    "project": "虚拟 GitLab 项目路径",
+    "target": "已发布目标",
+    "chooseTarget": "选择已发布快照",
+    "saveChannel": "保存渠道目标",
+    "editChannel": "编辑渠道",
+    "clearTarget": "清除目标"
   }
 }

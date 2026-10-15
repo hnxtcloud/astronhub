@@ -54,7 +54,7 @@ CREATE TABLE software_asset_upload (
     state VARCHAR(20) NOT NULL DEFAULT 'RESERVED',
     expires_at TIMESTAMPTZ NOT NULL,
     entity_version BIGINT NOT NULL DEFAULT 0,
-    CONSTRAINT ck_software_asset_upload_state CHECK (state IN ('RESERVED','COMPLETED','CLEANUP','CLEANED'))
+    CONSTRAINT ck_software_asset_upload_state CHECK (state IN ('RESERVED','COMPLETED','CLEANUP','DELETE_USED','CLEANED'))
 );
 CREATE INDEX idx_software_asset_upload_cleanup ON software_asset_upload(state,expires_at);
 

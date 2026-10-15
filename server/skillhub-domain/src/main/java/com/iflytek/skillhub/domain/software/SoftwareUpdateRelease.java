@@ -7,7 +7,8 @@ import java.util.List;
 
 /** A complete update snapshot, independent of editable catalog release groupings. */
 @Entity
-@Table(name = "software_update_release")
+@Table(name = "software_update_release", uniqueConstraints = @UniqueConstraint(
+        name = "uk_software_update_identity", columnNames = {"application_id", "tag", "target_os", "target_arch", "channel", "variant"}))
 public class SoftwareUpdateRelease {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(nullable = false) private Long applicationId;

@@ -44,6 +44,7 @@ import {
 } from '@/features/software/use-software-queries'
 
 import type { SoftwareAppAdminSummary, SoftwarePackage, SoftwareRelease } from '@/api/types'
+import { SoftwareUpdateManager, SoftwareUpdateSourceManager } from '@/features/software/software-update-manager'
 
 const ALL_STATUS = '__all__'
 
@@ -327,6 +328,8 @@ function AppReleaseManager(props: {
         </Button>
       </div>
 
+      <SoftwareUpdateSourceManager appId={props.appId} />
+
       {releases.isLoading ? (
         <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
       ) : allReleases.length === 0 ? (
@@ -340,6 +343,7 @@ function AppReleaseManager(props: {
                 {release.publishedAt ? props.formatDate(release.publishedAt) : ''}
               </div>
             </div>
+            <Button size="sm" variant="outline" onClick={() => setUploadTarget(release)}>{t('softwareAdmin.uploadPackage')}</Button>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -436,6 +440,7 @@ function AppReleaseManager(props: {
                 )}
               </TableBody>
             </Table>
+            <SoftwareUpdateManager release={release} />
           </div>
         ))
       )}
