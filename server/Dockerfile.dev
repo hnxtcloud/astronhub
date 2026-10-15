@@ -3,6 +3,7 @@
 # Used by: make staging (local development workflow)
 FROM eclipse-temurin:21-jre-alpine
 
+RUN apk add --no-cache git ca-certificates
 RUN addgroup -S app && adduser -S app -G app
 WORKDIR /app
 
