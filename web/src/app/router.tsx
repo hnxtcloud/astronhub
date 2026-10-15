@@ -93,6 +93,7 @@ const PrivacyPolicyPage = createLazyRouteComponent(() => import('@/pages/privacy
 const SearchPage = createLazyRouteComponent(() => import('@/pages/search'), 'SearchPage')
 const CatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'CatalogPage')
 const PluginCatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'PluginCatalogPage')
+const PluginManagementPage = createLazyRouteComponent(() => import('@/pages/dashboard/plugins'), 'PluginManagementPage')
 const McpCatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'McpCatalogPage')
 const SuitesPage = createLazyRouteComponent(() => import('@/pages/suites'), 'SuitesPage')
 const SuiteDetailPage = createLazyRouteComponent(() => import('@/pages/suite-detail'), 'SuiteDetailPage')
@@ -748,7 +749,15 @@ const adminSoftwareSettingsRoute = createRoute({
   component: SoftwareSettingsPage,
 })
 
+const pluginManagementRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'dashboard/plugins',
+  beforeLoad: requireAuth,
+  component: PluginManagementPage,
+})
+
 const routeTree = rootRoute.addChildren([
+  pluginManagementRoute,
   landingRoute,
   skillsRoute,
   loginRoute,

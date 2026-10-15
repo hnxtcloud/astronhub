@@ -2773,5 +2773,75 @@
       "VERSION_UNAVAILABLE": "版本不可用",
       "VISIBILITY_INCOMPATIBLE": "可见性不兼容"
     }
+  },
+  "pluginManagement": {
+    "title": "插件管理",
+    "description": "按命名空间管理原生插件包、审核记录和发布渠道。",
+    "createProject": "创建项目",
+    "namespace": "命名空间",
+    "selectNamespace": "选择命名空间",
+    "slug": "标识",
+    "displayName": "展示名称",
+    "visibility": "可见范围",
+    "summary": "介绍",
+    "pendingOnly": "仅待审核",
+    "empty": "当前没有项目。创建项目后可导入首个版本。",
+    "selectProject": "选择项目以管理版本。",
+    "editName": "目录展示名称",
+    "saveMetadata": "保存目录信息",
+    "newVersion": "新建版本",
+    "version": "版本号",
+    "changelog": "版本说明",
+    "createDraft": "创建草稿",
+    "versions": "版本历史",
+    "noVersions": "创建版本，然后导入原始插件 ZIP。",
+    "saveDraft": "保存版本说明",
+    "archive": "Claude Code ZIP",
+    "archiveHelp": "ZIP 根目录须包含 .claude-plugin/plugin.json，包内原生版本号须与当前版本相同。检查过程不执行包内代码。",
+    "importArchive": "导入并检查",
+    "inspectEvidence": "清单及文件列表",
+    "download": "下载原始 ZIP",
+    "submit": "提交审核",
+    "reviewNotes": "审核意见",
+    "runtimeTest": "运行测试证据",
+    "testEnvironment": "测试环境和观察结果",
+    "directApprove": "直接批准草稿",
+    "approve": "批准并创建发布任务",
+    "reject": "驳回",
+    "retryHosted": "重试托管发布",
+    "hostedFailed": "托管文件未通过校验，发布尚未完成。",
+    "visibilityValues": {
+      "PRIVATE": "私有",
+      "NAMESPACE_ONLY": "命名空间成员",
+      "PUBLIC": "公开"
+    },
+    "status": {
+      "DRAFT": "草稿",
+      "PENDING_REVIEW": "已提交",
+      "PUBLISHED": "已发布",
+      "REJECTED": "已驳回",
+      "YANKED": "已下架"
+    },
+    "publication": {
+      "QUEUED": "审核已通过，等待渠道完成",
+      "SUCCEEDED": "发布完成",
+      "FAILED": "发布失败"
+    },
+    "evidence": {
+      "MANIFEST_VALIDATED": "清单已验证",
+      "UNKNOWN": "尚未验证",
+      "NOT_SCANNED": "未进行安全扫描",
+      "DECLARED": "作者声明",
+      "TESTED": "运行测试已验证",
+      "VALIDATION_FAILED": "验证失败",
+      "SCAN_PASSED": "安全扫描通过",
+      "SCAN_WARNINGS": "安全扫描有警告",
+      "SCAN_FAILED": "安全扫描失败"
+    },
+    "testResult": {
+      "UNKNOWN": "未经运行测试",
+      "PASSED": "运行测试通过",
+      "FAILED": "运行测试失败"
+    }
   }
 }

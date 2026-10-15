@@ -2774,5 +2774,75 @@
       "VERSION_UNAVAILABLE": "Version unavailable",
       "VISIBILITY_INCOMPATIBLE": "Visibility incompatible"
     }
+  },
+  "pluginManagement": {
+    "title": "Plugin management",
+    "description": "Manage native plugin archives, reviews, and publication by namespace.",
+    "createProject": "Create project",
+    "namespace": "Namespace",
+    "selectNamespace": "Select a namespace",
+    "slug": "Slug",
+    "displayName": "Display name",
+    "visibility": "Visibility",
+    "summary": "Description",
+    "pendingOnly": "Pending review only",
+    "empty": "No projects in this view. Create a project to import its first version.",
+    "selectProject": "Select a project to manage its versions.",
+    "editName": "Catalog display name",
+    "saveMetadata": "Save metadata",
+    "newVersion": "New version",
+    "version": "Version",
+    "changelog": "Release notes",
+    "createDraft": "Create draft",
+    "versions": "Version history",
+    "noVersions": "Create a version, then import its original plugin ZIP.",
+    "saveDraft": "Save release notes",
+    "archive": "Claude Code ZIP",
+    "archiveHelp": "Use a ZIP with .claude-plugin/plugin.json at its root. Its native version must match this release. The archive is validated without running its code.",
+    "importArchive": "Import and validate",
+    "inspectEvidence": "Manifest and file inventory",
+    "download": "Download original ZIP",
+    "submit": "Submit for review",
+    "reviewNotes": "Review notes",
+    "runtimeTest": "Runtime test evidence",
+    "testEnvironment": "Test environment and observations",
+    "directApprove": "Approve draft directly",
+    "approve": "Approve and queue publication",
+    "reject": "Reject",
+    "retryHosted": "Retry hosted publication",
+    "hostedFailed": "Hosted files could not be verified. Publication remains incomplete.",
+    "visibilityValues": {
+      "PRIVATE": "Private",
+      "NAMESPACE_ONLY": "Namespace members",
+      "PUBLIC": "Public"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "PENDING_REVIEW": "Submitted",
+      "PUBLISHED": "Published",
+      "REJECTED": "Rejected",
+      "YANKED": "Withdrawn"
+    },
+    "publication": {
+      "QUEUED": "Approved, awaiting channels",
+      "SUCCEEDED": "Publication complete",
+      "FAILED": "Publication failed"
+    },
+    "evidence": {
+      "MANIFEST_VALIDATED": "Manifest validated",
+      "UNKNOWN": "Unverified",
+      "NOT_SCANNED": "Not security scanned",
+      "DECLARED": "Declared",
+      "TESTED": "Runtime tested",
+      "VALIDATION_FAILED": "Validation failed",
+      "SCAN_PASSED": "Security scan passed",
+      "SCAN_WARNINGS": "Security scan warnings",
+      "SCAN_FAILED": "Security scan failed"
+    },
+    "testResult": {
+      "UNKNOWN": "Not runtime tested",
+      "PASSED": "Tested successfully",
+      "FAILED": "Runtime test failed"
+    }
   }
 }
