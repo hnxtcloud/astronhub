@@ -3036,5 +3036,18 @@
       "CODEX_GIT": "Install from the confirmed Git publication at the fixed commit shown below. Git and your own repository read credentials are required. These instructions do not verify runtime behavior."
     },
     "posixShell": "POSIX shell"
+  },
+  "softwarePublishers": {
+    "title": "Machine publishing credentials",
+    "hint": "Each credential binds the current administrator to this application. Disabling the account, removing its role, expiry or revocation blocks subsequent publishing.",
+    "name": "Credential name",
+    "expires": "Expiration date (end of UTC day)",
+    "create": "Create app credential",
+    "once": "Shown once. Save this credential in your CI secret store, then clear this display.",
+    "secret": "One-time credential",
+    "clear": "Saved; clear display",
+    "revoke": "Revoke credential",
+    "revoked": "Revoked",
+    "toolHint": "Set ASTRONHUB_PUBLISH_TOKEN in your secret store. Include the deployment subpath in --server. See operator docs for manifests, inspection and initial client migration."
   }
 }

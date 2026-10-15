@@ -13,6 +13,11 @@ import java.util.Optional;
  */
 @Repository
 public interface ApiTokenRepository extends JpaRepository<ApiToken, Long> {
+    /** Usage telemetry must never merge a stale credential over revocation or scope changes. */
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("UPDATE ApiToken t SET t.lastUsedAt = :now WHERE t.id = :id AND t.revokedAt IS NULL")
+    int updateLastUsedAt(@org.springframework.data.repository.query.Param("id") Long id,
+            @org.springframework.data.repository.query.Param("now") java.time.Instant now);
     Optional<ApiToken> findByTokenHash(String tokenHash);
     List<ApiToken> findByUserId(String userId);
     List<ApiToken> findByUserIdAndRevokedAtIsNullOrderByCreatedAtDesc(String userId);

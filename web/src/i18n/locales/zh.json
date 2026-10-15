@@ -3035,5 +3035,18 @@
       "CODEX_GIT": "从已确认的 Git 发布安装，并固定到下方命令中的提交。需要 Git 和您自己的仓库读取凭据。这些指引不代表运行验证通过。"
     },
     "posixShell": "POSIX Shell"
+  },
+  "softwarePublishers": {
+    "title": "机器发版凭据",
+    "hint": "凭据绑定当前管理员和此应用。账号停用、职责移除、到期或撤销后，后续发版请求将被拒绝。",
+    "name": "凭据名称",
+    "expires": "到期日期（UTC 日末）",
+    "create": "创建应用凭据",
+    "once": "凭据只显示这一次，请保存到 CI 密钥库，随后清除此显示。",
+    "secret": "一次性凭据",
+    "clear": "已保存，清除显示",
+    "revoke": "撤销凭据",
+    "revoked": "已撤销",
+    "toolHint": "将 token 配置为 ASTRONHUB_PUBLISH_TOKEN。服务部署在子路径时，--server 必须包含子路径；完整清单、检测与首次客户端迁移见运维文档。"
   }
 }

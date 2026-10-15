@@ -171,6 +171,7 @@ public class RouteSecurityPolicyRegistry {
             // Software center: catalog browsing and downloads require login;
             // admin routes additionally enforce SOFTWARE_ADMIN via @PreAuthorize.
             RouteAuthorizationPolicy.authenticated(null, "/api/v1/software/**"),
+            RouteAuthorizationPolicy.authenticated(null, "/api/v1/software-publishing/apps/**"),
             RouteAuthorizationPolicy.authenticated(null, "/api/v1/admin/software/**"),
             RouteAuthorizationPolicy.authenticated(null, "/api/v1/admin/**"),
             // Internal inspector task API: no user session exists here. The
@@ -190,6 +191,7 @@ public class RouteSecurityPolicyRegistry {
     );
 
     private static final List<ApiTokenPolicy> API_TOKEN_POLICIES = List.of(
+            ApiTokenPolicy.require(null, "/api/v1/software-publishing/apps/**", "software:publish"),
             ApiTokenPolicy.allow(null, "/api/v1/health"),
             ApiTokenPolicy.allow(null, "/api/v1/auth/providers"),
             ApiTokenPolicy.allow(null, "/api/v1/auth/methods"),

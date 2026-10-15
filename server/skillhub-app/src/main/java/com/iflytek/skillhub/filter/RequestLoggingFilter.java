@@ -45,7 +45,9 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         boolean rawUpload = "POST".equals(request.getMethod()) && (path.equals("/api/v1/plugin-management/imports")
                 || path.equals("/api/v1/plugin-management/npm/dependencies")
                 || path.matches("/api/v1/plugin-management/releases/[0-9]+/archive")
-                || path.matches("/api/v1/admin/software/update-releases/[0-9]+/assets"));
+                || path.matches("/api/v1/admin/software/update-releases/[0-9]+/assets")
+                || path.matches("/api/v1/software-publishing/apps/[0-9]+/update-releases/[0-9]+/assets"))
+                || "PUT".equals(request.getMethod()) && path.matches("/api/v1/software-publishing/apps/[0-9]+/uploads/[0-9]+/chunks/[0-9]+");
         if (updateStream || rawUpload) {
             // ContentCachingResponseWrapper buffers the entire installer and rewrites HEAD
             // Content-Length to zero. Updates must remain true streaming responses.

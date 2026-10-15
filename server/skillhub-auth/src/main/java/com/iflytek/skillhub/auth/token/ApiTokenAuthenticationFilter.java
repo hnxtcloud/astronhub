@@ -107,6 +107,7 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
                 .map(scope -> new SimpleGrantedAuthority("SCOPE_" + scope))
                 .toList());
             var auth = new UsernamePasswordAuthenticationToken(principal, null, authorities);
+            auth.setDetails(new ApiTokenIdentity(apiToken.getId()));
             SecurityContextHolder.getContext().setAuthentication(auth);
             apiTokenService.touchLastUsed(apiToken);
         }

@@ -103,6 +103,22 @@ public class SoftwareInspectionAppService {
         return inspectionTaskService.getTask(taskId);
     }
 
+    /** Archive formats have no automatic task; explicit metadata still requires administrator confirmation. */
+    @Transactional
+    public SoftwarePackageRevision confirmManualMetadata(Long packageId, JsonNode rawVersionFields,
+            String actorId, AuditRequestContext auditContext) {
+        var revision = packageService.requirePackage(packageId);
+        if (revision.getFormat().isAutoInspected()) {
+            throw new com.iflytek.skillhub.domain.shared.exception.DomainConflictException("error.software.package.inspectionIncomplete", packageId);
+        }
+        if (rawVersionFields == null || !rawVersionFields.isObject()) {
+            throw new DomainBadRequestException("error.software.inspection.rawFieldsInvalid");
+        }
+        var confirmed = packageService.confirm(packageId, actorId, serializeFields(rawVersionFields));
+        recordAudit("software.package.confirm", "SOFTWARE_PACKAGE", packageId, actorId, auditContext, jsonField("manualMetadata", true));
+        return confirmed;
+    }
+
     private String serializeFields(JsonNode rawVersionFields) {
         if (!rawVersionFields.isObject()) {
             throw new DomainBadRequestException("error.software.inspection.rawFieldsInvalid");
