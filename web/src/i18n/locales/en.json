@@ -2994,9 +2994,11 @@
       "RESTORE": "Restore"
     },
     "preparation": {
-      "CLAUDE_LOCAL": "Download the fixed archive, verify SHA256, and extract it into ./plugins/{slug}/{version}. Start Claude with the command below.",
-      "PI_LOCAL": "Download the fixed tgz, verify SHA256, and extract it under ./plugins/{slug}/{version}, preserving its package directory. Then run the command below.",
-      "CODEX_LOCAL": "Download and verify the fixed archive. Extract it into ./astronhub-local/plugins/{slug}/{version}. Save the JSON below as ./astronhub-local/.agents/marketplace.json, then run these commands from the parent directory."
-    }
+      "CLAUDE_LOCAL": "Download the archive, verify its SHA256 and extract it to the directory in the command. Then start Claude.",
+      "PI_LOCAL": "Download and verify the tgz. Extract it to the directory in the command, preserving package/, then run the command.",
+      "CODEX_LOCAL": "Download and verify the archive. Within ./astronhub-local, extract the plugin to the local source path in the JSON below and save the JSON as .agents/marketplace.json. Run these commands from the parent directory.",
+      "PI_NPM": "This fixed package was published to the displayed internal registry. Use the command for your shell. Only this invocation selects that registry; configure your own read credentials if needed. Node, OS/CPU, dependencies and external services remain installation prerequisites."
+    },
+    "posixShell": "POSIX shell"
   }
 }

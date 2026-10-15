@@ -75,6 +75,8 @@ public final class PluginAccessDtos {
             String command,
             String preparation,
             String marketplaceJson,
+            String powershellCommand,
+            String registry,
             boolean runtimeVerified) {}
 
     public record PluginGovernanceRequest(

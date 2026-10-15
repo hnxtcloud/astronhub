@@ -247,7 +247,7 @@ class PluginPublishedAccessIntegrationTest {
         managed(
                 "/projects/" + project.getId() + "/governance",
                 "{\"action\":\"VISIBILITY\",\"visibility\":\"PRIVATE\",\"reason\":\"Restrict"
-                    + " catalog\"}",
+                        + " catalog\"}",
                 "govern-owner",
                 "USER");
         mvc.perform(get(publicBase() + "/versions/1.0.0")).andExpect(status().isNotFound());
@@ -415,6 +415,107 @@ class PluginPublishedAccessIntegrationTest {
         assertThat(task.getRequiredChannels()).isEqualTo("GIT,HOSTED");
         assertThat(task.getContentSnapshot()).isEqualTo(snapshot);
         assertThat(project.getVisibility()).isEqualTo(PluginVisibility.PUBLIC);
+    }
+
+    @Test
+    void piInstructionsUseSuccessfulFixedRegistryEvidenceAndTgzPreview() throws Exception {
+        byte[] manifest =
+                "{\"name\":\"@team/pi-demo\",\"version\":\"1.0.0\",\"pi\":{\"prompts\":[\"prompts\"]}}"
+                        .getBytes(StandardCharsets.UTF_8);
+        var bytes = new ByteArrayOutputStream();
+        try (var gzip = new java.util.zip.GZIPOutputStream(bytes);
+                var tar =
+                        new org.apache.commons.compress.archivers.tar.TarArchiveOutputStream(
+                                gzip)) {
+            for (var value :
+                    Map.of(
+                                    "package/package.json",
+                                    manifest,
+                                    "package/prompts/test.md",
+                                    "# Prompt".getBytes(StandardCharsets.UTF_8))
+                            .entrySet()) {
+                var entry =
+                        new org.apache.commons.compress.archivers.tar.TarArchiveEntry(
+                                value.getKey());
+                entry.setSize(value.getValue().length);
+                tar.putArchiveEntry(entry);
+                tar.write(value.getValue());
+                tar.closeArchiveEntry();
+            }
+        }
+        String key = "plugins/archives/pi.tgz";
+        objects.put(key, bytes.toByteArray());
+        String digest =
+                HexFormat.of()
+                        .formatHex(
+                                MessageDigest.getInstance("SHA-256").digest(bytes.toByteArray()));
+        entities.persist(
+                PluginDistribution.hostedArchive(
+                        release.getId(),
+                        "pi",
+                        key,
+                        digest,
+                        "@team/pi-demo",
+                        "1.0.0",
+                        "{\"files\":[\"package.json\",\"prompts/test.md\"]}",
+                        new String(manifest, StandardCharsets.UTF_8)));
+        var task =
+                new PluginPublicationTask(
+                        release.getId(),
+                        "govern-admin",
+                        "HOSTED,NPM",
+                        "PUBLIC\n1.0.0\npi:" + digest);
+        task.completeChannel("HOSTED");
+        task.completeChannel("NPM");
+        entities.persist(task);
+        entities.flush();
+        var channel = new PluginPublicationChannel(task.getId(), "NPM", "fixed-test-plan");
+        String token = channel.claim(java.time.Instant.now());
+        channel.finish(
+                token,
+                mapper.writeValueAsString(
+                        Map.of(
+                                "registry",
+                                "https://npm.internal.test/team/",
+                                "name",
+                                "@team/pi-demo",
+                                "version",
+                                "1.0.0",
+                                "sha256",
+                                digest)),
+                null);
+        entities.persist(channel);
+        entities.flush();
+        mvc.perform(
+                        get(publicBase() + "/versions/1.0.0/file")
+                                .param("runtime", "pi")
+                                .param("path", "prompts/test.md")
+                                .with(authentication(auth("govern-reader", "USER"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content").value("# Prompt"));
+        mvc.perform(
+                        get(publicBase() + "/versions/1.0.0/install")
+                                .param("runtime", "pi")
+                                .with(authentication(auth("govern-reader", "USER"))))
+                .andExpect(status().isOk())
+                .andExpect(
+                        jsonPath("$.data.command")
+                                .value(
+                                        "npm_config_registry='https://npm.internal.test/team/' pi"
+                                            + " install 'npm:@team/pi-demo@1.0.0'"))
+                .andExpect(
+                        jsonPath("$.data.powershellCommand")
+                                .value(org.hamcrest.Matchers.containsString("finally")))
+                .andExpect(jsonPath("$.data.runtimeVerified").value(false));
+        project.changeVisibility(PluginVisibility.PRIVATE);
+        entities.flush();
+        mvc.perform(
+                        get(publicBase() + "/versions/1.0.0/install")
+                                .param("runtime", "pi")
+                                .with(authentication(auth("govern-owner", "USER"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.preparation").value("PI_LOCAL"))
+                .andExpect(jsonPath("$.data.registry").doesNotExist());
     }
 
     private JsonNode managed(String path, String body, String user, String role) throws Exception {

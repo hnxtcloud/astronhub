@@ -7,6 +7,7 @@ import com.iflytek.skillhub.domain.plugin.service.*;
 import com.iflytek.skillhub.domain.shared.exception.*;
 import com.iflytek.skillhub.dto.plugin.PluginAccessDtos.*;
 import com.iflytek.skillhub.observability.RequestIdAccessor;
+import com.iflytek.skillhub.repository.PluginInstallationQueryRepository;
 import com.iflytek.skillhub.repository.PluginPublishedQueryRepository;
 import com.iflytek.skillhub.service.AuditRequestContext;
 import com.iflytek.skillhub.storage.ObjectStorageService;
@@ -39,6 +40,7 @@ public class PluginAccessAppService {
     private final ObjectMapper mapper;
     private final AuditLogService audit;
     private final RequestIdAccessor requestIds;
+    private final PluginInstallationQueryRepository installations;
 
     public PluginAccessAppService(
             PluginPublishedQueryRepository queries,
@@ -48,7 +50,8 @@ public class PluginAccessAppService {
             PluginManagementAppService management,
             ObjectMapper mapper,
             AuditLogService audit,
-            RequestIdAccessor requestIds) {
+            RequestIdAccessor requestIds,
+            PluginInstallationQueryRepository installations) {
         this.queries = queries;
         this.workflow = workflow;
         this.distributions = distributions;
@@ -57,6 +60,7 @@ public class PluginAccessAppService {
         this.mapper = mapper;
         this.audit = audit;
         this.requestIds = requestIds;
+        this.installations = installations;
     }
 
     public PluginRelease resolve(String ns, String slug, String version, PluginActor actor) {
@@ -183,13 +187,35 @@ public class PluginAccessAppService {
         var release = workflow.readRelease(releaseId);
         var project = workflow.requireProject(release.getProjectId());
         String folder = "./plugins/" + project.getSlug() + "/" + release.getVersion();
-        String command, preparation, marketplace = null;
+        String command, preparation, marketplace = null, powershell = null, registry = null;
         if (runtime.equals("claude-code")) {
             command = "claude --plugin-dir \"" + folder + "\"";
             preparation = "CLAUDE_LOCAL";
         } else if (runtime.equals("pi")) {
             command = "pi install \"" + folder + "/package\"";
             preparation = "PI_LOCAL";
+            var source = installations.npmSource(project, release, archive);
+            if (source.isPresent()) {
+                registry = source.get().registry();
+                String specification = "npm:" + source.get().name() + "@" + source.get().version();
+                command =
+                        "npm_config_registry="
+                                + posix(registry)
+                                + " pi install "
+                                + posix(specification);
+                powershell =
+                        "$astronhubPreviousRegistry = $env:npm_config_registry\n"
+                            + "try {\n"
+                            + "  $env:npm_config_registry = "
+                                + powershell(registry)
+                                + "\n  pi install "
+                                + powershell(specification)
+                                + "\n"
+                                + "} finally {\n"
+                                + "  $env:npm_config_registry = $astronhubPreviousRegistry\n"
+                                + "}";
+                preparation = "PI_NPM";
+            }
         } else if (runtime.equals("codex")) {
             String market = "astronhub-local-" + project.getId() + "-" + releaseId;
             String name = archive.getNativeName();
@@ -253,6 +279,8 @@ public class PluginAccessAppService {
                 command,
                 preparation,
                 marketplace,
+                powershell,
+                registry,
                 false);
     }
 
@@ -292,6 +320,14 @@ public class PluginAccessAppService {
 
     private static String segment(String value) {
         return java.net.URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    private static String posix(String value) {
+        return "'" + value.replace("'", "'\"'\"'") + "'";
+    }
+
+    private static String powershell(String value) {
+        return "'" + value.replace("'", "''") + "'";
     }
 
     private void record(String action, Long id, PluginActor actor, AuditRequestContext context) {

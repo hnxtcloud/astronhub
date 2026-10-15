@@ -2993,9 +2993,11 @@
       "RESTORE": "恢复归档"
     },
     "preparation": {
-      "CLAUDE_LOCAL": "下载固定版本归档、验证 SHA256，然后解压到 ./plugins/{slug}/{version}。使用以下命令启动 Claude。",
-      "PI_LOCAL": "下载固定版本 tgz、验证 SHA256，然后解压到 ./plugins/{slug}/{version}，保留 package 目录，再执行以下命令。",
-      "CODEX_LOCAL": "下载并验证固定版本归档，将其解压到 ./astronhub-local/plugins/{slug}/{version}。将以下 JSON 保存为 ./astronhub-local/.agents/marketplace.json，再从其父目录执行命令。"
-    }
+      "CLAUDE_LOCAL": "下载归档并验证 SHA256，解压到命令所示目录，再启动 Claude。",
+      "PI_LOCAL": "下载并验证 tgz，解压到命令所示目录，保留 package/，再执行安装。",
+      "CODEX_LOCAL": "下载并验证归档。在 ./astronhub-local 内，按以下 JSON 的本地 source 路径解压插件，将 JSON 保存为 .agents/marketplace.json，再从父目录执行命令。",
+      "PI_NPM": "该固定版本已发布至所示内网依赖库。请选择适合当前 Shell 的命令；源配置仅用于本次执行，读取凭据由用户自行配置。安装前仍须确认 Node、OS/CPU、依赖和外部服务。"
+    },
+    "posixShell": "POSIX Shell"
   }
 }
