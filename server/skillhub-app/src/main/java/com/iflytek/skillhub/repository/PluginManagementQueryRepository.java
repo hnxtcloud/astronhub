@@ -83,7 +83,7 @@ public class PluginManagementQueryRepository {
         return new PluginProjectView(project.getId(), project.getNamespaceId(), namespace.getSlug(), project.getSlug(),
                 project.getDisplayName(), project.getSummary(), project.getOwnerId(), project.getVisibility(), project.getStatus(),
                 project.isHidden(), project.getLatestReleaseId(), canManage && namespace.getStatus() == NamespaceStatus.ACTIVE
-                && project.getStatus() == PluginProjectStatus.ACTIVE, actor.reviewer(),
+                && project.getStatus() == PluginProjectStatus.ACTIVE, actor.reviewer(), workflow.canManageRead(project, actor),
                 includeReleases ? releases.findByProjectIdOrderByCreatedAtDesc(project.getId()).stream().map(this::releaseView).toList() : List.of());
     }
 
@@ -98,6 +98,6 @@ public class PluginManagementQueryRepository {
                 .map(t -> new PluginPublicationView(t.getId(), t.getStatus(), t.getRequiredChannels(), t.getCompletedChannels(),
                         t.getLastError(), t.getAttemptCount(), t.getCompletedAt())).orElse(null);
         return new PluginReleaseView(release.getId(), release.getProjectId(), release.getVersion(), release.getStatus(),
-                release.getChangelog(), release.getCreatedAt(), release.getPublishedAt(), artifacts, history, publication);
+                release.getChangelog(), release.getCreatedAt(), release.getPublishedAt(), artifacts, history, publication, release.getYankedAt(), release.getYankedBy(), release.getYankReason());
     }
 }

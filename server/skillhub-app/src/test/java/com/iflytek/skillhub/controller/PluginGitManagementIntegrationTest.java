@@ -204,6 +204,28 @@ class PluginGitManagementIntegrationTest {
         var receipt = mapper.readTree(published.get(0).path("receipt").asText());
         assertThat(receipt.path("remote").asText()).isEqualTo(remote.toUri().toString());
         assertThat(receipt.path("commit").asText()).matches("[a-f0-9]{40}");
+        for (String runtime : List.of("claude-code", "codex")) {
+            var result =
+                    mvc.perform(
+                                    get("/api/v1/plugins/"
+                                                    + namespace
+                                                    + "/native-flow/versions/1.0.0/install")
+                                            .param("runtime", runtime))
+                            .andExpect(status().isOk())
+                            .andReturn();
+            var recipe = mapper.readTree(result.getResponse().getContentAsString()).path("data");
+            assertThat(recipe.path("preparation").asText())
+                    .isEqualTo(runtime.equals("codex") ? "CODEX_GIT" : "CLAUDE_GIT");
+            assertThat(recipe.path("command").asText())
+                    .contains(
+                            remote.toUri().toString(),
+                            receipt.path("commit").asText(),
+                            "native-flow@astronhub-" + namespace)
+                    .doesNotContain(other.toUri().toString(), "git-secret");
+            assertThat(recipe.path("powershellCommand").asText())
+                    .contains(receipt.path("commit").asText());
+            assertThat(recipe.path("runtimeVerified").asBoolean()).isFalse();
+        }
         var intents = getData("/releases/" + release + "/git-intents");
         assertThat(intents.size()).isEqualTo(1);
         assertThat(intents.get(0).path("commit").asText())
@@ -230,6 +252,19 @@ class PluginGitManagementIntegrationTest {
         call("/releases/" + release + "/approve", "{\"notes\":\"Restricted static review\"}");
         assertThat(call("/releases/" + release + "/publish-channels", "{}").size()).isZero();
         assertThat(getData("/releases/" + release + "/git-intents").size()).isZero();
+        var result =
+                mvc.perform(
+                                get("/api/v1/plugins/"
+                                                + namespace
+                                                + "/native-flow/versions/1.0.0/install")
+                                        .with(authentication(auth("PLUGIN_ADMIN")))
+                                        .param("runtime", "claude-code"))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        var recipe = mapper.readTree(result.getResponse().getContentAsString()).path("data");
+        assertThat(recipe.path("preparation").asText()).isEqualTo("CLAUDE_LOCAL");
+        assertThat(recipe.path("command").asText())
+                .doesNotContain("git clone", remote.toUri().toString());
         var process = new ProcessBuilder("git", "--git-dir=" + remote, "show-ref").start();
         assertThat(process.waitFor()).isEqualTo(1);
     }

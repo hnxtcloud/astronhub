@@ -93,6 +93,7 @@ const PrivacyPolicyPage = createLazyRouteComponent(() => import('@/pages/privacy
 const SearchPage = createLazyRouteComponent(() => import('@/pages/search'), 'SearchPage')
 const CatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'CatalogPage')
 const PluginCatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'PluginCatalogPage')
+const PluginDetailPage = createLazyRouteComponent(() => import('@/pages/plugin-detail'), 'PluginDetailPage')
 const PluginManagementPage = createLazyRouteComponent(() => import('@/pages/dashboard/plugins'), 'PluginManagementPage')
 const McpCatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'McpCatalogPage')
 const SuitesPage = createLazyRouteComponent(() => import('@/pages/suites'), 'SuitesPage')
@@ -353,6 +354,12 @@ const pluginsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'plugins',
   component: PluginCatalogPage,
+})
+
+const pluginDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'plugins/$namespace/$slug',
+  component: PluginDetailPage,
 })
 
 const mcpServersRoute = createRoute({
@@ -770,6 +777,7 @@ const routeTree = rootRoute.addChildren([
   termsRoute,
   catalogRoute,
   pluginsRoute,
+  pluginDetailRoute,
   mcpServersRoute,
   namespaceRoute,
   skillDetailRoute,

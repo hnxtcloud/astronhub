@@ -17,6 +17,12 @@ import org.springframework.util.AntPathMatcher;
 public class RouteSecurityPolicyRegistry {
 
     private static final List<RouteAuthorizationPolicy> AUTHORIZATION_POLICIES = List.of(
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v4/projects/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.HEAD, "/api/v4/projects/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/releases/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.HEAD, "/releases/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/*/*/-/raw/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.HEAD, "/*/*/-/raw/**"),
             RouteAuthorizationPolicy.permitAll(null, "/api/v1/health"),
             RouteAuthorizationPolicy.permitAll(null, "/api/v1/search"),
             RouteAuthorizationPolicy.permitAll(null, "/api/v1/resolve/**"),
@@ -72,6 +78,12 @@ public class RouteSecurityPolicyRegistry {
             RouteAuthorizationPolicy.authenticated(null, "/api/v1/plugin-management/**"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*/versions"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*/versions/*"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*/versions/*/files"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*/versions/*/file"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*/versions/*/download"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*/versions/*/install"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/mcp-servers"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/mcp-servers/*/*"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/catalog/search"),

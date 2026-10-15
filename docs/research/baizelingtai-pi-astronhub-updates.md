@@ -2,6 +2,8 @@
 
 日期：2026-10-14。范围：`C:/Project/astronhub` 与 `C:/Project/baizelingtai-pi` 当前源码。只读核查应用和服务端代码、文档与测试，并调用现有清单解析器完成无网络的兼容性检查；未启动或重启服务、未访问私有 GitLab、未发布发行物、未修改白泽灵台。未读取或输出凭据与私有配置。
 
+实施进度（2026-10-15）：本文缺口描述保留调研时的基线；软件快照、固定历史资产及匿名治理已合入，白泽 feed 正在票 09 实施。当前能力见[更新渠道设计](../28-software-release-update-channels.md)。客户端安装方式仍为本文核查的独立维护流程，没有因服务端增加托管能力而自动改变。
+
 ## 结论
 
 **AstronHub 已有应用包管理与分发基础，但当前不能直接替换白泽灵台的 GitLab 更新源。** 主要缺口是白泽灵台兼容的原始 JSON feed、无需浏览器登录的固定 ZIP 下载地址，以及明确的更新渠道/目标版本选择。现有软件中心是仅浏览器 session 的目录与下载会话 API；不是应用更新协议。[软件路由](C:/Project/astronhub/server/skillhub-app/src/main/java/com/iflytek/skillhub/controller/portal/SoftwareCatalogController.java:25)、[下载接口](C:/Project/astronhub/server/skillhub-app/src/main/java/com/iflytek/skillhub/controller/portal/SoftwareDownloadController.java:44)、[session-only 策略](C:/Project/astronhub/server/skillhub-auth/src/main/java/com/iflytek/skillhub/auth/policy/RouteSecurityPolicyRegistry.java:316)。

@@ -1,4 +1,5 @@
 import { Boxes, Download } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import type { CapabilityCatalogItem } from '@/api/types'
 
 export function PluginCard({ item }: { item: CapabilityCatalogItem }) {
@@ -10,7 +11,7 @@ export function PluginCard({ item }: { item: CapabilityCatalogItem }) {
             <Boxes className="h-4 w-4" />
             <span>{item.coordinate}</span>
           </div>
-          <h2 className="text-base font-semibold text-foreground">{item.displayName}</h2>
+          <h2 className="text-base font-semibold text-foreground"><Link to="/plugins/$namespace/$slug" params={{ namespace: item.namespace, slug: item.slug }}>{item.displayName}</Link></h2>
         </div>
         {item.version && <span className="rounded-md bg-muted px-2 py-1 font-mono text-xs sm:hidden">v{item.version}</span>}
       </div>

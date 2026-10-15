@@ -27,6 +27,9 @@ public class PluginRelease {
     @Column(name = "row_version", nullable = false)
     private long rowVersion;
 
+    @Column(name="yanked_at") private Instant yankedAt;
+    @Column(name="yanked_by",length=128) private String yankedBy;
+    @Column(name="yank_reason",columnDefinition="TEXT") private String yankReason;
     protected PluginRelease() {}
 
     public PluginRelease(Long projectId, String version, String createdBy) {
@@ -47,6 +50,13 @@ public class PluginRelease {
     public String getCreatedBy() { return createdBy; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getPublishedAt() { return publishedAt; }
+    public Instant getYankedAt() { return yankedAt; }
+    public String getYankedBy() { return yankedBy; }
+    public String getYankReason() { return yankReason; }
+    public void yank(String actor, String reason) {
+        if (status != PluginReleaseStatus.PUBLISHED) throw new com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException("error.plugin.yankState");
+        status=PluginReleaseStatus.YANKED; yankedAt=Instant.now(Clock.systemUTC()); yankedBy=actor; yankReason=reason;
+    }
     public void requireDraft() {
         if (status != PluginReleaseStatus.DRAFT) {
             throw new com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException("error.plugin.immutable");

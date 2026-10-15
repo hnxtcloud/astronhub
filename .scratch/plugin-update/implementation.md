@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：插件下载/历史版本/组件治理、内网 Git 原生市场发布，以及按应用匿名的 GitLab 更新读取。票 01、02、04、07 已完成并合入；票 06 仍等待票 03、05，票 08 尚未交付，其余由明确阻塞关系推进。
+当前 frontier：内网 Git 原生市场发布，以及 Generic 与白泽灵台更新源。票 01、02、03、04、07、08 已完成并合入；票 06 仍等待票 05，其余由明确阻塞关系推进。
 
 票 03 已认领，由完成票 02 的实施代理在 `codex/plugin-download-governance` 独立分支继续，迁移预留 V78；08 代理路由子任务已交付 `dc2184d7`，须先汇入 08 主实施分支，不单独关闭 08。
 
@@ -46,6 +46,7 @@ Base branch: codex/software-center-phase1
 
 - 已合入：01 使用 V74、07 使用 V75、02 使用 V76。
 - 在途/后续预留：08 使用 V77（如需要）、03 使用 V78、04 使用 V79、05 使用 V80。分配新迁移前重新检查集成和在途工作树；后续票不得复用这些编号。
+- 票 09 已认领，分支 `codex/native-update-feeds`，迁移预留 V81（如需要）；以已合入 08 的选择、治理和传输规则扩展 Generic／白泽更新源。
 
 ## Verification seams
 
@@ -114,7 +115,27 @@ Base branch: codex/software-center-phase1
 - SDK 由实际 Springdoc 导出生成；合并无冲突，无生成文件手工修改。原生 Pi 安装、用户真实内网 registry、生产 PostgreSQL 迁移、Docker staging 尚未验收；版本范围未解析、不宣称完整离线安装。完整心跳/尝试历史/显式重新规划保留票 06。
 - `git diff --check` 通过；用户原有 90 个文件 SHA256 同时与合并前及票 02 旧清单一致。未推送、建 PR、清理工作树或重复构建。
 
+## Merge checkpoint — ticket 08
+
+- 完整工作分支 tip `76c4fc93`（含票 04 和代理 helper）以 `10526b81` 合入主集成；票 08 关闭，票 09 解除阻塞。唯一额外集成文档认领提交正常保留。
+- 合并代理核查实际两轮 reactor 均通过 59 项（auth 33 + app 26），包含根路径和 `/hub` 的真实嵌入 Tomcat 各 8 项、日志边界 9 项及实际 Springdoc 导出。最后注解后的单项真实导出与票 04 合并后全前端 TypeScript 也通过。
+- 实际 Nginx 48 项代理检查通过；已安装 electron-updater 6.8.9 DataSplitter 接受真实 HTTP multipart fixture，精确结果 `0189`。这仅验收解析器契约，完整差分、全量回退、原生安装和签名仍未验收。
+- 生成契约无冲突合入，最终联合 Springdoc 重导出由集成统一处理；未手工修改 schema。生产数据库、真实 S3、Helm 渲染和 Docker staging 限制保持明确。
+- `git diff --check` 通过，用户原有 90 个文件 SHA256 与合并前及票 02 清单完全一致；未重复构建、推送、建 PR 或清理工作树。
+
+## Merge checkpoint — ticket 03
+
+- 完整工作分支 tip `0974d2c1`（已含最新集成 `c2215031`）以 `fc85802e` 合入；票 03 关闭。票 06 仍阻塞于票 05，不提前认领。
+- 实际最终联合 reactor 45 项通过（domain 5 + app 40），包括 7 项新 HTTP 行为、01/02/04 回归和真实 Springdoc 导出。独立组件 ACL、下架和确定性版本选择均有 HTTP 证据。
+- 最终 UI 分轮 13 + 1 项通过；此前 worker 启动超时轮未计通过。完整类型检查及定向零警告 ESLint 通过。实际联合 03/04/08 契约生成已随分支合入，未手改生成文件。
+- 生产 PostgreSQL/Flyway、Docker staging、真实内网 Git/npm 和客户端安装仍保留独立验收；投影中的持久回执夹具不替代实际渠道执行。
+- 合并无冲突、`git diff --check` 通过；90 个用户原有文件 SHA256 与合并前及票 02 清单一致。未额外构建、推送、建 PR 或清理工作树。
+
 ## Frontend regression checkpoint — 2026-10-15
 
 - 在已合入 01、02、07 及联合生成契约的集成分支运行完整 `pnpm test`：232 个文件、955 条测试全部通过。全量 `pnpm lint` 同时通过。日志为 `.scratch/plugin-integrated-frontend-{tests,lint}.log`。
 - 这轮不包含在途 04/08 或后续票，不能作为最终集成验收。现有 pnpm 配置迁移提示与 jsdom navigation 提示未导致失败；不把提示等同于新增功能故障。
+
+## Native Pi installation checkpoint — 2026-10-15
+
+- 实际发布组件 → 本地无上游 Verdaccio → 隔离 Pi 1.2.0 的固定版本安装通过，原始 TGZ 和安装后 Skill 字节一致，测试 registry 已停止；完整边界及首次失败探针见票 11。此结果不代替最终集成、复杂插件运行或目标内网环境验收。

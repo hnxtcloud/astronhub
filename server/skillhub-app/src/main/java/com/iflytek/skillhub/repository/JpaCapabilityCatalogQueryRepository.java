@@ -40,7 +40,7 @@ public class JpaCapabilityCatalogQueryRepository implements CapabilityCatalogQue
             + " and p.latestReleaseId is not null"
             + " and (:platformAdmin = true"
             + " or p.visibility = com.iflytek.skillhub.domain.plugin.PluginVisibility.PUBLIC"
-            + " or p.ownerId = :userId"
+            + " or (p.ownerId = :userId and p.namespaceId in :namespaceIds)"
             + " or (p.visibility = com.iflytek.skillhub.domain.plugin.PluginVisibility.PRIVATE"
             + " and p.namespaceId in :adminNamespaceIds)"
             + " or (p.visibility = com.iflytek.skillhub.domain.plugin.PluginVisibility.NAMESPACE_ONLY"

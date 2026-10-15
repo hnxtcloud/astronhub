@@ -20,12 +20,22 @@ sh "$ENTRYPOINT"
 
 grep -F 'location = /skillhub {' "$routing_config" >/dev/null
 grep -F 'return 301 /skillhub/;' "$routing_config" >/dev/null
-grep -F 'location ^~ /skillhub/ {' "$routing_config" >/dev/null
+grep -F 'location /skillhub/ {' "$routing_config" >/dev/null
 grep -F 'rewrite ^/skillhub/(.*)$ /$1 last;' "$routing_config" >/dev/null
 grep -F 'set $skillhub_forwarded_prefix /skillhub;' "$routing_config" >/dev/null
 grep -F '/skillhub/assets/index.js' "$web_root/index.html" >/dev/null
 # favicon (and any other absolute asset ref in index.html) picks up the sub-path prefix.
 grep -F '/skillhub/favicon.svg' "$web_root/index.html" >/dev/null
+
+# Native GitLab project/file encoding must survive the sub-path proxy. The raw
+# suffix is derived from request_uri, never from normalized $uri or rewrite.
+grep -F 'location ^~ /skillhub/api/v4/projects/ {' "$routing_config" >/dev/null
+grep -F 'location ^~ /skillhub/updates/ {' "$routing_config" >/dev/null
+grep -F 'location ^~ /skillhub/releases/ {' "$routing_config" >/dev/null
+grep -F 'proxy_pass $skillhub_api_upstream$skillhub_update_raw_uri;' "$routing_config" >/dev/null
+grep -F 'map "$skillhub_forwarded_prefix:$request_uri" $skillhub_update_raw_uri {' "$ROOT_DIR/web/nginx.conf.template" >/dev/null
+grep -F 'location = /skillhub/api/v1/plugin-management/imports {' "$routing_config" >/dev/null
+grep -F 'location ~ ^/skillhub/api/v1/admin/software/update-releases/[0-9]+/assets$ {' "$routing_config" >/dev/null
 
 # A same-origin API base that does not match the base path must be rejected at startup.
 mismatch_root="$tmp/mismatch-html"
@@ -40,8 +50,8 @@ if SKILLHUB_WEB_BASE_PATH=/skillhub/ \
   exit 1
 fi
 
-if [ "$(grep -Fc 'proxy_set_header X-Forwarded-Prefix $skillhub_forwarded_prefix;' "$ROOT_DIR/web/nginx.conf.template")" -ne 4 ]; then
-  echo 'API, OAuth, and .well-known proxy locations must forward the configured base path' >&2
+if [ "$(grep -Fc 'proxy_set_header X-Forwarded-Prefix $skillhub_forwarded_prefix;' "$ROOT_DIR/web/nginx.conf.template")" -ne "$(grep -Ec '^[[:space:]]*proxy_pass ' "$ROOT_DIR/web/nginx.conf.template")" ]; then
+  echo 'Every upstream proxy location must forward the configured base path' >&2
   exit 1
 fi
 
@@ -67,7 +77,7 @@ grep -F '/assets/index.js' "$root_web_root/index.html" >/dev/null
 # would desync the generated location from the baked asset URLs).
 for bad in '/foo/../bar/' '/foo/./bar/' '/foo//bar/' '/no-trailing' 'foo/' \
            '/api/' '/oauth2/' '/login/' '/assets/' '/registry/' '/nginx-health/' \
-           '/.well-known/' '/runtime-config.js/' '/api/nested/'; do
+           '/.well-known/' '/runtime-config.js/' '/api/nested/' '/updates/' '/releases/nested/'; do
   reject_root="$tmp/reject-html"
   reject_config="$tmp/reject.conf"
   mkdir -p "$reject_root"
@@ -95,7 +105,7 @@ SKILLHUB_NGINX_BASE_PATH_CONFIG="$baked_config" \
 SKILLHUB_WEB_BAKED_BASE_PATH_FILE="$baked_file" \
 sh "$ENTRYPOINT"
 
-grep -F 'location ^~ /skillhub/ {' "$baked_config" >/dev/null
+grep -F 'location /skillhub/ {' "$baked_config" >/dev/null
 grep -F 'set $skillhub_forwarded_prefix /skillhub;' "$baked_config" >/dev/null
 
 # The bundled Compose/K8s deploy configs pass SKILLHUB_WEB_BASE_PATH as an empty
@@ -108,7 +118,7 @@ SKILLHUB_NGINX_BASE_PATH_CONFIG="$empty_config" \
 SKILLHUB_WEB_BAKED_BASE_PATH_FILE="$baked_file" \
 sh "$ENTRYPOINT"
 
-grep -F 'location ^~ /skillhub/ {' "$empty_config" >/dev/null
+grep -F 'location /skillhub/ {' "$empty_config" >/dev/null
 grep -F 'set $skillhub_forwarded_prefix /skillhub;' "$empty_config" >/dev/null
 
 # A runtime base that conflicts with the baked base must fail loudly rather than
@@ -130,6 +140,6 @@ SKILLHUB_WEB_ROOT="$baked_root" \
 SKILLHUB_NGINX_BASE_PATH_CONFIG="$match_config" \
 SKILLHUB_WEB_BAKED_BASE_PATH_FILE="$baked_file" \
 sh "$ENTRYPOINT"
-grep -F 'location ^~ /skillhub/ {' "$match_config" >/dev/null
+grep -F 'location /skillhub/ {' "$match_config" >/dev/null
 
 printf '%s\n' 'web-base-path-routing-test passed'

@@ -2995,5 +2995,39 @@
     "tree": "Exact tree",
     "plan": "Approved plan digest",
     "initial": "Initial branch"
+  },
+  "pluginAccess": {
+    "publishedVersion": "Published version",
+    "downloadArchive": "Download archive",
+    "generateInstall": "Generate installation instructions",
+    "notRuntimeVerified": "The package manifest was validated. These commands have not been verified in your runtime.",
+    "browseFiles": "Browse package files",
+    "components": "Linked components",
+    "componentIndependence": "Links reference existing fixed versions. Each component keeps its own permissions and lifecycle; unavailable components are omitted. Linking does not create, publish or install a component.",
+    "unlink": "Remove link",
+    "governance": "Catalog governance",
+    "externalCopies": "Hiding, archiving, restricting visibility or yanking stops AstronHub access. Copies already distributed through Git, npm or downloads remain available outside AstronHub. Publication history is retained.",
+    "reason": "Governance reason",
+    "changeVisibility": "Change visibility",
+    "yank": "Yank version",
+    "yankedReason": "Yanked reason",
+    "componentKind": "Component kind",
+    "componentVersion": "Fixed version / MCP revision number",
+    "link": "Link existing component",
+    "actions": {
+      "HIDE": "Hide",
+      "SHOW": "Show",
+      "ARCHIVE": "Archive",
+      "RESTORE": "Restore"
+    },
+    "preparation": {
+      "CLAUDE_LOCAL": "Download the archive, verify its SHA256 and extract it to the directory in the command. Then start Claude.",
+      "PI_LOCAL": "Download and verify the tgz. Extract it to the directory in the command, preserving package/, then run the command.",
+      "CODEX_LOCAL": "Download and verify the archive. Within ./astronhub-local, extract the plugin to the local source path in the JSON below and save the JSON as .agents/marketplace.json. Run these commands from the parent directory.",
+      "PI_NPM": "This fixed package was published to the displayed internal registry. Use the command for your shell. Only this invocation selects that registry; configure your own read credentials if needed. Node, OS/CPU, dependencies and external services remain installation prerequisites.",
+      "CLAUDE_GIT": "Install from the confirmed Git publication at the fixed commit shown below. Git and your own repository read credentials are required. These instructions do not verify runtime behavior.",
+      "CODEX_GIT": "Install from the confirmed Git publication at the fixed commit shown below. Git and your own repository read credentials are required. These instructions do not verify runtime behavior."
+    },
+    "posixShell": "POSIX shell"
   }
 }

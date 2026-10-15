@@ -9,6 +9,7 @@ import com.iflytek.skillhub.domain.plugin.PluginDistributionRepository;
 import com.iflytek.skillhub.domain.plugin.PluginProject;
 import com.iflytek.skillhub.domain.plugin.PluginProjectRepository;
 import com.iflytek.skillhub.domain.plugin.PluginProjectStatus;
+import com.iflytek.skillhub.domain.plugin.PluginPublicationOrder;
 import com.iflytek.skillhub.domain.plugin.PluginPublicationTask;
 import com.iflytek.skillhub.domain.plugin.PluginPublicationTaskRepository;
 import com.iflytek.skillhub.domain.plugin.PluginRelease;
@@ -179,13 +180,57 @@ public class PluginReleaseWorkflow {
         }
         if (actor.userId() == null
                 || !(actor.reviewer()
-                        || actor.userId().equals(project.getOwnerId())
+                        || (actor.userId().equals(project.getOwnerId())
+                                && actor.namespaceRoles().containsKey(project.getNamespaceId()))
                         || actor.namespaceAdmin(project.getNamespaceId())
                         || project.getVisibility() == PluginVisibility.PUBLIC
                         || (project.getVisibility() == PluginVisibility.NAMESPACE_ONLY
                                 && actor.namespaceRoles().containsKey(project.getNamespaceId())))) {
             throw new DomainForbiddenException("error.plugin.permission");
         }
+    }
+
+    /**
+     * Public metadata and archive readers share visibility; ownership never survives membership
+     * revocation.
+     */
+    public boolean canReadPublished(PluginProject project, PluginActor actor) {
+        return project.getStatus() == PluginProjectStatus.ACTIVE
+                && !project.isHidden()
+                && (project.getVisibility() == PluginVisibility.PUBLIC
+                        || actor.reviewer()
+                        || actor.namespaceAdmin(project.getNamespaceId())
+                        || (actor.userId() != null
+                                && actor.userId().equals(project.getOwnerId())
+                                && actor.namespaceRoles().containsKey(project.getNamespaceId()))
+                        || (project.getVisibility() == PluginVisibility.NAMESPACE_ONLY
+                                && actor.namespaceRoles().containsKey(project.getNamespaceId())));
+    }
+
+    /**
+     * Durable approval order is user publication intent; never rank network completion timestamps.
+     */
+    public void refreshPublishedSelection(PluginProject project) {
+        var candidates =
+                releases.findByProjectIdOrderByCreatedAtDesc(project.getId()).stream()
+                        .filter(r -> r.getStatus() == PluginReleaseStatus.PUBLISHED)
+                        .toList();
+        var selected =
+                candidates.stream()
+                        .max(
+                                (left, right) ->
+                                        PluginPublicationOrder.compare(
+                                                tasks.findByReleaseId(left.getId())
+                                                        .map(PluginPublicationTask::getId)
+                                                        .orElse(null),
+                                                left.getId(),
+                                                tasks.findByReleaseId(right.getId())
+                                                        .map(PluginPublicationTask::getId)
+                                                        .orElse(null),
+                                                right.getId()));
+        if (selected.isPresent()) project.pointToPublishedRelease(selected.get());
+        else project.clearPublishedRelease();
+        projects.save(project);
     }
 
     @Transactional
@@ -215,8 +260,7 @@ public class PluginReleaseWorkflow {
         if ("SUCCEEDED".equals(task.getStatus())) {
             release.publish();
             releases.save(release);
-            project.pointToPublishedRelease(release);
-            projects.save(project);
+            refreshPublishedSelection(project);
         }
         return release;
     }
@@ -268,7 +312,9 @@ public class PluginReleaseWorkflow {
             throw new DomainForbiddenException("error.plugin.permission");
         }
         PluginRelease release = locked(releaseId);
-        PluginProject project = requireProject(release.getProjectId());
+        PluginProject project =
+                projects.findByIdForUpdate(release.getProjectId())
+                        .orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
         requireActive(project);
         requireValidated(release);
         if (tasks.findByReleaseId(releaseId).isPresent()) {
@@ -356,6 +402,11 @@ public class PluginReleaseWorkflow {
         return reviews.save(
                 new PluginReviewDecision(
                         releaseId, actor.userId(), decision, notes, result, environment));
+    }
+
+    public PluginRelease readRelease(Long releaseId) {
+        return releases.findById(releaseId)
+                .orElseThrow(() -> new DomainNotFoundException("error.plugin.releaseNotFound"));
     }
 
     public PluginRelease locked(Long releaseId) {
