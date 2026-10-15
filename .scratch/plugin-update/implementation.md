@@ -102,3 +102,8 @@ Base branch: codex/software-center-phase1
 - 实际隔离 Nginx 1.28 在根路径和 `/hub/` 均让声明 101 MiB 的导入请求进入后端，未实际传送大包实体。GitLab 编码路径及 `/updates`、`/releases` 仍保留票 08 验收，不能从此准入探针推断已通过。
 - 未手改生成契约；导入临时严格类型仍须由真实 Springdoc 导出后替换。真实内网渠道、原生安装和 Docker staging 继续保留后续验收。
 - 合并无冲突、`git diff --check` 通过；90 个用户原有文件 SHA256 保持不变；未清理工作树或重跑无必要构建。
+
+## Frontend regression checkpoint — 2026-10-15
+
+- 在已合入 01、02、07 及联合生成契约的集成分支运行完整 `pnpm test`：232 个文件、955 条测试全部通过。全量 `pnpm lint` 同时通过。日志为 `.scratch/plugin-integrated-frontend-{tests,lint}.log`。
+- 这轮不包含在途 04/08 或后续票，不能作为最终集成验收。现有 pnpm 配置迁移提示与 jsdom navigation 提示未导致失败；不把提示等同于新增功能故障。
