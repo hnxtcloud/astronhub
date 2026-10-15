@@ -49,6 +49,12 @@ public class PluginPublicationChannel {
     @Column(columnDefinition = "TEXT")
     private String receipt;
 
+    @Column(name="active_snapshot",columnDefinition="TEXT") private String activeSnapshot;
+    @Column(name="plan_revision",nullable=false) private int planRevision;
+    @Column(name="next_attempt_at") private Instant nextAttemptAt;
+    @Column(name="last_claimed_at") private Instant lastClaimedAt;
+    @Column(name="source_disabled",nullable=false) private boolean sourceDisabled;
+
     @Version
     @Column(name = "row_version", nullable = false)
     private long rowVersion;
@@ -67,12 +73,18 @@ public class PluginPublicationChannel {
     }
 
     public String claim(Instant now) {
+        return claim(now,300);
+    }
+    public String claim(Instant now,int leaseSeconds) {
         if (state.equals("SUCCEEDED")
                 || state.equals("BLOCKED")
+                || sourceDisabled
+                || (nextAttemptAt!=null&&nextAttemptAt.isAfter(now))
                 || (state.equals("RUNNING") && leaseUntil.isAfter(now))) return null;
         attemptToken = UUID.randomUUID().toString();
         state = "RUNNING";
-        leaseUntil = now.plusSeconds(300);
+        leaseUntil = now.plusSeconds(leaseSeconds);
+        lastClaimedAt=now;
         attemptCount++;
         return attemptToken;
     }
@@ -91,6 +103,24 @@ public class PluginPublicationChannel {
         leaseUntil = null;
         return true;
     }
+
+    public boolean heartbeat(String token,int revision,Instant now,int seconds){if(!owns(token,revision,now))return false;leaseUntil=now.plusSeconds(seconds);return true;}
+    public boolean owns(String token,int revision,Instant now){return state.equals("RUNNING")&&revision==planRevision&&java.util.Objects.equals(token,attemptToken)&&leaseUntil!=null&&leaseUntil.isAfter(now);}
+    public boolean finish(String token,int revision,Instant now,String result,String error,boolean unknown){
+        if(!owns(token,revision,now))return false;
+        boolean accepted=finish(token,result,error);
+        if(error!=null){state=unknown?"UNKNOWN":"FAILED";nextAttemptAt=now.plusSeconds(Math.min(300,Math.max(5,attemptCount*5L)));}
+        return accepted;
+    }
+    public void replan(int expected,String replacement){
+        if(expected!=planRevision)throw new com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException("error.plugin.recoveryConflict");
+        if(!java.util.Set.of("BLOCKED","FAILED").contains(state)||replacement==null||replacement.isBlank()||replacement.equals("MISSING_CONFIGURATION"))throw new com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException("error.plugin.recoveryState");
+        activeSnapshot=replacement;planRevision++;state="QUEUED";lastError=null;attemptToken=null;leaseUntil=null;nextAttemptAt=null;
+    }
+    public void retryNow(){if(!state.equals("SUCCEEDED")&&!state.equals("RUNNING"))nextAttemptAt=null;}
+    public void disableSource(){sourceDisabled=true;}
+    public int getPlanRevision(){return planRevision;}public String getEffectiveSnapshot(){return activeSnapshot==null?snapshot:activeSnapshot;}
+    public Instant getLeaseUntil(){return leaseUntil;}public String getAttemptToken(){return attemptToken;}public Instant getLastClaimedAt(){return lastClaimedAt;}public Instant getNextAttemptAt(){return nextAttemptAt;}public boolean isSourceDisabled(){return sourceDisabled;}
 
     public Long getId() {
         return id;

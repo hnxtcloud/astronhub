@@ -4,7 +4,11 @@
 
 **Blocked by:** 03,04,05
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+**Assignee:** plugin_ticket02 / codex/plugin-publication-recovery
+
+**Migration reservation:** V82
 
 **Spec coverage:** P7
 
