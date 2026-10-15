@@ -7,7 +7,9 @@ import com.iflytek.skillhub.domain.plugin.PluginVersions;
 import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
 import com.iflytek.skillhub.domain.shared.exception.LocalizedDomainException;
 
-import org.apache.commons.compress.archivers.tar.*;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.*;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.springframework.stereotype.Component;
@@ -33,7 +35,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.zip.*;
+import java.util.zip.CRC32;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Offline static adapters. All expanded bytes live in a private temporary directory, never
@@ -180,6 +185,36 @@ public class OfflinePluginScanner {
             cleanup(temp);
             if (ex instanceof IOException io) throw io;
             throw new DomainBadRequestException("error.plugin.archive", "dependency");
+        }
+    }
+
+    /**
+     * Reuses archive safety and disk budgets for exact Git blobs, without checkout or repacking.
+     */
+    public NativeFiles openNativeFiles(Path source, PluginImportLimits limits) throws IOException {
+        limits.validate();
+        if (Files.size(source) > Math.min(limits.packageBytes(), NpmRegistryPublisher.MAX_BYTES))
+            throw invalid("packageSize");
+        Path temp = Files.createTempDirectory("astronhub-git-files-");
+        try {
+            TreeMap<String, Path> files = new TreeMap<>();
+            Map<String, Integer> modes = new HashMap<>();
+            extractZip(source, temp, files, modes, limits);
+            return new NativeFiles(
+                    temp,
+                    java.util.Collections.unmodifiableMap(files),
+                    java.util.Collections.unmodifiableMap(modes));
+        } catch (Exception ex) {
+            cleanup(temp);
+            if (ex instanceof IOException io) throw io;
+            throw ex;
+        }
+    }
+
+    public record NativeFiles(Path temp, Map<String, Path> files, Map<String, Integer> modes)
+            implements AutoCloseable {
+        public void close() throws IOException {
+            cleanup(temp);
         }
     }
 

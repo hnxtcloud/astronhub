@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { PluginGitAdminPanel, PluginGitEvidencePanel } from '@/features/plugin/plugin-git-publication'
 import { PluginNpmAdminPanel, PluginNpmReleasePanel } from '@/features/plugin/plugin-npm-publication'
 import { PluginOfflineImportPanel } from '@/features/plugin/plugin-offline-import'
 import { PluginProjectGovernance, PluginReleaseGovernance, PluginFileBrowser, PluginComponentEditor } from '@/features/plugin/plugin-access'
@@ -38,6 +39,7 @@ export function PluginManagementPage() {
     <header><h1 className="text-2xl font-semibold">{t('pluginManagement.title')}</h1>
       <p className="mt-2 max-w-prose text-sm text-muted-foreground">{t('pluginManagement.description')}</p></header>
     {reviewer && <PluginNpmAdminPanel />}
+    {reviewer && <PluginGitAdminPanel />}
     <PluginOfflineImportPanel reviewer={reviewer} namespaces={namespaces.data ?? []} projects={projects.data?.items ?? []} />
     <details open={selected === null} className="rounded-lg border p-4">
       <summary className="cursor-pointer font-medium">{t('pluginManagement.createProject')}</summary>
@@ -163,6 +165,7 @@ function PluginReleasePanel({ release, canManage, canReview, canGovern, direct }
     </form>}
     {canReview && release.publication && release.publication.status !== 'SUCCEEDED' && !release.publication.completedChannels.includes('HOSTED') && <Button variant="outline" disabled={command.isPending} onClick={() => action('publish-hosted')}>{t('pluginManagement.retryHosted')}</Button>}
     <PluginNpmReleasePanel releaseId={release.id} canManage={canManage} canReview={canReview} draft={draft} approved={release.publication != null} hasPi={release.distributions.some(d => d.runtimeKey === 'pi')} />
+    {release.distributions.some(d => d.runtimeKey === 'claude-code' || d.runtimeKey === 'codex') && <PluginGitEvidencePanel releaseId={release.id} approved={release.publication != null} completed={release.publication?.status === 'SUCCEEDED'} />}
     {release.reviews.map((review, index) => <p key={index} className="whitespace-pre-wrap text-sm text-muted-foreground">{review.reviewerId}: {review.notes} · {t(`pluginManagement.testResult.${review.runtimeTestResult}`)}{review.testEnvironment ? ` (${review.testEnvironment})` : ''}</p>)}
     {canGovern && <PluginReleaseGovernance release={release} />}
     {command.isPending && <p role="status" className="text-sm">{t('common.loading')}</p>}

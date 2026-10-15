@@ -1,0 +1,5 @@
+CREATE TABLE plugin_git_target(id BIGSERIAL PRIMARY KEY,namespace_id BIGINT NOT NULL REFERENCES namespace(id),remote VARCHAR(2000) NOT NULL,fetch_url VARCHAR(2000) NOT NULL,branch VARCHAR(200) NOT NULL,credential_ref VARCHAR(120) NOT NULL,created_by VARCHAR(128) NOT NULL REFERENCES user_account(id),created_at TIMESTAMPTZ NOT NULL);
+CREATE TABLE plugin_git_namespace_target(namespace_id BIGINT PRIMARY KEY REFERENCES namespace(id),target_id BIGINT NOT NULL REFERENCES plugin_git_target(id));
+CREATE TABLE plugin_git_destination_claim(target_key VARCHAR(64) PRIMARY KEY,namespace_id BIGINT NOT NULL REFERENCES namespace(id));
+CREATE TABLE plugin_git_publication_intent(id BIGSERIAL PRIMARY KEY,task_id BIGINT NOT NULL REFERENCES plugin_publication_task(id),parent_sha VARCHAR(40),tree_sha VARCHAR(40) NOT NULL,commit_sha VARCHAR(40) NOT NULL,plan_digest VARCHAR(64) NOT NULL,created_at TIMESTAMPTZ NOT NULL,UNIQUE(task_id,commit_sha));
+CREATE INDEX idx_plugin_git_intent_task ON plugin_git_publication_intent(task_id,id);

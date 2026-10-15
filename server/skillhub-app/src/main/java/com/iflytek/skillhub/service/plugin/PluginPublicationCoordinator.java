@@ -130,7 +130,7 @@ public class PluginPublicationCoordinator {
                 error =
                         ex instanceof NpmRegistryPublisher.Failure failure
                                 ? failure.code()
-                                : "CHANNEL_PUBLICATION_FAILED";
+                                : ex instanceof GitMarketplacePublisher.Failure gitFailure ? gitFailure.code() : "CHANNEL_PUBLICATION_FAILED";
             }
             final String finalReceipt = receipt, finalError = error;
             boolean accepted =

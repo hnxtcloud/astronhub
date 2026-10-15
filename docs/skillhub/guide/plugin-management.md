@@ -44,10 +44,10 @@
 安装说明不会执行命令或修改用户设置，也不代表真实宿主验收通过：
 
 - Claude Code：验证 SHA256、解压固定版本 ZIP，再以 `claude --plugin-dir` 加载本地目录。
-- Codex：验证并解压 ZIP，保存页面生成的本地 `.agents/marketplace.json`，再执行 `codex plugin marketplace add` 和固定本地市场中的插件安装命令。
+- Codex：验证并解压 ZIP，保存页面生成的本地 `.agents/plugins/marketplace.json`，再执行 `codex plugin marketplace add` 和固定本地市场中的插件安装命令。
 - Pi：PUBLIC 且有成功 npm 回执时，按原名称和固定版本生成内网 registry 的 POSIX / PowerShell 命令。仅本次进程选择该源，PowerShell 会恢复之前的环境变量；不携带服务器发布令牌。受限版本或没有匹配成功回执时，验证并解压 TGZ 后从本地 `package/` 安装。
 
-来源回执的名称、版本、摘要必须与发行物匹配；读取源以审批后的成功回执为准，不随当前默认 registry 改动。Node、OS/CPU、依赖和外部服务仍需用户确认。Git 原生市场安装指引由 Git 实施票补充。
+来源回执的名称、版本、摘要必须与发行物匹配；读取源以审批后的成功回执为准，不随当前默认 registry 改动。Node、OS/CPU、依赖和外部服务仍需用户确认。Claude Code/Codex 在 PUBLIC 发布有匹配成功 Git 回执时，生成固定 commit 的市场安装指引；没有匹配回执时使用上述本地包流程。
 
 ## 治理和显式组件关联
 
@@ -104,7 +104,7 @@
 
 导入使用有界原始请求流，不调整 Skill 的 multipart 或包业务限制。Nginx 为根路径及部署前缀下的 `/api/v1/plugin-management/imports` 配置单独的流式代理和无限代理请求体上限，由服务端鉴权并根据快照预算及时拒绝超限内容；其他入口仍保持原有 100 MiB 限制。若外层网关有更低限制，需要运维同步调整。单插件旧 `/releases/{id}/archive` 入口保留 100 MiB 上限，并遵守更低的后台包预算；更大的单插件请使用流式预览入口。
 
-完整跨渠道恢复、Git 公共原生市场安装和真实内网宿主验收见后续实施票。
+完整跨渠道恢复和真实部署内网宿主验收见恢复及集成实施票。
 
 ## 内网 npm 发布与独立依赖
 
@@ -143,3 +143,36 @@ skillhub:
 HOSTED、npm、Git 共享一个持久任务及渠道记录。成功渠道不会因其他渠道失败而删除或重复发布，全部必需渠道完成后目录才显示已发布。轮询排除缺配置的阻塞计划，并按尝试次数公平调度；外部网络调用在数据库锁之外，短事务领取的尝试令牌防止过期执行覆盖新结果。完整尝试历史、长任务心跳、治理撤回及显式重新规划由恢复实施票继续补齐。
 
 本机实际验证使用无 uplink 的临时 Verdaccio 6.1.6；该开发夹具不是产品依赖或公网回退。真实部署 registry、原生 Pi 安装和完整 staging 应由部署环境另行验收。
+
+
+## 内网 Git 原生市场发布
+
+运维预先创建目标 Git 仓库，部署服务器需要 `git` 命令。管理员在插件管理页为 namespace 选择允许的远端、分支及凭据引用。每次保存创建不可变目标修订；同一远端和分支不能由其他 namespace 认领，旧认领记录保留。配置修改只影响之后的审批，不改写已经批准、失败或阻塞的计划。
+
+```yaml
+skillhub:
+  plugin:
+    publication:
+      allowed-git-remotes:
+        - https://git.internal.example/team/plugins.git
+      credentials:
+        git-publisher: ${PLUGIN_GIT_PUBLISH_TOKEN:}
+```
+
+首版发布和读取地址必须为同一个规范 HTTPS URL；不支持 SSH、URL 内凭据、重定向、查询参数或片段。`file:///` 仅供运维明确允许的本地夹具。服务器 Git 启用 TLS 验证，企业 CA 需在部署环境信任；不能通过管理员配置关闭验证。裸 token 作为 Bearer 使用，需要 Basic 认证的 Git 服务可在部署凭据映射中提供完整 `Basic ...` 值。值只传入发布 Git 子进程的指定目标认证头，不进入数据库、参数列表、安装指引或日志。读取用户配置自己的凭据，不复用服务器发布凭据。
+
+PUBLIC Claude Code 和 Codex ZIP 按原始文件字节和执行权限写入 Git，Pi 不复制进 Git。市场名为 global 的 `astronhub`，其他 namespace 的 `astronhub-{slug}`。Claude 索引为 `.claude-plugin/marketplace.json`，Codex 索引为 `.agents/plugins/marketplace.json`，结构分别遵守宿主格式；文件放在 `plugins/{runtime}/{nativeName}/{nativeVersion}`。同市场原生名称被其他项目占用、同版本已有内容不同、目标文件路径已有未管理内容、受管索引被外部修改，或包中包含 `.git`/`.gitmodules` 控制路径时拒绝发布，不自动改名或覆盖。
+
+发布复用统一任务队列和批准快照。外部网络调用在数据库事务之外，推送前短事务持久化 parent/tree/commit/计划摘要意图，普通 Git push 保留远端历史，禁止 force push。远端并发前进时最多重新读取并重建三次；不确定推送结果或重启先核对远端祖先和实际 tree，再复用已确认结果。当前索引按持久审批任务 ID、发行 ID 排序；迟到旧请求只增加历史版本，不回拨当前选择。已成功渠道及历史回执继续保留。
+
+安装接口核对成功回执中的 runtime、原生名称、版本及归档 SHA256，还核对该 commit 的原生索引是否选择此版本，再使用回执远端和固定 commit，不读取当前目标配置。迟到旧任务若只增加历史文件而索引仍选择较新版本，旧版本继续使用固定归档和本地安装，不生成会安装较新版本的市场命令。Claude 先克隆并检出固定 commit，再注册本地市场；Codex HTTPS 注册使用 `--ref <commit>`。Codex 不接受 `file://` URL，夹具因此先克隆到本地再注册目录。页面提供 POSIX / PowerShell 指引。受限内容始终不进入 Git，继续使用鉴权包下载和本地安装流程。隐藏、归档或下架不会删除用户克隆、Git 历史或已成功的渠道记录；显式索引撤回属于恢复治理流程。
+
+Git 发布使用独立临时裸仓库和 fast-import，不检出或执行导入包，不采用系统/全局 Git 配置、hooks、过滤器或子模块。单 Git 命令限 90 秒，JSON 读取限 4 MiB，新增文件累计限 2 GiB，临时 Git 目录限 4 GiB；浅读取保留最多 256 层远端历史。超出预算或无法证明历史提交时拒绝或保留失败证据，需要管理员处理，不自动放宽限额。Git 深度及容量边界不是任意规模仓库支持承诺。
+
+| API（前缀 `/api/v1/plugin-management`） | 用途 |
+| --- | --- |
+| `GET /git/settings` | PLUGIN_ADMIN/SUPER_ADMIN 查看允许的远端、凭据引用、namespace 和目标修订 |
+| `POST /git/targets` | 为 namespace 创建并选择后续审批使用的新目标修订 |
+| `GET /releases/{id}/git-intents` | 有管理读取权限者查看不可变推送意图，不返回凭据值 |
+
+本机真实 Git 测试覆盖两种独立索引、原始 CRLF/BOM 字节、并发分支前进、迟到顺序、回执丢失后的重启核对、内容/身份冲突和 Git 控制路径拒绝。隔离的 Claude Code 2.1.273 与 Codex CLI 0.162.1 已使用实际生成仓库完成 HTTPS 市场注册和安装；不启动插件会话或执行插件代码，产品仍标记运行未经验证。真实内网 Git、企业认证、原生宿主运行与完整 staging 需在部署环境另行验收。

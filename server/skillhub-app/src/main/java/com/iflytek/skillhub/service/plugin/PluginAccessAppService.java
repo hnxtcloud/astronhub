@@ -205,8 +205,8 @@ public class PluginAccessAppService {
                                 + posix(specification);
                 powershell =
                         "$astronhubPreviousRegistry = $env:npm_config_registry\n"
-                            + "try {\n"
-                            + "  $env:npm_config_registry = "
+                                + "try {\n"
+                                + "  $env:npm_config_registry = "
                                 + powershell(registry)
                                 + "\n  pi install "
                                 + powershell(specification)
@@ -255,6 +255,70 @@ public class PluginAccessAppService {
                 throw new IllegalStateException(ex);
             }
         } else throw new DomainBadRequestException("error.plugin.archiveMissing");
+        var git = installations.gitSource(project, release, archive);
+        if (git.isPresent()) {
+            var source = git.get();
+            String directory = "./astronhub-git-" + project.getId() + "-" + releaseId;
+            String identity = archive.getNativeName() + "@" + source.marketplace();
+            String clone =
+                    "git clone --no-checkout -- "
+                            + posix(source.remote())
+                            + " "
+                            + posix(directory)
+                            + "\ngit -C "
+                            + posix(directory)
+                            + " checkout --detach "
+                            + source.commit()
+                            + "\n";
+            String clonePs =
+                    "git clone --no-checkout -- "
+                            + powershell(source.remote())
+                            + " "
+                            + powershell(directory)
+                            + "\ngit -C "
+                            + powershell(directory)
+                            + " checkout --detach "
+                            + source.commit()
+                            + "\n";
+            if (runtime.equals("codex") && source.remote().startsWith("https:")) {
+                command =
+                        "codex plugin marketplace add "
+                                + posix(source.remote())
+                                + " --ref "
+                                + source.commit()
+                                + "\ncodex plugin add "
+                                + posix(identity);
+                powershell =
+                        "codex plugin marketplace add "
+                                + powershell(source.remote())
+                                + " --ref "
+                                + source.commit()
+                                + "\ncodex plugin add "
+                                + powershell(identity);
+            } else {
+                String host = runtime.equals("codex") ? "codex" : "claude";
+                String install =
+                        host + (runtime.equals("codex") ? " plugin add " : " plugin install ");
+                command =
+                        clone
+                                + host
+                                + " plugin marketplace add "
+                                + posix(directory)
+                                + "\n"
+                                + install
+                                + posix(identity);
+                powershell =
+                        clonePs
+                                + host
+                                + " plugin marketplace add "
+                                + powershell(directory)
+                                + "\n"
+                                + install
+                                + powershell(identity);
+            }
+            preparation = runtime.equals("codex") ? "CODEX_GIT" : "CLAUDE_GIT";
+            marketplace = null;
+        }
         String ns = queries.detailNamespace(project.getNamespaceId());
         String download =
                 "/api/v1/plugins/"

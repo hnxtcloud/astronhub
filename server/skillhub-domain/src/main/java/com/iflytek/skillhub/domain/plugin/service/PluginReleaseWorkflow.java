@@ -9,6 +9,7 @@ import com.iflytek.skillhub.domain.plugin.PluginDistributionRepository;
 import com.iflytek.skillhub.domain.plugin.PluginProject;
 import com.iflytek.skillhub.domain.plugin.PluginProjectRepository;
 import com.iflytek.skillhub.domain.plugin.PluginProjectStatus;
+import com.iflytek.skillhub.domain.plugin.PluginPublicationOrder;
 import com.iflytek.skillhub.domain.plugin.PluginPublicationTask;
 import com.iflytek.skillhub.domain.plugin.PluginPublicationTaskRepository;
 import com.iflytek.skillhub.domain.plugin.PluginRelease;
@@ -217,12 +218,16 @@ public class PluginReleaseWorkflow {
         var selected =
                 candidates.stream()
                         .max(
-                                java.util.Comparator.comparingLong(
-                                                (PluginRelease r) ->
-                                                        tasks.findByReleaseId(r.getId())
-                                                                .map(PluginPublicationTask::getId)
-                                                                .orElse(-1L))
-                                        .thenComparing(PluginRelease::getId));
+                                (left, right) ->
+                                        PluginPublicationOrder.compare(
+                                                tasks.findByReleaseId(left.getId())
+                                                        .map(PluginPublicationTask::getId)
+                                                        .orElse(null),
+                                                left.getId(),
+                                                tasks.findByReleaseId(right.getId())
+                                                        .map(PluginPublicationTask::getId)
+                                                        .orElse(null),
+                                                right.getId()));
         if (selected.isPresent()) project.pointToPublishedRelease(selected.get());
         else project.clearPublishedRelease();
         projects.save(project);

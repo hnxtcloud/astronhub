@@ -2971,6 +2971,33 @@
     "noRegistry": "No eligible internal npm target is configured for this Pi archive. Public publication requires the original npm TGZ.",
     "installHelp": "Use a user-owned npm registry context and user installation credentials. This command sets the registry only for this invocation; it contains no publisher token."
   },
+  "pluginGit": {
+    "title": "Internal Git marketplaces",
+    "description": "Assign one repository branch to a namespace. Only approved PUBLIC Claude Code and Codex files are exported. New revisions affect future approvals. Existing plans keep their targets.",
+    "namespace": "Namespace",
+    "remote": "Publish repository",
+    "fetchUrl": "Public fetch URL",
+    "sameRemote": "Use publish repository URL",
+    "branch": "Branch",
+    "credential": "Publisher credential reference",
+    "select": "Select…",
+    "save": "Save new target revision",
+    "operatorConfiguration": "An operator must provide exact allowed Git URLs and named credentials. The repository must already exist.",
+    "saved": "Target revision saved",
+    "current": "Current configuration",
+    "historical": "Historical configuration",
+    "ready": "Credential configured",
+    "unavailable": "Credential unavailable",
+    "historyCaution": "Existing public Git history is retained. Changing configuration cannot retract cloned copies or retarget approved plans.",
+    "failed": "Operation failed",
+    "intents": "Git publication intents",
+    "intentHelp": "Each intended parent, tree and commit is recorded before push. An intent alone is not successful publication; use the channel receipt for confirmed history.",
+    "commit": "Intended commit",
+    "parent": "Expected parent",
+    "tree": "Exact tree",
+    "plan": "Approved plan digest",
+    "initial": "Initial branch"
+  },
   "pluginAccess": {
     "publishedVersion": "Опубликованная версия",
     "downloadArchive": "Скачать архив",
@@ -2999,7 +3026,9 @@
       "CLAUDE_LOCAL": "Скачайте архив, проверьте SHA256 и распакуйте в каталог из команды. Затем запустите Claude.",
       "PI_LOCAL": "Скачайте и проверьте tgz. Распакуйте в каталог из команды, сохраняя package/, затем выполните команду.",
       "CODEX_LOCAL": "Скачайте и проверьте архив. В ./astronhub-local распакуйте плагин по локальному пути source из JSON и сохраните JSON как .agents/marketplace.json. Выполните команды из родительского каталога.",
-      "PI_NPM": "Фиксированный пакет опубликован во внутреннем registry. Выберите команду для своей оболочки. Registry задаётся только для этого вызова; при необходимости настройте собственные учётные данные чтения. Проверьте Node, ОС/CPU, зависимости и внешние службы."
+      "PI_NPM": "Фиксированный пакет опубликован во внутреннем registry. Выберите команду для своей оболочки. Registry задаётся только для этого вызова; при необходимости настройте собственные учётные данные чтения. Проверьте Node, ОС/CPU, зависимости и внешние службы.",
+      "CLAUDE_GIT": "Установка из подтвержденной публикации Git с фиксацией коммита. Требуются Git и ваши учетные данные для чтения репозитория. Эти инструкции не подтверждают работу плагина.",
+      "CODEX_GIT": "Установка из подтвержденной публикации Git с фиксацией коммита. Требуются Git и ваши учетные данные для чтения репозитория. Эти инструкции не подтверждают работу плагина."
     },
     "posixShell": "Оболочка POSIX"
   }

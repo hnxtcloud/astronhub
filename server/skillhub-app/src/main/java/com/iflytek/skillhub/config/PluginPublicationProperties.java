@@ -14,6 +14,16 @@ import java.util.Map;
 @Component
 @ConfigurationProperties(prefix = "skillhub.plugin.publication")
 public class PluginPublicationProperties {
+    private List<String> allowedGitRemotes = new ArrayList<>();
+
+    public List<String> getAllowedGitRemotes() {
+        return allowedGitRemotes;
+    }
+
+    public void setAllowedGitRemotes(List<String> value) {
+        allowedGitRemotes = value;
+    }
+
     private List<String> allowedRegistries = new ArrayList<>();
     private Map<String, String> credentials = new HashMap<>();
 

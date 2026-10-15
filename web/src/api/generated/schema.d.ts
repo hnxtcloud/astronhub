@@ -2750,6 +2750,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/git/targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Append namespace Git target revision without retargeting approved plans */
+        post: operations["configure_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/internal/software/inspector/tasks/{taskId}/result": {
         parameters: {
             query?: never;
@@ -5972,6 +5989,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/releases/{id}/git-intents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read immutable pre-push Git intents and commit evidence */
+        get: operations["intents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/plugin-management/releases/{id}/files": {
         parameters: {
             query?: never;
@@ -6049,6 +6083,23 @@ export interface paths {
         };
         /** Read an owned offline import preview */
         get: operations["get_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/git/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read allowed internal Git destinations and named publisher references */
+        get: operations["settings_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8341,6 +8392,38 @@ export interface components {
         ImportResultsView: {
             results: components["schemas"]["ImportResultView"][];
         };
+        GitTargetRequest: {
+            /** Format: int64 */
+            namespaceId: number;
+            remote: string;
+            fetchUrl: string;
+            branch: string;
+            credentialRef: string;
+        };
+        ApiResponseGitTargetView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["GitTargetView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        GitTargetView: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            namespaceId?: number;
+            namespace?: string;
+            remote?: string;
+            fetchUrl?: string;
+            branch?: string;
+            credentialRef?: string;
+            credentialAvailable?: boolean;
+            selected?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+        };
         JsonNode: Record<string, never>;
         SoftwareInspectorResultRequest: {
             workerId: string;
@@ -10412,6 +10495,25 @@ export interface components {
             /** Format: int64 */
             bytes: number;
         };
+        ApiResponseListGitIntentView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["GitIntentView"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        GitIntentView: {
+            /** Format: int64 */
+            id?: number;
+            parent?: string;
+            tree?: string;
+            commit?: string;
+            planDigest?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
         ApiResponsePageResponsePluginProjectView: {
             /** Format: int32 */
             code?: number;
@@ -10461,6 +10563,27 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
             requestId?: string;
+        };
+        ApiResponseGitSettingsView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["GitSettingsView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        GitNamespaceView: {
+            /** Format: int64 */
+            id?: number;
+            slug?: string;
+            displayName?: string;
+        };
+        GitSettingsView: {
+            allowedRemotes?: string[];
+            credentialRefs?: string[];
+            namespaces?: components["schemas"]["GitNamespaceView"][];
+            targets?: components["schemas"]["GitTargetView"][];
         };
         ApiResponsePageResponseOrganizationSummaryResponse: {
             /** Format: int32 */
@@ -16482,6 +16605,30 @@ export interface operations {
             };
         };
     };
+    configure_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GitTargetRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseGitTargetView"];
+                };
+            };
+        };
+    };
     submitResult: {
         parameters: {
             query?: never;
@@ -21565,6 +21712,28 @@ export interface operations {
             };
         };
     };
+    intents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListGitIntentView"];
+                };
+            };
+        };
+    };
     files_1: {
         parameters: {
             query?: {
@@ -21676,6 +21845,26 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseImportPreviewView"];
+                };
+            };
+        };
+    };
+    settings_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseGitSettingsView"];
                 };
             };
         };
