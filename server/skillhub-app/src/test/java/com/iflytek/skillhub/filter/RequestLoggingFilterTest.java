@@ -155,7 +155,8 @@ class RequestLoggingFilterTest {
             "/api/v1/plugin-management/imports",
             "/api/v1/plugin-management/npm/dependencies",
             "/api/v1/plugin-management/releases/42/archive",
-            "/api/v1/admin/software/update-releases/42/assets"
+            "/api/v1/admin/software/update-releases/42/assets",
+            "/api/v1/software-publishing/apps/7/update-releases/42/assets"
     })
     void rawTransfersRemainUnwrappedAndLoggedWithoutReadingPayload(String path) throws Exception {
         RequestLoggingFilter filter = new RequestLoggingFilter();
@@ -178,5 +179,21 @@ class RequestLoggingFilterTest {
         return appender.list.stream()
                 .map(ILoggingEvent::getFormattedMessage)
                 .toList();
+    }
+
+    @Test
+    void machineChunksStreamAndIssuingCredentialsNeverLogsTheSecret() throws Exception {
+        RequestLoggingFilter filter = new RequestLoggingFilter();
+        attachAppender();
+        MockHttpServletRequest request = new MockHttpServletRequest("PUT", "/api/v1/software-publishing/apps/7/uploads/42/chunks/1");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.doFilter(request, response, (incoming, outgoing) -> {
+            assertThat(incoming).isSameAs(request);
+            assertThat(outgoing).isSameAs(response);
+        });
+        MockHttpServletRequest issue = new MockHttpServletRequest("POST", "/api/v1/admin/software/apps/7/publishers");
+        filter.doFilter(issue, new MockHttpServletResponse(), (incoming, outgoing) -> outgoing.getWriter().write("{\"rawToken\":\"synthetic-issuer-secret\"}"));
+        assertThat(loggedMessages()).anyMatch(message -> message.contains("/apps/7/publishers"));
+        assertThat(loggedMessages()).noneMatch(message -> message.contains("synthetic-issuer-secret"));
     }
 }

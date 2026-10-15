@@ -44,6 +44,9 @@ class Echo(BaseHTTPRequestHandler):
     def do_POST(self):
         self.reply(False)
 
+    def do_PUT(self):
+        self.reply(False)
+
     def reply(self, head: bool):
         body = json.dumps({"rawPath": self.path, "prefix": self.headers.get("X-Forwarded-Prefix"),
                            "range": self.headers.get("Range"), "ifRange": self.headers.get("If-Range"),
@@ -152,11 +155,14 @@ def probe(nginx: Path, shell: str, prefix: str, backend_port: int, run: Path) ->
         assert response.status == 404 and json.loads(response.read())["rawPath"].endswith("?missing=1")
         connection.close()
         count += 1
-        for suffix, status in [("/api/v1/plugin-management/imports?namespaceId=1&format=ZIP", 200),
-                               ("/api/v1/admin/software/update-releases/1/assets?path=dist%2Flatest.yml&role=METADATA", 200),
-                               ("/api/v1/admin/software/update-releases/1", 413)]:
+        for method, suffix, status in [("POST", "/api/v1/plugin-management/imports?namespaceId=1&format=ZIP", 200),
+                               ("POST", "/api/v1/admin/software/update-releases/1/assets?path=dist%2Flatest.yml&role=METADATA", 200),
+                               ("POST", "/api/v1/software-publishing/apps/7/update-releases/1/assets?path=dist%2Flatest.yml&role=METADATA", 200),
+                               ("PUT", "/api/v1/software-publishing/apps/7/uploads/1/chunks/1", 200),
+                               ("POST", "/api/v1/software-publishing/apps/7/update-releases", 413),
+                               ("POST", "/api/v1/admin/software/update-releases/1", 413)]:
             connection = http.client.HTTPConnection("127.0.0.1", listen, timeout=10)
-            connection.putrequest("POST", prefix.rstrip("/") + suffix)
+            connection.putrequest(method, prefix.rstrip("/") + suffix)
             connection.putheader("Content-Length", str(101 * 1024 * 1024))
             connection.putheader("Expect", "100-continue")
             connection.endheaders()

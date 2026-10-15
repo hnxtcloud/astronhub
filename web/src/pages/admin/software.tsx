@@ -45,6 +45,7 @@ import {
 
 import type { SoftwareAppAdminSummary, SoftwarePackage, SoftwareRelease } from '@/api/types'
 import { SoftwareUpdateManager, SoftwareUpdateSourceManager } from '@/features/software/software-update-manager'
+import { SoftwarePublisherManager } from '@/features/software/software-publisher-manager'
 
 const ALL_STATUS = '__all__'
 
@@ -330,6 +331,7 @@ function AppReleaseManager(props: {
       </div>
 
       <SoftwareUpdateSourceManager appId={props.appId} appSlug={props.appSlug} />
+      <SoftwarePublisherManager key={props.appId} appId={props.appId} />
 
       {releases.isLoading ? (
         <p className="text-sm text-muted-foreground">{t('common.loading')}</p>

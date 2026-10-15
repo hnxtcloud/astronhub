@@ -22,6 +22,7 @@ Tracker: local-markdown
 - [内网原生市场及 npm 依赖](decisions/02-native-channels.md)：服务器维护 Git/npm，仅 PUBLIC 插件进入公共原生渠道，分渠道恢复。
 - [多应用更新协议与客户端现状](decisions/03-update-protocols.md)：优先最小 GitLab tags/raw，另外投影 Electron generic 与白泽 manifest。
 - [逐应用匿名读取的边界](decisions/04-update-access.md)：默认关闭，显式启用后只开放完整已发布资产。
+- [受控机器发版操作](../../docs/software-machine-publishing.md)：会话管理员签发应用绑定凭据，CI 使用完整原始产物清单；状态恢复不包含凭据。真实 HTTP、工具和代理合同与真实签名安装、内网部署仍分别验收。
 
 ## Not yet specified
 

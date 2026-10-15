@@ -62,7 +62,23 @@ Electron 元数据的 `files` 中每个文件都必须关联受管安装包，�
 
 文件保持原始字节，无对象存储跳转。响应提供 Content-Length、SHA256 ETag、Last-Modified、Accept-Ranges 和 `Cache-Control: no-store`。即使携带条件请求或 Range，服务端也先检查治理状态。支持单区间及多区间；多区间最多 16 个、合计最多 32 MiB。超限或无效 Range 返回完整 200，全部有效区间越界返回 416；If-Range 不匹配时返回完整内容。
 
-原 Intelli Dev 保留 GitLab 分发配置，后续构建调整 baseUrl、owner/repo 和 artifactPath。已发放客户端不会自动发现新地址，首次迁移需要新构建或由运维代理旧域名。受限机器发布入口仍由后续实施票提供。真实 Windows/macOS 安装、签名和完整差分更新不能由服务端 HTTP 测试或 multipart 解析器契约检查替代。
+原 Intelli Dev 保留 GitLab 分发配置，后续构建调整 baseUrl、owner/repo 和 artifactPath。已发放客户端不会自动发现新地址，首次迁移需要新构建或由运维代理旧域名。受控机器发布入口见下节。真实 Windows/macOS 安装、签名和完整差分更新不能由服务端 HTTP 测试或 multipart 解析器契约检查替代。
+
+## 机器发版与凭据
+
+软件管理员在应用的「机器发版凭据」中填写名称、到期日期，创建绑定当前账号和该应用的 token。原始凭据仅显示一次，保存到 CI 密钥库后清除页面显示；凭据列表不能恢复原始 token。到期、撤销、账号停用或软件管理职责移除都会阻止后续机器请求。普通 API token 自行申请 `software:publish` 不会获得应用发版权限。
+
+机器 API 使用 `/api/v1/software-publishing/apps/{applicationId}`，原软件后台 API 仍只允许会话管理。安装包沿用分片、配额、检查、明确确认和发布流程。自动检查未完成不能填写元数据绕过；基础检查失败不能发布。ZIP/TAR 没有自动检查任务时，须在清单中明确提供 `rawVersionFields` 并声明 `confirmMetadata: true`。
+
+仓库工具要求 Python 3.11+，使用标准库。通过密钥库注入 `ASTRONHUB_PUBLISH_TOKEN`，不要将 token 放在命令行、清单或仓库中：
+
+```bash
+python scripts/publish-software-release.py --server https://hub.example/hub --app 12 --manifest release.json --state release-state.json --publish
+```
+
+清单含展示版本、发布说明、完整 update 身份、installers 和 assets。每项指向一个原始本地文件和应保留的相对发布路径；YAML/JSON、安装包和 blockmap 的路径、大小、摘要须一致。完整清单样例位于仓库 `docs/software-machine-publishing.md`。
+
+工具默认校验草稿，只有 `--publish` 才发布快照；另加 `--activate-channel` 才将清单指定的渠道移动到该快照。匿名开关仍由会话管理员单独设置。检查未完成时退出码为 2，保存不含 token 的状态文件，用同一清单和状态文件可重试；`--wait-seconds` 可有限等待。状态绑定服务、应用、清单及所有本地文件摘要，不能拿已改变的产物继续同一次发布。已发布资产不能原地替换。
 
 ## Generic 和白泽更新源
 
@@ -94,6 +110,6 @@ Electron generic 客户端将 provider 设为 generic、url 设为清单所在�
 
 设置 `SKILLHUB_WEB_BASE_PATH=/hub/` 后，这些入口同样位于 `/hub/` 下。GitLab project/file 中的 `%2F` 与查询必须原样传递；Nginx 使用原始 `$request_uri` 及已验证的部署前缀映射剥离前缀，不能改为 `$uri`、常规 rewrite 或再次 URL 编码。以 `.`, 如 `/hub.v1/`，组成的合法前缀也按字面量匹配。构建、运行、发布配置和 Helm 均禁止将 `updates`、`releases` 用作部署前缀的首段。
 
-辅助文件原始上传路径 `/api/v1/admin/software/update-releases/{id}/assets` 使用独立流式代理，包含部署前缀的版本也在 Nginx 检查请求体之前匹配。该路径由后端鉴权，并依照软件策略预留容量和限制大小；代理本身不再使用全局 100 MiB 上限。其他 JSON/管理路径保持原有上限。外层 Ingress、网关和客户端超时仍需由运维按实际大小配置；本改动不表示已执行 5 GiB 端到端传输。
+辅助文件原始上传路径 `/api/v1/admin/software/update-releases/{id}/assets`，以及机器入口的 `/apps/{appId}/update-releases/{id}/assets`、`/apps/{appId}/uploads/{id}/chunks/{number}` 使用独立流式代理，包含部署前缀的版本也在 Nginx 检查请求体之前匹配。这些路径由后端鉴权，并依照软件策略预留容量和限制大小；代理本身不再使用全局 100 MiB 上限。其他 JSON/管理路径保持原有上限。外层 Ingress、网关和客户端超时仍需由运维按实际大小配置；本改动不表示已执行 5 GiB 端到端传输。
 
 有本地 Nginx 时，可运行 `python scripts/tests/software-update-proxy-test.py --nginx /path/to/nginx --require-nginx`。该测试仅绑定回环地址，检查原始路径、请求/响应头、HEAD、错误状态和大请求头准入，结束后停止测试进程；不发送大上传实体，也不代替应用鉴权、真实更新安装或 Docker staging 验证。
