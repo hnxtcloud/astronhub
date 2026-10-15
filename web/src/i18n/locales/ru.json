@@ -841,7 +841,11 @@
     "tabRevocationHistory": "История отзывов",
     "revocationEmpty": "Нет заявок на отзыв",
     "revocationHistoryEmpty": "Нет рассмотренных заявок на отзыв",
-    "revocationStatus": { "PENDING": "Ожидает", "APPROVED": "Отозван", "REJECTED": "Отклонён" },
+    "revocationStatus": {
+      "PENDING": "Ожидает",
+      "APPROVED": "Отозван",
+      "REJECTED": "Отклонён"
+    },
     "revocationActors": "Отправитель: {{submitter}} · Рецензент: {{reviewer}}",
     "revocationReviewComment": "Комментарий рецензии: {{comment}}",
     "revocationLoadError": "Не удалось загрузить заявки на отзыв. Повторите попытку.",
@@ -1397,7 +1401,11 @@
     "revocationHistoryItem": "{{date}} · {{status}}",
     "revocationHistoryLoading": "Загрузка истории отзывов…",
     "revocationHistoryError": "Не удалось загрузить историю отзывов. Повторите попытку.",
-    "revocationStatus": { "PENDING": "Ожидает", "APPROVED": "Отозван", "REJECTED": "Отклонён" },
+    "revocationStatus": {
+      "PENDING": "Ожидает",
+      "APPROVED": "Отозван",
+      "REJECTED": "Отклонён"
+    },
     "promotionConfirmTitle": "Отправить запрос на продвижение",
     "promotionConfirmDescription": "Отправить v{{version}} скилла «{{skill}}» на продвижение в глобальное пространство имён?",
     "promotionSuccessTitle": "Запрос на продвижение отправлен",
@@ -2930,5 +2938,35 @@
     "saveChannel": "Сохранить цель канала",
     "editChannel": "Изменить канал",
     "clearTarget": "Сбросить цель"
+  },
+  "pluginAccess": {
+    "publishedVersion": "Опубликованная версия",
+    "downloadArchive": "Скачать архив",
+    "generateInstall": "Создать инструкции установки",
+    "notRuntimeVerified": "Манифест проверен. Команды не проверены в вашей среде выполнения.",
+    "browseFiles": "Просмотр файлов пакета",
+    "components": "Связанные компоненты",
+    "componentIndependence": "Ссылки указывают на существующие фиксированные версии. Права и жизненный цикл компонентов независимы. Недоступные компоненты скрыты. Связь не создаёт, не публикует и не устанавливает компонент.",
+    "unlink": "Удалить связь",
+    "governance": "Управление каталогом",
+    "externalCopies": "Скрытие, архивирование, ограничение доступа и отзыв прекращают доступ через AstronHub. Уже распространённые копии Git, npm и архивов могут оставаться доступными. История публикаций сохраняется.",
+    "reason": "Причина изменения",
+    "changeVisibility": "Изменить видимость",
+    "yank": "Отозвать версию",
+    "yankedReason": "Причина отзыва",
+    "componentKind": "Тип компонента",
+    "componentVersion": "Фиксированная версия / номер ревизии MCP",
+    "link": "Связать существующий компонент",
+    "actions": {
+      "HIDE": "Скрыть",
+      "SHOW": "Показать",
+      "ARCHIVE": "Архивировать",
+      "RESTORE": "Восстановить"
+    },
+    "preparation": {
+      "CLAUDE_LOCAL": "Скачайте архив, проверьте SHA256 и распакуйте в ./plugins/{slug}/{version}. Запустите Claude следующей командой.",
+      "PI_LOCAL": "Скачайте tgz, проверьте SHA256 и распакуйте в ./plugins/{slug}/{version}, сохранив каталог package. Затем выполните команду.",
+      "CODEX_LOCAL": "Скачайте и проверьте архив. Распакуйте в ./astronhub-local/plugins/{slug}/{version}. Сохраните JSON в ./astronhub-local/.agents/marketplace.json и выполните команды из родительского каталога."
+    }
   }
 }

@@ -110,7 +110,8 @@ class CapabilityCatalogIntegrationTest {
         assertPluginSlugs("other", Map.of(), Set.of(), "public-plugin");
         assertPluginSlugs("member", Map.of(fixture.namespaceId(), NamespaceRole.MEMBER), Set.of(),
                 "public-plugin", "team-plugin");
-        assertPluginSlugs("owner", Map.of(), Set.of(),
+        assertPluginSlugs("owner", Map.of(), Set.of(), "public-plugin");
+        assertPluginSlugs("owner", Map.of(fixture.namespaceId(), NamespaceRole.MEMBER), Set.of(),
                 "private-plugin", "public-plugin", "team-plugin");
         assertPluginSlugs("admin", Map.of(fixture.namespaceId(), NamespaceRole.ADMIN), Set.of(),
                 "private-plugin", "public-plugin", "team-plugin");

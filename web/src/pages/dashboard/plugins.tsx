@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PluginOfflineImportPanel } from '@/features/plugin/plugin-offline-import'
+import { PluginProjectGovernance, PluginReleaseGovernance, PluginFileBrowser, PluginComponentEditor } from '@/features/plugin/plugin-access'
 import { useAuth } from '@/features/auth/use-auth'
 import { useCreatePluginProject, usePluginCommand, usePluginNamespaces, usePluginProject, usePluginProjects,
   type PluginCommandBody, type PluginProject, type PluginProjectInput, type PluginRelease } from '@/features/plugin/plugin-api'
@@ -89,6 +90,8 @@ function PluginProjectEditor({ project, direct }: { project: PluginProject; dire
   const [changelog, setChangelog] = useState('')
   return <>
     <header><h2 className="text-xl font-semibold">{project.displayName}</h2><p className="text-sm text-muted-foreground">@{project.namespace}/{project.slug} · {t(`pluginManagement.visibilityValues.${project.visibility}`)}</p></header>
+    {project.canGovern && <PluginProjectGovernance project={project} />}
+    <PluginComponentEditor project={project} />
     {project.canManage && <>
       <form className="space-y-3" onSubmit={e => { e.preventDefault(); command.mutate({ path: `/projects/${project.id}`, method: 'PATCH', body: { displayName: name, summary } }) }}>
         <label className="block space-y-1 text-sm">{t('pluginManagement.editName')}<Input required maxLength={200} value={name} onChange={e => setName(e.target.value)} /></label>
@@ -105,12 +108,12 @@ function PluginProjectEditor({ project, direct }: { project: PluginProject; dire
     {command.error && <p role="alert" className="text-sm text-destructive">{command.error.message}</p>}
     <section className="space-y-5 border-t pt-5"><h3 className="font-medium">{t('pluginManagement.versions')}</h3>
       {project.releases.length === 0 && <p className="text-sm text-muted-foreground">{t('pluginManagement.noVersions')}</p>}
-      {project.releases.map(release => <PluginReleasePanel key={release.id} release={release} canManage={project.canManage} canReview={project.canReview} direct={direct} />)}
+      {project.releases.map(release => <PluginReleasePanel key={release.id} release={release} canManage={project.canManage} canReview={project.canReview} canGovern={project.canGovern} direct={direct} />)}
     </section>
   </>
 }
 
-function PluginReleasePanel({ release, canManage, canReview, direct }: { release: PluginRelease; canManage: boolean; canReview: boolean; direct: boolean }) {
+function PluginReleasePanel({ release, canManage, canReview, canGovern, direct }: { release: PluginRelease; canManage: boolean; canReview: boolean; canGovern: boolean; direct: boolean }) {
   const { t } = useTranslation()
   const command = usePluginCommand()
   const [archive, setArchive] = useState<File | null>(null)
@@ -144,6 +147,7 @@ function PluginReleasePanel({ release, canManage, canReview, direct }: { release
       <details><summary className="cursor-pointer">{t('pluginManagement.inspectEvidence')}</summary>
         <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all rounded bg-muted p-3 text-xs">{distribution.manifestJson}{'\n'}{distribution.inventoryJson}</pre></details>
       <a className="inline-block underline underline-offset-4" href={withBasePath(`/api/v1/plugin-management/releases/${release.id}/${release.status === 'PUBLISHED' ? 'download' : 'archive'}?runtime=${encodeURIComponent(distribution.runtimeKey)}`)}>{t('pluginManagement.download')}</a>
+      <PluginFileBrowser path={`/api/v1/plugin-management/releases/${release.id}`} runtime={distribution.runtimeKey} />
     </div>)}
     {draft && canManage && <Button disabled={command.isPending || release.distributions.length === 0} onClick={() => action('submit')}>{t('pluginManagement.submit')}</Button>}
     {canReview && (reviewable || (draft && direct)) && <form className="space-y-3 border-t pt-4" onSubmit={e => { e.preventDefault(); action(draft ? 'direct-publish' : 'approve', reviewBody) }}>
@@ -157,6 +161,7 @@ function PluginReleasePanel({ release, canManage, canReview, direct }: { release
     </form>}
     {canReview && release.publication && release.publication.status !== 'SUCCEEDED' && !release.publication.completedChannels.includes('HOSTED') && <Button variant="outline" disabled={command.isPending} onClick={() => action('publish-hosted')}>{t('pluginManagement.retryHosted')}</Button>}
     {release.reviews.map((review, index) => <p key={index} className="whitespace-pre-wrap text-sm text-muted-foreground">{review.reviewerId}: {review.notes} · {t(`pluginManagement.testResult.${review.runtimeTestResult}`)}{review.testEnvironment ? ` (${review.testEnvironment})` : ''}</p>)}
+    {canGovern && <PluginReleaseGovernance release={release} />}
     {command.isPending && <p role="status" className="text-sm">{t('common.loading')}</p>}
     {command.error && <p role="alert" className="text-sm text-destructive">{command.error.message}</p>}
   </article>

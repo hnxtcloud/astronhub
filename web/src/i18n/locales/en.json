@@ -841,7 +841,11 @@
     "tabRevocationHistory": "Revocation history",
     "revocationEmpty": "No revocation requests",
     "revocationHistoryEmpty": "No reviewed revocation requests",
-    "revocationStatus": { "PENDING": "Pending", "APPROVED": "Revoked", "REJECTED": "Rejected" },
+    "revocationStatus": {
+      "PENDING": "Pending",
+      "APPROVED": "Revoked",
+      "REJECTED": "Rejected"
+    },
     "revocationActors": "Requested by {{submitter}} · Reviewed by {{reviewer}}",
     "revocationReviewComment": "Review comment: {{comment}}",
     "revocationLoadError": "Could not load revocation requests. Please try again.",
@@ -1332,7 +1336,11 @@
     "revocationHistoryItem": "{{date}} · {{status}}",
     "revocationHistoryLoading": "Loading revocation history…",
     "revocationHistoryError": "Could not load revocation history. Please try again.",
-    "revocationStatus": { "PENDING": "Pending", "APPROVED": "Revoked", "REJECTED": "Rejected" },
+    "revocationStatus": {
+      "PENDING": "Pending",
+      "APPROVED": "Revoked",
+      "REJECTED": "Rejected"
+    },
     "promotionConfirmTitle": "Submit promotion request",
     "promotionConfirmDescription": "Submit v{{version}} of \"{{skill}}\" for promotion into the global namespace?",
     "promotionSuccessTitle": "Promotion request submitted",
@@ -2928,5 +2936,35 @@
     "saveChannel": "Save channel target",
     "editChannel": "Edit channel",
     "clearTarget": "Clear target"
+  },
+  "pluginAccess": {
+    "publishedVersion": "Published version",
+    "downloadArchive": "Download archive",
+    "generateInstall": "Generate installation instructions",
+    "notRuntimeVerified": "The package manifest was validated. These commands have not been verified in your runtime.",
+    "browseFiles": "Browse package files",
+    "components": "Linked components",
+    "componentIndependence": "Links reference existing fixed versions. Each component keeps its own permissions and lifecycle; unavailable components are omitted. Linking does not create, publish or install a component.",
+    "unlink": "Remove link",
+    "governance": "Catalog governance",
+    "externalCopies": "Hiding, archiving, restricting visibility or yanking stops AstronHub access. Copies already distributed through Git, npm or downloads remain available outside AstronHub. Publication history is retained.",
+    "reason": "Governance reason",
+    "changeVisibility": "Change visibility",
+    "yank": "Yank version",
+    "yankedReason": "Yanked reason",
+    "componentKind": "Component kind",
+    "componentVersion": "Fixed version / MCP revision number",
+    "link": "Link existing component",
+    "actions": {
+      "HIDE": "Hide",
+      "SHOW": "Show",
+      "ARCHIVE": "Archive",
+      "RESTORE": "Restore"
+    },
+    "preparation": {
+      "CLAUDE_LOCAL": "Download the fixed archive, verify SHA256, and extract it into ./plugins/{slug}/{version}. Start Claude with the command below.",
+      "PI_LOCAL": "Download the fixed tgz, verify SHA256, and extract it under ./plugins/{slug}/{version}, preserving its package directory. Then run the command below.",
+      "CODEX_LOCAL": "Download and verify the fixed archive. Extract it into ./astronhub-local/plugins/{slug}/{version}. Save the JSON below as ./astronhub-local/.agents/marketplace.json, then run these commands from the parent directory."
+    }
   }
 }

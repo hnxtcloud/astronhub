@@ -128,6 +128,8 @@ public class PluginProject {
         }
         this.latestReleaseId = release.getId();
     }
+    public void clearPublishedRelease() { this.latestReleaseId = null; }
+    public void changeVisibility(PluginVisibility visibility) { if (visibility == null) throw new IllegalArgumentException("Visibility required"); this.visibility = visibility; }
     public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
     public void setUpdatedBy(String updatedBy) { this.updatedBy = updatedBy; }
     public void archive() { this.status = PluginProjectStatus.ARCHIVED; }
