@@ -76,6 +76,12 @@ Base branch: codex/software-center-phase1
 - 生成 OpenAPI、临时前端类型替换及统一回归属于票 11；不手改生成文件。真实 npm/Git、生产 PostgreSQL 争用与客户端安装尚未验收。
 - 合并未触及用户原有 `CONTEXT.md` 和无关 `.scratch/`，90 个既有文件 SHA256 前后一致；未清理实施工作树。
 
+## Combined contract checkpoint — 2026-10-15
+
+- 票 07 和 02 已分别合并关闭（`95172ec4`/`de385314`、`5e01fc77`/`852969f9`）。票 04 正在实现 npm 发布，票 08 正在实现 GitLab 读取；代理路由子任务先汇入票 08 主实施分支，不独立宣布接口完成。
+- 通过实际 Springdoc 重新导出联合控制器契约：398 paths、430 schemas。三个流式上传端点补充真实二进制请求体元数据，经导出结果逐项核对 required/media type/binary schema；没有手写生成文件。
+- 导入界面的临时 API 类型已替换为生成别名；初始插件写操作也引用生成请求类型。联合契约的全前端 TypeScript 检查、导入界面定向 ESLint 和 `git diff --check` 通过。日志为 `.scratch/plugin-update-{combined,binary}-openapi.log`、`.scratch/plugin-combined-contract-{typecheck,lint}.log`。
+
 ## Merge checkpoint — ticket 07
 
 - 完整工作分支 tip `86d22c89`（含 `4f524920`、`3bc4cdda` 及最新集成）以 `95172ec4` 合入；票 07 关闭，票 08 可开始。不是只合并早期模型切片。

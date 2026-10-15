@@ -67,6 +67,9 @@ public class PluginManagementController extends BaseApiController {
         return ok("response.success.updated", app.updateDraft(id, request, actor(http), AuditRequestContext.from(http)));
     }
     @PostMapping(value = "/releases/{id}/archive", consumes = "application/zip")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
+            content = @io.swagger.v3.oas.annotations.media.Content(mediaType = "application/zip",
+                    schema = @io.swagger.v3.oas.annotations.media.Schema(type = "string", format = "binary")))
     @Operation(summary = "Import a bounded Claude Code ZIP and validate its real native manifest")
     public ApiResponse<PluginReleaseView> archive(@PathVariable Long id, HttpServletRequest http) throws IOException {
         return ok("response.success.created", app.importArchive(id, http.getInputStream(), actor(http), AuditRequestContext.from(http)));
