@@ -46,6 +46,7 @@ Base branch: codex/software-center-phase1
 
 - 已合入：01 使用 V74、07 使用 V75、02 使用 V76。
 - 在途/后续预留：08 使用 V77（如需要）、03 使用 V78、04 使用 V79、05 使用 V80。分配新迁移前重新检查集成和在途工作树；后续票不得复用这些编号。
+- 票 09 已认领，分支 `codex/native-update-feeds`，迁移预留 V81（如需要）；以已合入 08 的选择、治理和传输规则扩展 Generic／白泽更新源。
 
 ## Verification seams
 
