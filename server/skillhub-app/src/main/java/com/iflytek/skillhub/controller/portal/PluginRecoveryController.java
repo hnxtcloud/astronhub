@@ -19,17 +19,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/plugin-management/releases/{id}")
 public class PluginRecoveryController extends BaseApiController {
-    private final com.iflytek.skillhub.service.plugin.PluginChannelAttemptRunner runner;
     private final PluginRecoveryAppService app;
     private final PluginRecoveryQueryRepository queries;
 
     public PluginRecoveryController(
             ApiResponseFactory responses,
             PluginRecoveryAppService app,
-            PluginRecoveryQueryRepository queries,
-            com.iflytek.skillhub.service.plugin.PluginChannelAttemptRunner runner) {
+            PluginRecoveryQueryRepository queries) {
         super(responses);
-        this.runner = runner;
         this.app = app;
         this.queries = queries;
     }
@@ -117,9 +114,7 @@ public class PluginRecoveryController extends BaseApiController {
     @Operation(summary = "Retry or reconcile a withdrawal at its original immutable target")
     public ApiResponse<List<RecoveryChannelView>> retry(
             @PathVariable Long id, @PathVariable Long operationId, HttpServletRequest http) {
-        var actor = PluginManagementController.actor(http);
-        app.retryGovernance(id, operationId, actor, AuditRequestContext.from(http));
-        runner.executeGovernance(id, operationId);
-        return ok("response.success.updated", queries.read(id, actor));
+        return ok("response.success.updated", app.retryGovernance(id, operationId,
+                PluginManagementController.actor(http), AuditRequestContext.from(http)));
     }
 }

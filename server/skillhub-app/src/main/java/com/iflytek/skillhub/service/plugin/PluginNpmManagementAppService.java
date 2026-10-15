@@ -307,22 +307,7 @@ public class PluginNpmManagementAppService {
 
     public List<ChannelView> channels(Long releaseId, PluginActor actor) {
         requireRead(releaseId, actor);
-        return tasks.findByReleaseId(releaseId)
-                .map(
-                        task ->
-                                channels.findByTaskIdOrderByChannel(task.getId()).stream()
-                                        .filter(value -> !value.getChannel().equals("HOSTED"))
-                                        .map(
-                                                value ->
-                                                        new ChannelView(
-                                                                value.getChannel(),
-                                                                value.getState(),
-                                                                value.getSnapshot(),
-                                                                value.getAttemptCount(),
-                                                                value.getLastError(),
-                                                                value.getReceipt()))
-                                        .toList())
-                .orElse(List.of());
+        return queries.channels(releaseId);
     }
 
     public List<ChannelView> retry(Long releaseId, PluginActor actor, AuditRequestContext context) {

@@ -7,6 +7,31 @@ import { SoftwareUpdateManager, SoftwareUpdateSourceManager } from './software-u
 vi.mock('react-i18next', async () => ({ ...await vi.importActual<typeof import('react-i18next')>('react-i18next'), useTranslation: () => ({ t: (key: string) => key }) }))
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
+it('requires a fresh human NSIS confirmation before linking a Windows Electron installer', async () => {
+  document.cookie = 'XSRF-TOKEN=test'
+  const writes: unknown[] = []
+  const draft = { id: 5, status: 'DRAFT', protocol: 'ELECTRON', tag: 'v1.2.3', assets: [], targetOs: 'WINDOWS', targetArch: 'X86_64', channel: 'stable', variant: 'default' }
+  vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
+    if (init?.method === 'POST') writes.push(JSON.parse(String(init.body)))
+    return new Response(JSON.stringify({ code: 0, data: init?.method === 'POST' ? {} : [draft] }))
+  }))
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <SoftwareUpdateManager release={{ id: 7, packages: [{ id: 9, revisionNo: 1, status: 'PUBLISHED', targetOs: 'WINDOWS', targetArch: 'X86_64', format: 'EXE', originalFullVersion: '1.2.3', fileName: 'setup.exe', byteSize: 3, sha256: 'fixture', confirmedBy: 'admin', targetDistro: null, applicabilityNote: null, confirmedAt: '2026-10-15T00:00:00Z', publishedAt: '2026-10-15T00:00:00Z' }] }} />
+  </QueryClientProvider>)
+  await screen.findByText('v1.2.3')
+  fireEvent.change(screen.getByLabelText('softwareUpdates.installer'), { target: { value: '9' } })
+  fireEvent.change(screen.getByLabelText('softwareUpdates.path'), { target: { value: 'dist/setup.exe' } })
+  const link = screen.getByRole('button', { name: 'softwareUpdates.link' }) as HTMLButtonElement
+  expect(link.disabled).toBe(true)
+  const confirmation = screen.getByRole('checkbox', { name: 'softwareUpdates.confirmNsis' }) as HTMLInputElement
+  expect(confirmation.checked).toBe(false)
+  fireEvent.click(confirmation)
+  expect(link.disabled).toBe(false)
+  fireEvent.click(link)
+  await waitFor(() => expect(writes).toEqual([{ packageRevisionId: 9, relativePath: 'dist/setup.exe', confirmedInstallerFamily: 'NSIS' }]))
+  await waitFor(() => expect(confirmation.checked).toBe(false))
+})
+
 it('shows the selected native channel address and explicit migration configuration', async () => {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify({ code: 0, data:
     url.includes('/update-source')

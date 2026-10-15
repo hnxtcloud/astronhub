@@ -62,7 +62,7 @@ export function PluginNpmAdminPanel() {
       <Button disabled={upload.isPending || files.length === 0}>{t('pluginNpm.upload')}</Button>
     </form>
     <div className="mt-4 space-y-3">{uploads.data?.map(value => <article key={value.id} className="rounded border p-3 text-sm">
-      <p className="font-medium">{value.name}@{value.version} · {value.state}</p><p>{value.registry} · {value.uploadedBy} · {value.source}</p>
+      <p className="font-medium">{value.name}@{value.version} · {t(`publicationLabels.states.${value.state}`)}</p><p>{value.registry} · {value.uploadedBy} · {value.source}</p>
       <p className="break-all font-mono text-xs">SHA256: {value.sha256}</p>
       <p>{t('pluginNpm.attempts')}: {value.attemptCount}</p>
       {value.lastError && <p role="alert" className="text-destructive">{value.lastError}</p>}
@@ -85,11 +85,11 @@ export function PluginNpmReleasePanel({ releaseId, canManage, canReview, draft, 
   return <section className="space-y-3 rounded border p-3 text-sm">
     <h5 className="font-medium">{t('pluginNpm.publication')}</h5>
     {hasPi && draft && canManage && <div className="flex flex-wrap gap-2"><select aria-label={t('pluginNpm.registry')} className={selectClass} value={registryId} onChange={e => setRegistryId(e.target.value)}><option value="">{t('pluginNpm.defaultSelection')}</option>{registries.data?.map(value => <option key={value.id} value={value.id}>{value.name} · {value.registry}</option>)}</select><Button variant="outline" disabled={!registryId || select.isPending} onClick={() => select.mutate()}>{t('pluginNpm.selectRegistry')}</Button>{select.isSuccess && <p role="status">{t('pluginNpm.saved')}</p>}</div>}
-    {channels.data?.map(value => <div key={value.channel}><p>{value.channel} · {value.state} · {t('pluginNpm.attempts')}: {value.attemptCount}</p>{value.lastError && <p className="text-destructive">{value.lastError}</p>}{value.receipt && <pre className="overflow-auto whitespace-pre-wrap text-xs">{value.receipt}</pre>}</div>)}
+    {channels.data?.map(value => <div key={value.channel}><p>{value.channel} · {t(`publicationLabels.states.${value.state}`)} · {t('pluginNpm.attempts')}: {value.attemptCount}</p>{value.lastError && <p className="text-destructive">{value.lastError}</p>}{value.receipt && <pre className="overflow-auto whitespace-pre-wrap text-xs">{value.receipt}</pre>}</div>)}
     {channels.data?.some(value => value.state === 'BLOCKED') && <p>{t('pluginNpm.blocked')}</p>}
     {canReview && channels.data?.some(value => value.state !== 'SUCCEEDED' && value.state !== 'BLOCKED') && <Button variant="outline" disabled={retry.isPending} onClick={() => retry.mutate()}>{t('pluginNpm.retry')}</Button>}
     {hasPi && <Button variant="outline" disabled={prerequisites.isPending} onClick={() => prerequisites.mutate()}>{t('pluginNpm.check')}</Button>}
-    {prerequisites.data && <div className="space-y-2"><p>{t('pluginNpm.offlineCaution')}</p><p>{prerequisites.data.registry ?? t('pluginNpm.noRegistry')}</p>{prerequisites.data.dependencies?.map((value, index) => <p key={index}>{value.name}@{value.range} · {value.kind} · {value.availability}</p>)}<pre className="overflow-auto whitespace-pre-wrap text-xs">{prerequisites.data.requirementsJson}</pre>{prerequisites.data.installCommand && <><p>{t('pluginNpm.installHelp')}</p><code className="block break-all">{prerequisites.data.registryConfiguration} {prerequisites.data.installCommand}</code></>}</div>}
+    {prerequisites.data && <div className="space-y-2"><p>{t('pluginNpm.offlineCaution')}</p><p>{prerequisites.data.registry ?? t('pluginNpm.noRegistry')}</p>{prerequisites.data.dependencies?.map((value, index) => <p key={index}>{value.name}@{value.range} · {t(`publicationLabels.dependencyKinds.${value.kind}`)} · {t(`publicationLabels.availability.${value.availability}`)}</p>)}<pre className="overflow-auto whitespace-pre-wrap text-xs">{prerequisites.data.requirementsJson}</pre>{prerequisites.data.installCommand && <><p>{t('pluginNpm.installHelp')}</p><code className="block break-all">{prerequisites.data.registryConfiguration} {prerequisites.data.installCommand}</code></>}</div>}
     {[channels.error, select.error, prerequisites.error, retry.error].filter(Boolean).map((error, index) => <p role="alert" className="text-destructive" key={index}>{error instanceof Error ? error.message : t('pluginNpm.failed')}</p>)}
   </section>
 }

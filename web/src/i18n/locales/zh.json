@@ -2941,7 +2941,9 @@
     "chooseTarget": "选择已发布快照",
     "saveChannel": "保存渠道目标",
     "editChannel": "编辑渠道",
-    "clearTarget": "清除目标"
+    "clearTarget": "清除目标",
+    "confirmNsis": "我确认此安装包为完整 NSIS 安装器（发布者声明，不代表二进制检测或安装验证）。",
+    "nsisConfirmedBy": "NSIS 确认人：{{actor}}，确认时间：{{at}}"
   },
   "pluginNpm": {
     "title": "内网 npm 发布",
@@ -3072,6 +3074,49 @@
     "withdraw": "撤回原生安装源",
     "retryWithdrawal": "重试或核实撤回",
     "older": "较早的记录",
-    "npmRetained": "此处不支持删除远程 npm 包。包仍保留在依赖库中，本操作仅停用本地安装源。"
+    "npmRetained": "此处不支持删除远程 npm 包。包仍保留在依赖库中，本操作仅停用本地安装源。",
+    "pageInfo": "第 {{page}} 页 · 每页 {{size}} 条 · 共 {{total}} 次尝试"
+  },
+  "publicationLabels": {
+    "states": {
+      "DRAFT": "草稿",
+      "PUBLISHED": "已发布",
+      "WITHDRAWN": "已撤回",
+      "QUEUED": "排队中",
+      "RUNNING": "执行中",
+      "SUCCEEDED": "成功",
+      "FAILED": "失败",
+      "UNKNOWN": "结果未知",
+      "BLOCKED": "已阻塞",
+      "UNSUPPORTED": "不支持",
+      "AWAITING_CONFIRMATION": "待确认",
+      "EXPIRED": "租约已过期"
+    },
+    "actions": {
+      "PUBLISH": "发布",
+      "RECONCILE": "核对发布结果",
+      "WITHDRAW_CURRENT": "撤回当前索引",
+      "RECONCILE_WITHDRAW": "核对撤回结果"
+    },
+    "roles": {
+      "INSTALLER": "安装包",
+      "METADATA": "更新元数据",
+      "BLOCKMAP": "差分块映射",
+      "CHECKSUM": "校验和",
+      "SIGNATURE": "签名",
+      "OTHER": "其他文件"
+    },
+    "bytes": "字节",
+    "dependencyKinds": {
+      "dependencies": "必需依赖",
+      "optionalDependencies": "可选依赖",
+      "peerDependencies": "同级依赖"
+    },
+    "availability": {
+      "AVAILABLE": "可用",
+      "MISSING": "缺失",
+      "UNRESOLVED_RANGE": "版本范围未解析",
+      "UNSUPPORTED_SOURCE": "不支持的来源"
+    }
   }
 }

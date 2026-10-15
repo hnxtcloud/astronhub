@@ -12,6 +12,9 @@ import com.iflytek.skillhub.dto.plugin.PluginNpmDtos.SettingsView;
 import com.iflytek.skillhub.service.plugin.NpmRegistryPublisher;
 
 import org.springframework.stereotype.Repository;
+import com.iflytek.skillhub.domain.plugin.PluginPublicationTaskRepository;
+import com.iflytek.skillhub.domain.plugin.PluginPublicationChannelRepository;
+import com.iflytek.skillhub.dto.plugin.PluginNpmDtos.ChannelView;
 
 import java.util.List;
 
@@ -25,16 +28,20 @@ public class PluginNpmQueryRepository {
     private final PluginNpmDependencyUploadRepository uploads;
     private final PluginPublicationProperties properties;
     private final ObjectMapper mapper;
+    private final PluginPublicationTaskRepository tasks;
+    private final PluginPublicationChannelRepository channels;
 
     public PluginNpmQueryRepository(
             PluginNpmRegistryRepository registries,
             PluginNpmDependencyUploadRepository uploads,
             PluginPublicationProperties properties,
-            ObjectMapper mapper) {
+            ObjectMapper mapper, PluginPublicationTaskRepository tasks, PluginPublicationChannelRepository channels) {
         this.registries = registries;
         this.uploads = uploads;
         this.properties = properties;
         this.mapper = mapper;
+        this.tasks = tasks;
+        this.channels = channels;
     }
 
     public RegistryView registry(PluginNpmRegistry value) {
@@ -77,5 +84,24 @@ public class PluginNpmQueryRepository {
 
     public List<DependencyUploadView> uploads() {
         return uploads.findTop100ByOrderByIdDesc().stream().map(this::upload).toList();
+    }
+
+    public List<ChannelView> channels(Long releaseId) {
+        return tasks.findByReleaseId(releaseId)
+                .map(
+                        task ->
+                                channels.findByTaskIdOrderByChannel(task.getId()).stream()
+                                        .filter(value -> !value.getChannel().equals("HOSTED"))
+                                        .map(
+                                                value ->
+                                                        new ChannelView(
+                                                                value.getChannel(),
+                                                                value.getState(),
+                                                                value.getSnapshot(),
+                                                                value.getAttemptCount(),
+                                                                value.getLastError(),
+                                                                value.getReceipt()))
+                                        .toList())
+                .orElse(List.of());
     }
 }

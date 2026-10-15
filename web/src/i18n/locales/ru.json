@@ -2944,7 +2944,9 @@
     "chooseTarget": "Выберите опубликованный снимок",
     "saveChannel": "Сохранить цель канала",
     "editChannel": "Изменить канал",
-    "clearTarget": "Сбросить цель"
+    "clearTarget": "Сбросить цель",
+    "confirmNsis": "Подтверждаю: это полный установщик NSIS (заявление издателя, без проверки бинарного файла или установки).",
+    "nsisConfirmedBy": "NSIS подтверждён: {{actor}}, {{at}}"
   },
   "pluginNpm": {
     "title": "Internal npm publication",
@@ -3075,6 +3077,49 @@
     "withdraw": "Отозвать источник установки",
     "retryWithdrawal": "Повторить / проверить отзыв",
     "older": "Старые попытки",
-    "npmRetained": "Удаление npm-пакета не поддерживается. Пакет остаётся в реестре; отключается только локальный источник установки."
+    "npmRetained": "Удаление npm-пакета не поддерживается. Пакет остаётся в реестре; отключается только локальный источник установки.",
+    "pageInfo": "Страница {{page}} · По {{size}} на странице · Всего попыток: {{total}}"
+  },
+  "publicationLabels": {
+    "states": {
+      "DRAFT": "Черновик",
+      "PUBLISHED": "Опубликовано",
+      "WITHDRAWN": "Отозвано",
+      "QUEUED": "В очереди",
+      "RUNNING": "Выполняется",
+      "SUCCEEDED": "Успешно",
+      "FAILED": "Ошибка",
+      "UNKNOWN": "Результат неизвестен",
+      "BLOCKED": "Заблокировано",
+      "UNSUPPORTED": "Не поддерживается",
+      "AWAITING_CONFIRMATION": "Ожидает подтверждения",
+      "EXPIRED": "Срок аренды истёк"
+    },
+    "actions": {
+      "PUBLISH": "Опубликовать",
+      "RECONCILE": "Сверить результат публикации",
+      "WITHDRAW_CURRENT": "Отозвать текущий индекс",
+      "RECONCILE_WITHDRAW": "Сверить результат отзыва"
+    },
+    "roles": {
+      "INSTALLER": "Установщик",
+      "METADATA": "Метаданные обновления",
+      "BLOCKMAP": "Карта блоков",
+      "CHECKSUM": "Контрольная сумма",
+      "SIGNATURE": "Подпись",
+      "OTHER": "Другой файл"
+    },
+    "bytes": "байт",
+    "dependencyKinds": {
+      "dependencies": "Обязательная зависимость",
+      "optionalDependencies": "Необязательная зависимость",
+      "peerDependencies": "Одноранговая зависимость"
+    },
+    "availability": {
+      "AVAILABLE": "Доступно",
+      "MISSING": "Отсутствует",
+      "UNRESOLVED_RANGE": "Диапазон версий не разрешён",
+      "UNSUPPORTED_SOURCE": "Источник не поддерживается"
+    }
   }
 }

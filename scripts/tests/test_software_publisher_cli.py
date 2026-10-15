@@ -1,5 +1,6 @@
 """Public CLI failure cases: credentials and original build files stay protected."""
 import http.server
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -16,12 +17,15 @@ class Api(http.server.BaseHTTPRequestHandler):
         self.reply()
 
     def do_POST(self):
-        self.rfile.read(int(self.headers.get('Content-Length', '0')))
+        payload = self.rfile.read(int(self.headers.get('Content-Length', '0')))
+        self.payload = json.loads(payload) if self.headers.get('Content-Type') == 'application/json' and payload else None
         self.reply()
 
     def reply(self):
         self.server.calls.append(self.path)
-        if self.path.endswith('/releases'):
+        if hasattr(self.server, 'scenario'):
+            data = self.server.scenario(self)
+        elif self.path.endswith('/releases'):
             data = {'id': 1}
         elif self.path.endswith('/packages'):
             data = []
@@ -73,6 +77,66 @@ class CliSafetyTest(unittest.TestCase):
         self.assertIn('Server must', result.stderr)
         self.assertEqual(self.server.calls, [])
         self.assertFalse((self.root / 'state.json').exists())
+
+    def test_windows_electron_requires_explicit_nsis_confirmation_before_network(self):
+        path = self.root / 'manifest.json'
+        manifest = json.loads(path.read_text(encoding='utf-8'))
+        manifest['update'].update(targetOs='WINDOWS', protocol='ELECTRON')
+        manifest['installers'][0]['format'] = 'EXE'
+        path.write_text(json.dumps(manifest), encoding='utf-8')
+        result = self.run_cli(f'http://127.0.0.1:{self.server.server_port}')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('NSIS', result.stderr)
+        self.assertEqual(self.server.calls, [])
+        self.assertFalse((self.root / 'state.json').exists())
+
+    def test_nsis_declaration_is_forwarded_and_unconfirmed_remote_assets_cannot_resume(self):
+        path = self.root / 'manifest.json'
+        manifest = json.loads(path.read_text(encoding='utf-8'))
+        manifest['update'] = {'machineVersion': '1.0.0', 'tag': 'v1.0.0', 'targetOs': 'WINDOWS',
+                              'targetArch': 'X86_64', 'channel': 'stable', 'variant': 'default', 'protocol': 'ELECTRON'}
+        item = manifest['installers'][0]
+        item.update(format='EXE', confirmedInstallerFamily='NSIS')
+        path.write_text(json.dumps(manifest), encoding='utf-8')
+        package = dict(item, id=3, targetOs='WINDOWS', targetArch='X86_64', status='PUBLISHED',
+                       sha256=hashlib.sha256(b'original-installer').hexdigest(), byteSize=18, confirmedBy='publisher')
+        snapshot = dict(manifest['update'], id=5, status='DRAFT', assets=[])
+        links = []
+
+        def scenario(handler):
+            route = handler.path
+            if route.endswith('/releases'):
+                return {'id': 1}
+            if route.endswith('/releases/1/packages'):
+                return [package]
+            if route.endswith('/packages/3'):
+                return {'packageRevision': package}
+            if route.endswith('/releases/1/update-releases'):
+                return [snapshot]
+            if route.endswith('/package-assets'):
+                links.append(handler.payload)
+                snapshot['assets'].append({'relativePath': item['path'], 'role': 'INSTALLER', 'packageRevisionId': 3,
+                                           'sha256': package['sha256'], 'byteSize': 18, 'confirmedInstallerFamily': 'NSIS',
+                                           'installerFamilyConfirmedBy': 'publisher', 'installerFamilyConfirmedAt': '2026-10-15T00:00:00Z'})
+                return snapshot['assets'][-1]
+            if '/assets?' in route:
+                asset = {'relativePath': 'latest-mac.yml', 'role': 'METADATA',
+                         'sha256': hashlib.sha256(self.original).hexdigest(), 'byteSize': len(self.original)}
+                snapshot['assets'].append(asset)
+                return asset
+            if route.endswith('/validate'):
+                return {'valid': True}
+            raise AssertionError(route)
+
+        self.server.scenario = scenario
+        result = self.run_cli(f'http://127.0.0.1:{self.server.server_port}')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(links, [{'packageRevisionId': 3, 'relativePath': 'app.zip', 'confirmedInstallerFamily': 'NSIS'}])
+        snapshot['assets'][0].pop('confirmedInstallerFamily')
+        result = self.run_cli(f'http://127.0.0.1:{self.server.server_port}')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('confirmation', result.stderr)
+        self.assertEqual(len(links), 1)
 
     def test_resume_checkpoint_cannot_overwrite_an_original_asset_named_like_a_temp_file(self):
         result = self.run_cli(f'http://127.0.0.1:{self.server.server_port}')

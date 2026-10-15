@@ -115,14 +115,9 @@ public class ClaudePluginZipValidator {
     }
 
     private String safePath(String name, boolean directory) {
-        if (name == null || name.isBlank() || name.startsWith("/") || name.contains("\\")
-                || name.contains(":") || name.chars().anyMatch(c -> c < 32 || c == 127)) { throw invalid("path"); }
-        String normalized = directory && name.endsWith("/") ? name.substring(0, name.length() - 1) : name;
-        if (normalized.isBlank() || normalized.length() > 1024) { throw invalid("path"); }
-        for (String part : normalized.split("/", -1)) {
-            if (part.isBlank() || part.equals(".") || part.equals("..") || part.endsWith(".") || part.endsWith(" ")
-                    || part.matches("(?i)(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\\..*)?")) { throw invalid("path"); }
-        }
+        String normalized = name != null && directory && name.endsWith("/")
+                ? name.substring(0, name.length() - 1) : name;
+        if (!PluginArchivePathPolicy.isSafe(normalized)) throw invalid("path");
         return normalized;
     }
 

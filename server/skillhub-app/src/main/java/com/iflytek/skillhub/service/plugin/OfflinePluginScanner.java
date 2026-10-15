@@ -721,21 +721,7 @@ public class OfflinePluginScanner {
     }
 
     static String safePath(String path) {
-        if (path.isBlank()
-                || path.length() > 1024
-                || path.startsWith("/")
-                || path.contains("\\")
-                || path.contains(":")
-                || path.contains("\uFFFD")
-                || path.chars().anyMatch(c -> c < 32 || c == 127)) throw invalid("path");
-        for (String part : path.split("/", -1))
-            if (part.isBlank()
-                    || part.equals(".")
-                    || part.equals("..")
-                    || part.endsWith(".")
-                    || part.endsWith(" ")
-                    || part.matches("(?i)(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\\..*)?"))
-                throw invalid("path");
+        if (!PluginArchivePathPolicy.isSafe(path) || path.contains("\uFFFD")) throw invalid("path");
         return path;
     }
 

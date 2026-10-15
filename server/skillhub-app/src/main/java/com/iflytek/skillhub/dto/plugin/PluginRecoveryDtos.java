@@ -86,7 +86,7 @@ public final class PluginRecoveryDtos {
             List<GovernanceOperationView> operations) {}
 
     @Schema(requiredProperties = {"items", "page", "hasMore"})
-    public record AttemptPage(List<AttemptView> items, int page, boolean hasMore) {}
+    public record AttemptPage(List<AttemptView> items, long total, int page, int size, boolean hasMore) {}
 
     @Schema(
             requiredProperties = {

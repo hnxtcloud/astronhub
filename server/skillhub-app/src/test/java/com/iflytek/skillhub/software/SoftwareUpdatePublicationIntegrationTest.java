@@ -36,6 +36,7 @@ class SoftwareUpdatePublicationIntegrationTest {
     @Autowired SoftwareApplicationRepository applications;
     @Autowired SoftwareReleaseRepository releases;
     @Autowired SoftwarePackageService packages;
+    @Autowired SoftwareInspectionTaskService inspections;
     @Autowired SoftwarePolicyStateRepository policyState;
     @Autowired SoftwarePolicyRevisionRepository policies;
     @Autowired SoftwareStorageAccountRepository accounts;
@@ -44,6 +45,94 @@ class SoftwareUpdatePublicationIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @org.springframework.boot.test.mock.mockito.SpyBean
     com.iflytek.skillhub.storage.software.SoftwareTransferStorage storage;
+
+    @Test
+    void windowsElectronInstallerRequiresAnExplicitNsisDeclaration() throws Exception {
+        seed();
+        long appId = tx.execute(status -> {
+            var app = new SoftwareApplication("nsis-" + System.nanoTime(), "NSIS confirmation", null, null, null, "admin");
+            app.publish();
+            return applications.save(app).getId();
+        });
+        long catalogId = tx.execute(status -> releases.save(new SoftwareRelease(appId, "1.0.0", "notes", "admin")).getId());
+        byte[] binary = "synthetic-exe".getBytes(StandardCharsets.UTF_8);
+        var upload = uploads.createSession(new SoftwareUploadSessionCreateRequest(catalogId, "setup.exe", "EXE", "WINDOWS", "X86_64", null, null, "1.0.0", (long) binary.length), "admin");
+        uploads.putChunk(upload.id(), 1, binary.length, new ByteArrayInputStream(binary), "admin");
+        long packageId = uploads.complete(upload.id(), "admin").packageRevisionId();
+        var inspection = inspections.claim("nsis-fixture", java.time.Instant.now());
+        assertThat(inspection.packageRevisionId()).isEqualTo(packageId);
+        inspections.submitResult(inspection.taskId(), "nsis-fixture", inspection.attemptToken(),
+                new SoftwareInspectionTaskService.ResultSubmission(SoftwareInspectionOutcome.SUCCEEDED,
+                        null, "{\"version\":\"1.0.0\"}", "fixture", "1", java.time.Instant.now(), java.time.Instant.now()));
+        packages.confirm(packageId, "admin");
+        packages.publish(packageId);
+        var draft = updates.create(new SoftwareUpdateCreateRequest(catalogId, "1.0.0", "v1.0.0", "WINDOWS", "X86_64", "stable", "default", "ELECTRON", null), "admin");
+        String endpoint = "/api/v1/admin/software/update-releases/" + draft.id();
+        http.perform(post(endpoint + "/package-assets").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf())
+                        .contentType("application/json").content("{\"packageRevisionId\":" + packageId + ",\"relativePath\":\"dist/setup.exe\"}"))
+                .andExpect(status().isBadRequest());
+        http.perform(get(endpoint).with(authentication(auth("SOFTWARE_ADMIN"))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.assets.length()").value(0));
+        http.perform(post(endpoint + "/package-assets").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf())
+                        .contentType("application/json").content("{\"packageRevisionId\":" + packageId + ",\"relativePath\":\"dist/setup.exe\",\"confirmedInstallerFamily\":\"INNO\"}"))
+                .andExpect(status().isBadRequest());
+        String confirmed = http.perform(post(endpoint + "/package-assets").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf())
+                        .contentType("application/json").content("{\"packageRevisionId\":" + packageId + ",\"relativePath\":\"dist/setup.exe\",\"confirmedInstallerFamily\":\"NSIS\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.confirmedInstallerFamily").value("NSIS"))
+                .andExpect(jsonPath("$.data.installerFamilyConfirmedBy").value("admin"))
+                .andExpect(jsonPath("$.data.installerFamilyConfirmedAt").isNotEmpty())
+                .andReturn().getResponse().getContentAsString();
+        var asset = new com.fasterxml.jackson.databind.ObjectMapper().readTree(confirmed).path("data");
+        byte[] yaml = ("version: 1.0.0\nfiles:\n - url: setup.exe\n   size: " + binary.length
+                + "\n   sha512: " + asset.path("sha512Base64").asText() + "\n").getBytes(StandardCharsets.UTF_8);
+        updates.uploadAsset(draft.id(), "dist/latest.yml", "METADATA", yaml.length, new ByteArrayInputStream(yaml), "admin");
+        http.perform(post(endpoint + "/publish").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("PUBLISHED"));
+        updates.setAnonymous(appId, true, "admin");
+        updates.saveChannel(appId, new SoftwareUpdateChannelRequest("windows-stable", "nsis/app-" + appId,
+                "WINDOWS", "X86_64", "stable", "default", draft.id()), "admin");
+        String slug = applications.findById(appId).orElseThrow().getSlug();
+        String feed = "/updates/" + slug + "/windows-stable/latest.yml";
+        String fixed = "/releases/" + slug + "/" + draft.id() + "/assets/dist/setup.exe";
+        http.perform(get(feed)).andExpect(status().isOk());
+        http.perform(get(fixed)).andExpect(status().isOk()).andExpect(content().bytes(binary));
+        // Simulate a pre-migration snapshot: no declaration was backfilled for its generic EXE.
+        jdbc.update("UPDATE software_release_asset SET confirmed_installer_family=NULL, installer_family_confirmed_by=NULL, installer_family_confirmed_at=NULL WHERE id=?", asset.path("id").asLong());
+        http.perform(post(endpoint + "/validate").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf()))
+                .andExpect(status().isBadRequest());
+        http.perform(put("/api/v1/admin/software/apps/" + appId + "/update-channels").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf())
+                        .contentType("application/json").content("{\"slug\":\"another\",\"virtualProjectPath\":\"nsis/legacy-" + appId + "\",\"targetOs\":\"WINDOWS\",\"targetArch\":\"X86_64\",\"channel\":\"stable\",\"variant\":\"default\",\"targetReleaseId\":" + draft.id() + "}"))
+                .andExpect(status().isBadRequest());
+        http.perform(get(feed).header("If-None-Match", "\"old-cache\"")).andExpect(status().isNotFound());
+        http.perform(get(fixed).header("Range", "bytes=0-1")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void baizeManifestCannotPublishAReleaseNotesUrlWithoutTheReferencedAsset() throws Exception {
+        seed();
+        long appId = tx.execute(status -> {
+            var application = new SoftwareApplication("missing-notes-" + System.nanoTime(), "Missing notes", null, null, null, "admin");
+            application.publish();
+            return applications.save(application).getId();
+        });
+        long catalogId = tx.execute(status -> releases.save(new SoftwareRelease(appId, "Human version", "Original notes", "admin")).getId());
+        byte[] bytes = "portable-installer".getBytes(StandardCharsets.UTF_8);
+        var upload = uploads.createSession(new SoftwareUploadSessionCreateRequest(catalogId, "portable.zip", "ZIP", "WINDOWS", "X86_64", null, null, "1.0.0", (long) bytes.length), "admin");
+        uploads.putChunk(upload.id(), 1, (long) bytes.length, new ByteArrayInputStream(bytes), "admin");
+        long packageId = uploads.complete(upload.id(), "admin").packageRevisionId();
+        packages.confirm(packageId, "admin");
+        packages.publish(packageId);
+        var draft = updates.create(new SoftwareUpdateCreateRequest(catalogId, "1.0.0", "v1.0.0", "WINDOWS", "X86_64", "stable", "portable", "BAIZE", "0.70.0"), "admin");
+        var installer = updates.linkPackage(draft.id(), packageId, "dist/portable.zip", "admin");
+        byte[] json = ("{\"schemaVersion\":1,\"version\":\"1.0.0\",\"piVersion\":\"0.70.0\",\"platform\":\"win32\",\"arch\":\"x64\",\"channel\":\"stable\",\"publishedAt\":\"2026-10-15T08:00:00Z\",\"package\":\"portable.zip\",\"sha256\":\"" + installer.sha256() + "\",\"bytes\":" + installer.byteSize() + ",\"releasesUrl\":\"notes.html\"}").getBytes(StandardCharsets.UTF_8);
+        updates.uploadAsset(draft.id(), "dist/latest.json", "METADATA", json.length, new ByteArrayInputStream(json), "admin");
+
+        String endpoint = "/api/v1/admin/software/update-releases/" + draft.id();
+        http.perform(post(endpoint + "/publish").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf()))
+                .andExpect(status().isBadRequest());
+        http.perform(get(endpoint).with(authentication(auth("SOFTWARE_ADMIN"))))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("DRAFT"));
+    }
 
     @Test
     void administratorPublishesCompleteOriginalAssetsWithoutDuplicatingInstallerStorage() {

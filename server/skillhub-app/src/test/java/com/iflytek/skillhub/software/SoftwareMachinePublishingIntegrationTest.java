@@ -98,7 +98,7 @@ class SoftwareMachinePublishingIntegrationTest {
         assertThat(call(f.app, "POST", "/packages/" + pkg + "/publish", null, f.token).statusCode()).isEqualTo(200);
         String update = "{\"catalogReleaseId\":" + catalog + ",\"machineVersion\":\"1.2.3\",\"tag\":\"v1.2.3\",\"targetOs\":\"WINDOWS\",\"targetArch\":\"X86_64\",\"channel\":\"stable\",\"variant\":\"default\",\"protocol\":\"ELECTRON\"}";
         long snapshot = data(call(f.app, "POST", "/update-releases", update, f.token)).path("id").asLong();
-        var installer = data(call(f.app, "POST", "/update-releases/" + snapshot + "/package-assets", "{\"packageRevisionId\":" + pkg + ",\"relativePath\":\"dist/app.exe\"}", f.token));
+        var installer = data(call(f.app, "POST", "/update-releases/" + snapshot + "/package-assets", "{\"packageRevisionId\":" + pkg + ",\"relativePath\":\"dist/app.exe\",\"confirmedInstallerFamily\":\"NSIS\"}", f.token));
         assertThat(call(f.app, "POST", "/update-releases/" + snapshot + "/publish", null, f.token).statusCode()).isEqualTo(400);
         byte[] yaml = ("version: 1.2.3\nfiles:\n - url: app.exe\n   size: 3\n   sha512: " + installer.path("sha512Base64").asText() + "\n").getBytes();
         assertThat(raw(f, "POST", "/update-releases/" + snapshot + "/assets?path=dist/latest.yml&role=METADATA", yaml).statusCode()).isEqualTo(200);
@@ -114,7 +114,7 @@ class SoftwareMachinePublishingIntegrationTest {
         var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         var manifest = mapper.createObjectNode().put("displayVersion", "Human release").put("releaseNotes", "Original notes").put("confirmMetadata", true);
         manifest.set("update", mapper.readTree(update));
-        manifest.putArray("installers").addObject().put("file", "app.exe").put("path", "dist/app.exe").put("format", "EXE").put("originalFullVersion", "1.2.3");
+        manifest.putArray("installers").addObject().put("file", "app.exe").put("path", "dist/app.exe").put("format", "EXE").put("originalFullVersion", "1.2.3").put("confirmedInstallerFamily", "NSIS");
         manifest.putArray("assets").addObject().put("file", "latest.yml").put("path", "dist/latest.yml").put("role", "METADATA");
         java.nio.file.Files.write(temporary.resolve("app.exe"), "abc".getBytes());
         java.nio.file.Files.write(temporary.resolve("latest.yml"), yaml);

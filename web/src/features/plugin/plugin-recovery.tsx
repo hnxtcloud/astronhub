@@ -141,7 +141,7 @@ function RecoveryChannel({
   return (
     <article className="space-y-3 border-t pt-3">
       <p className="font-medium">
-        {channel.channel} · {channel.state} · {t('pluginRecovery.revision')}{' '}
+        {channel.channel} · {t(`publicationLabels.states.${channel.state}`)} · {t('pluginRecovery.revision')}{' '}
         {channel.planRevision}
       </p>
       {channel.receipt && (
@@ -266,7 +266,7 @@ function AttemptHistory({
       {attempts?.map((a) => (
         <div key={a.id} className="my-2 space-y-1 border-t pt-2 text-xs">
           <p>
-            #{a.id} · {a.action} · {a.outcome} · {t('pluginRecovery.revision')}{' '}
+            #{a.id} · {t(`publicationLabels.actions.${a.action}`)} · {t(`publicationLabels.states.${a.outcome}`)} · {t('pluginRecovery.revision')}{' '}
             {a.planRevision}
             {a.operationId && ` · #${a.operationId}`}
           </p>
@@ -287,6 +287,11 @@ function AttemptHistory({
           )}
         </div>
       ))}
+      {history.data && <p className="text-xs text-muted-foreground">{t('pluginRecovery.pageInfo', {
+        page: (history.data.page ?? page) + 1,
+        size: history.data.size,
+        total: history.data.total,
+      })}</p>}
       <div className="flex gap-2">
         <Button
           variant="outline"
@@ -368,7 +373,7 @@ function GovernanceControl({
       {channel.operations?.map((op) => (
         <div key={op.id} className="space-y-1 rounded border p-2">
           <p>
-            #{op.id} · {op.action} · {op.state}
+            #{op.id} · {t(`publicationLabels.actions.${op.action}`)} · {t(`publicationLabels.states.${op.state}`)}
           </p>
           <p>
             {op.requestedBy} · {op.createdAt} · {op.reason}
