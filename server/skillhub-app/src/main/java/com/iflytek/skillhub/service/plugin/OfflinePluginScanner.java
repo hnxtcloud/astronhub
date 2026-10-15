@@ -38,9 +38,9 @@ public class OfflinePluginScanner {
             else throw invalid("format");
             List<Root> roots = new ArrayList<>();
             for (String path : files.keySet()) {
-                if (path.endsWith(".claude-plugin/plugin.json"))
+                if ((path.equals(".claude-plugin/plugin.json") || path.endsWith("/.claude-plugin/plugin.json")))
                     addRoot(roots, path, ".claude-plugin/plugin.json", "claude-code", limits);
-                else if (path.endsWith(".codex-plugin/plugin.json"))
+                else if ((path.equals(".codex-plugin/plugin.json") || path.endsWith("/.codex-plugin/plugin.json")))
                     addRoot(roots, path, ".codex-plugin/plugin.json", "codex", limits);
                 else if (path.equals("plugin.json") || path.endsWith("/plugin.json")) {
                     if (path.contains("/.claude-plugin/") || path.contains("/.codex-plugin/"))

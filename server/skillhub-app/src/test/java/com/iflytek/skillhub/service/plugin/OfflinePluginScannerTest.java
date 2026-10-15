@@ -205,6 +205,18 @@ class OfflinePluginScannerTest {
         }
     }
 
+    @Test
+    void doesNotInventPluginRootFromASuffixedDirectoryName() throws Exception {
+        Path source = temp.resolve("suffix.zip");
+        try (var zip = new ZipOutputStream(Files.newOutputStream(source))) {
+            entry(zip, "other.claude-plugin/plugin.json", "{\"name\":\"trap\",\"version\":\"1.0.0\"}");
+            entry(zip, "other-secrets/data.txt", "must not be captured by prefix matching");
+        }
+        try (var scan = new OfflinePluginScanner().scan(source, "ZIP", PluginImportLimits.defaults())) {
+            assertThat(scan.candidates()).isEmpty();
+        }
+    }
+
     static byte[] tar(String name, String text) throws Exception {
         var bytes = new ByteArrayOutputStream();
         try (var tar =
