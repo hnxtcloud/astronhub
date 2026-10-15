@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/use-auth'
 import { useCreatePluginProject, usePluginCommand, usePluginNamespaces, usePluginProject, usePluginProjects,
-  type PluginProject, type PluginProjectInput, type PluginRelease } from '@/features/plugin/plugin-api'
+  type PluginCommandBody, type PluginProject, type PluginProjectInput, type PluginRelease } from '@/features/plugin/plugin-api'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Textarea } from '@/shared/ui/textarea'
@@ -118,8 +118,8 @@ function PluginReleasePanel({ release, canManage, canReview, direct }: { release
   const [changelog, setChangelog] = useState(release.changelog ?? '')
   const draft = release.status === 'DRAFT'
   const reviewable = release.status === 'PENDING_REVIEW' && !release.publication
-  const reviewBody = { notes, runtimeTestResult: testResult, testEnvironment: environment || null }
-  const action = (name: string, body?: Record<string, unknown>) => command.mutate({ path: `/releases/${release.id}/${name}`, body })
+  const reviewBody = { notes, runtimeTestResult: testResult, testEnvironment: environment || undefined }
+  const action = (name: string, body?: PluginCommandBody) => command.mutate({ path: `/releases/${release.id}/${name}`, body })
   return <article className="space-y-4 rounded-lg border p-4">
     <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="font-semibold">{release.version}</h4><span className="text-sm">{t(`pluginManagement.status.${release.status}`)}</span></div>
     {release.publication && <p className="text-sm" role="status">{t(`pluginManagement.publication.${release.publication.status}`)}

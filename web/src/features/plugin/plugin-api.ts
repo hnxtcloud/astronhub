@@ -16,6 +16,10 @@ export type PluginRelease = Omit<RequiredGenerated<components['schemas']['Plugin
 export type PluginProject = Omit<RequiredGenerated<components['schemas']['PluginProjectView'],
   'summary' | 'latestReleaseId'>, 'releases'> & { releases: PluginRelease[] }
 export type PluginProjectInput = components['schemas']['PluginProjectCreateRequest']
+export type PluginCommandBody = components['schemas']['PluginProjectUpdateRequest']
+  | components['schemas']['PluginReleaseCreateRequest']
+  | components['schemas']['PluginDraftUpdateRequest']
+  | components['schemas']['PluginReviewRequest']
 type PluginProjectPage = Omit<RequiredGenerated<components['schemas']['PageResponsePluginProjectView']>,
   'items'> & { items: PluginProject[] }
 const base = '/api/v1/plugin-management'
@@ -40,8 +44,8 @@ export function useCreatePluginProject(onCreated: (id: number) => void) {
 }
 export function usePluginCommand() {
   const queries = useQueryClient()
-  return useMutation({ mutationFn: (command: { path: string; method?: 'POST' | 'PATCH'; body?: Record<string, unknown>; archive?: File }) =>
-    fetchJson<unknown>(`${base}${command.path}`, { method: command.method ?? 'POST',
+  return useMutation({ mutationFn: (command: { path: string; method?: 'POST' | 'PATCH'; body?: PluginCommandBody; archive?: File }) =>
+    fetchJson<PluginProject | PluginRelease>(`${base}${command.path}`, { method: command.method ?? 'POST',
       headers: getCsrfHeaders({ 'Content-Type': command.archive ? 'application/zip' : 'application/json' }),
       body: command.archive ?? JSON.stringify(command.body ?? {}), timeoutMs: 120000,
     }), onSuccess: () => queries.invalidateQueries({ queryKey: ['plugin-management'] }) })
