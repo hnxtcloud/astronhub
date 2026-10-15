@@ -196,7 +196,7 @@ export function AdminSoftwarePage() {
       </Card>
 
       {selectedApp ? (
-        <AppReleaseManager key={selectedApp.id} appId={selectedApp.id} appName={selectedApp.name} formatDate={formatDate} />
+        <AppReleaseManager key={selectedApp.id} appId={selectedApp.id} appSlug={selectedApp.slug} appName={selectedApp.name} formatDate={formatDate} />
       ) : null}
 
       <CreateAppDialog
@@ -298,6 +298,7 @@ function CreateAppDialog(props: {
 
 function AppReleaseManager(props: {
   appId: number
+  appSlug: string
   appName: string
   formatDate: (iso: string) => string
 }) {
@@ -328,7 +329,7 @@ function AppReleaseManager(props: {
         </Button>
       </div>
 
-      <SoftwareUpdateSourceManager appId={props.appId} />
+      <SoftwareUpdateSourceManager appId={props.appId} appSlug={props.appSlug} />
 
       {releases.isLoading ? (
         <p className="text-sm text-muted-foreground">{t('common.loading')}</p>

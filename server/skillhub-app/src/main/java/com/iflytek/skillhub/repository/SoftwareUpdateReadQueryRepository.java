@@ -41,6 +41,23 @@ public class SoftwareUpdateReadQueryRepository {
                 .orElseThrow(SoftwareUpdateReadQueryRepository::missing);
         return asset(governed(release), path);
     }
+    public AssetTarget feed(String applicationSlug, String channelSlug, String metadataName) {
+        var app = applications.findBySlug(applicationSlug).orElseThrow(SoftwareUpdateReadQueryRepository::missing);
+        var channel = channels.findByApplicationIdAndSlug(app.getId(), channelSlug).orElseThrow(SoftwareUpdateReadQueryRepository::missing);
+        enabledChannel(channel.getVirtualProjectPath());
+        var release = governed(releases.findById(channel.getTargetReleaseId()).orElseThrow(SoftwareUpdateReadQueryRepository::missing));
+        String name = "BAIZE".equals(release.getProtocol()) ? "latest.json"
+                : ("stable".equals(release.getChannel()) ? "latest" : "preview")
+                    + ("MACOS".equals(release.getTargetOs()) ? "-mac" : "") + ".yml";
+        if (!name.equals(metadataName)) throw missing();
+        var candidates = assets.findByReleaseIdOrderByIdAsc(release.getId()).stream()
+                .filter(asset -> "METADATA".equals(asset.getRole())).toList();
+        if (candidates.size() == 1) return new AssetTarget(release, candidates.get(0));
+        var named = candidates.stream().filter(asset -> asset.getRelativePath().equals(name)
+                || asset.getRelativePath().endsWith("/" + name)).toList();
+        if (named.size() != 1) throw missing();
+        return new AssetTarget(release, named.get(0));
+    }
     private SoftwareUpdateChannel enabledChannel(String project) {
         var channel = channels.findByVirtualProjectPath(project).orElseThrow(SoftwareUpdateReadQueryRepository::missing);
         requireSource(channel.getApplicationId());

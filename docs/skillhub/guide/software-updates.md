@@ -62,7 +62,31 @@ Electron 元数据的 `files` 中每个文件都必须关联受管安装包，�
 
 文件保持原始字节，无对象存储跳转。响应提供 Content-Length、SHA256 ETag、Last-Modified、Accept-Ranges 和 `Cache-Control: no-store`。即使携带条件请求或 Range，服务端也先检查治理状态。支持单区间及多区间；多区间最多 16 个、合计最多 32 MiB。超限或无效 Range 返回完整 200，全部有效区间越界返回 416；If-Range 不匹配时返回完整内容。
 
-原 Intelli Dev 保留 GitLab provider，后续构建调整 host 和虚拟 project path。已发放客户端不会自动发现新地址，首次迁移需要新构建或由运维代理旧域名。Generic/白泽灵台 feed 和受限机器发布入口继续由后续实施票提供。真实 Windows/macOS 安装、签名和完整差分更新不能由服务端 HTTP 测试或 multipart 解析器契约检查替代。
+原 Intelli Dev 保留 GitLab 分发配置，后续构建调整 baseUrl、owner/repo 和 artifactPath。已发放客户端不会自动发现新地址，首次迁移需要新构建或由运维代理旧域名。受限机器发布入口仍由后续实施票提供。真实 Windows/macOS 安装、签名和完整差分更新不能由服务端 HTTP 测试或 multipart 解析器契约检查替代。
+
+## Generic 和白泽更新源
+
+管理页在已选定目标的渠道下展示完整清单地址和客户端配置，并提示匿名源是否关闭。规范路径为 `/updates/{appSlug}/{channelSlug}/{metadataName}`；channelSlug 为管理员保存的标识，明确绑定系统、架构、stable/preview 和变体。例如 `/updates/intelli-dev/mac-stable/latest-mac.yml`，而不是按文件名自动选择平台或最高版本。
+
+| 渠道类型 | metadataName | 原生安装格式 |
+| --- | --- | --- |
+| Electron Windows stable / preview | latest.yml / preview.yml | 已确认并发布的 NSIS EXE |
+| Electron macOS stable / preview | latest-mac.yml / preview-mac.yml | 元数据必须引用 ZIP，可附 DMG |
+| 白泽 Windows x64 stable / preview | latest.json | 已确认并发布的 ZIP |
+
+Linux Electron 自动更新暂未支持。受管安装包格式与快照路径后缀必须相符；DMG 不能重命名为 ZIP。为兼容原生更新库，machineVersion 和 piVersion 的核心分量及纯数字预发布标识均限制为安全整数（不超过 9007199254740991）。白泽两个版本还须不超过 100 个字符；这些限制在发布时检查。
+
+Feed 的版本、大小及 SHA512/SHA256 来自同一已选定快照；只将原生 URL 字段改为包含部署前缀的同源固定资产地址。原始 YAML/JSON 可以从固定资产地址取回原始字节。客户端取得清单后，即使管理员切换目标，它仍下载该快照的原文件。清除目标关闭该渠道清单，固定历史文件仍按应用、快照和安装包的当前治理状态读取。
+
+可变清单只提供实际投影 ETag 和 no-store，不提供 Last-Modified，也不按日期条件返回 304；这样回退目标不会被旧日期缓存隐藏。固定/raw 文件仍保留日期校验能力。
+
+每个快照只有一个 METADATA 时，feed 可以映射其原始文件名；有多个时，必须唯一匹配该渠道的规范 metadataName，否则拒绝读取。现有 Intelli Dev 的 GitLab 方式则始终依赖原始 latest.yml/latest-mac.yml 及其目录，管理页仅在找到唯一对应文件时生成该配置。
+
+Electron generic 客户端将 provider 设为 generic、url 设为清单所在目录；preview 还需 channel=preview，并在客户端启用 allowPrerelease。现有 Intelli Dev 保留其 GitLab 分发配置（baseUrl、owner、repo、artifactPath），artifactPath 必须对应原始 latest.yml/latest-mac.yml 所在目录；Generic 示例不意味着现有构建配置已经支持直接切换。其现有检测器忽略预发布版本。
+
+白泽通过 `BAIZELINGTAI_UPDATE_FEED_URL` 或便携版构建配置的 updateFeedUrl 指向完整 latest.json。内网 ZIP 的实际安装仍由现有维护流程执行。服务端 no-store 不替代客户端自身的轮询间隔或内存缓存；目标切换在下一次实际请求时生效。
+
+服务端测试使用真实 HTTP，在根路径和 `/hub` 下调用当前安装的 GenericProvider、文件选择和下载/摘要组件，以及白泽原始 parseFeed 和从原始源码隔离执行的比较函数，验证清单、同源完整下载和准确 SHA512/SHA256。没有加载白泽应用或启动真实应用。样本为合成内容；这不证明真实 NSIS/macOS 签名或安装、完整差分链路或全量回退已通过。历史 blockmap 地址可读不等同于当前原生更新器已完成旧版 blockmap 定位验收。
 
 ## 反向代理和部署前缀
 

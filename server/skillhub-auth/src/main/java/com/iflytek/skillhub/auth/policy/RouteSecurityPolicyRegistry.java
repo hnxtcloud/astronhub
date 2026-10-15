@@ -17,6 +17,8 @@ import org.springframework.util.AntPathMatcher;
 public class RouteSecurityPolicyRegistry {
 
     private static final List<RouteAuthorizationPolicy> AUTHORIZATION_POLICIES = List.of(
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/updates/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.HEAD, "/updates/**"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v4/projects/**"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.HEAD, "/api/v4/projects/**"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/releases/**"),

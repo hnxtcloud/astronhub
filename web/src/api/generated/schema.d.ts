@@ -28,6 +28,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/updates/{application}/{channel}/{metadataName}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the selected Generic or Baize update feed
+         * @description The configured channel slug fixes platform, architecture, track and variant. Native URL fields point to governed immutable assets, including the deployment prefix. Source and governance are checked before conditional reads.
+         */
+        get: operations["feed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /**
+         * Read the selected Generic or Baize update feed
+         * @description The configured channel slug fixes platform, architecture, track and variant. Native URL fields point to governed immutable assets, including the deployment prefix. Source and governance are checked before conditional reads.
+         */
+        head: operations["feed_1"];
+        patch?: never;
+        trace?: never;
+    };
     "/releases/{application}/{releaseId}/assets/**": {
         parameters: {
             query?: never;
@@ -6678,6 +6702,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        SoftwareBaizeUpdateManifest: {
+            package: string;
+            /** Format: int32 */
+            schemaVersion: number;
+            version: string;
+            piVersion: string;
+            platform: string;
+            arch: string;
+            channel: string;
+            /** Format: date-time */
+            publishedAt: string;
+            sha256: string;
+            /** Format: int64 */
+            bytes: number;
+            releasesUrl?: string;
+        };
         CommitNotes: {
             message?: string;
         };
@@ -10826,6 +10866,56 @@ export interface operations {
                 };
                 content: {
                     "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    feed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+                channel: string;
+                metadataName: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/yaml": string;
+                    "application/json": components["schemas"]["SoftwareBaizeUpdateManifest"];
+                };
+            };
+        };
+    };
+    feed_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+                channel: string;
+                metadataName: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/yaml": string;
+                    "application/json": components["schemas"]["SoftwareBaizeUpdateManifest"];
                 };
             };
         };
