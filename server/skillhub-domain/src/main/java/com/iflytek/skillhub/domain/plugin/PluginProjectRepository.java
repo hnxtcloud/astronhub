@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface PluginProjectRepository {
     Optional<PluginProject> findById(Long id);
+    Optional<PluginProject> findByIdForUpdate(Long id);
     Optional<PluginProject> findByNamespaceIdAndSlug(Long namespaceId, String slug);
     Page<PluginProject> findByStatusAndHiddenFalse(PluginProjectStatus status, Pageable pageable);
     PluginProject save(PluginProject project);

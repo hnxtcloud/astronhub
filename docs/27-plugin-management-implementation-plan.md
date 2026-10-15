@@ -4,7 +4,7 @@
 
 跟踪器：沿用仓库本地 Markdown 约定。决策索引为 [Wayfinder](../.scratch/plugin-update/map.md)，实施任务及阻塞关系见 [实施索引](../.scratch/plugin-update/implementation.md)。实现统一进入 `codex/plugin-update-integration`，不得将规划完成标记为功能完成。
 
-本规格记录插件管理访谈 Q1–Q28 的确认结果，并将其拆分为可交付任务。它承接 [能力平台设计](25-astronhub-capability-platform-design.md)，新增服务器向内网 Git 和 npm 发布的渠道；不将应用软件自动更新纳入插件生命周期。当前代码只有插件模型和只读目录，不能将本规格中的行为视为已实现。
+本规格记录插件管理访谈 Q1–Q28 的确认结果，并将其拆分为可交付任务。它承接 [能力平台设计](25-astronhub-capability-platform-design.md)，新增服务器向内网 Git 和 npm 发布的渠道；不将应用软件自动更新纳入插件生命周期。实施前基线只有插件模型和只读目录；当前进展以实施票证据为准，不能将本规格中的全部行为视为已实现。首条 Claude Code ZIP、审核及受限托管发布的操作与限制见 [管理指南](skillhub/guide/plugin-management.md)。
 
 ## 1. 产品边界
 

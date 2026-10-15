@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Clock;
 import java.time.Instant;
 
@@ -66,6 +67,8 @@ public class PluginProject {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+    @Version @Column(name = "row_version", nullable = false)
+    private long rowVersion;
 
     protected PluginProject() {
     }
@@ -109,6 +112,13 @@ public class PluginProject {
     public Instant getUpdatedAt() { return updatedAt; }
 
     public void setSummary(String summary) { this.summary = summary; }
+    public void updateProfile(String displayName, String summary, String actor) {
+        if (displayName == null || displayName.isBlank() || displayName.length() > 200
+                || (summary != null && summary.length() > 30000)) {
+            throw new com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException("error.plugin.metadata");
+        }
+        this.displayName = displayName.trim(); this.summary = summary; this.updatedBy = actor;
+    }
     public void pointToPublishedRelease(PluginRelease release) {
         if (release == null || release.getId() == null || release.getStatus() != PluginReleaseStatus.PUBLISHED) {
             throw new IllegalArgumentException("Latest plugin release must be persisted and published");

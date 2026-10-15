@@ -23,6 +23,9 @@ public class PluginRelease {
     private Instant createdAt;
     @Column(name = "published_at")
     private Instant publishedAt;
+    @Version
+    @Column(name = "row_version", nullable = false)
+    private long rowVersion;
 
     protected PluginRelease() {}
 
@@ -44,5 +47,19 @@ public class PluginRelease {
     public String getCreatedBy() { return createdBy; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getPublishedAt() { return publishedAt; }
-    public void setChangelog(String changelog) { this.changelog = changelog; }
+    public void requireDraft() {
+        if (status != PluginReleaseStatus.DRAFT) {
+            throw new com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException("error.plugin.immutable");
+        }
+    }
+    public void setChangelog(String changelog) { requireDraft(); this.changelog = changelog; }
+    public void submit() { requireDraft(); status = PluginReleaseStatus.PENDING_REVIEW; }
+    public void reject() { status = PluginReleaseStatus.REJECTED; }
+    public void publish() {
+        if (status != PluginReleaseStatus.PENDING_REVIEW) {
+            throw new com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException("error.plugin.reviewState");
+        }
+        status = PluginReleaseStatus.PUBLISHED;
+        publishedAt = Instant.now(Clock.systemUTC());
+    }
 }
