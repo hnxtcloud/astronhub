@@ -165,7 +165,7 @@ function withCsrf(headers?: HeadersInit): HeadersInit {
   return merged
 }
 
-async function ensureCsrfHeaders(headers?: HeadersInit): Promise<HeadersInit> {
+export async function ensureCsrfHeaders(headers?: HeadersInit): Promise<HeadersInit> {
   if (!getCsrfToken()) {
     await client.GET('/api/v1/auth/providers', {
       headers: withRequestHeaders(),

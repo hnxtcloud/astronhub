@@ -57,18 +57,37 @@ public class SoftwareUpdateAppService {
     }
 
     public SoftwareUpdateReleaseResponse create(SoftwareUpdateCreateRequest request, String actor) {
-        return tx.execute(status -> {
+        SoftwareUpdateRules.identity(request.machineVersion(), request.tag(), request.targetOs(), request.targetArch(),
+                request.channel(), request.variant(), request.protocol(), request.piVersion());
+        try {
+            return tx.execute(status -> {
             var grouping = catalog.findById(request.catalogReleaseId()).orElseThrow(() -> missing("catalog release"));
+            releases.findByApplicationIdAndMachineVersionAndTargetOsAndTargetArchAndChannelAndVariant(grouping.getApplicationId(),
+                    request.machineVersion(), request.targetOs(), request.targetArch(), request.channel(), request.variant()).ifPresent(existing -> {
+                        throw new DomainConflictException("error.software.update.identityConflict");
+                    });
+            releases.findByApplicationIdAndTagAndTargetOsAndTargetArchAndChannelAndVariant(grouping.getApplicationId(),
+                    request.tag(), request.targetOs(), request.targetArch(), request.channel(), request.variant()).ifPresent(existing -> {
+                        throw new DomainConflictException("error.software.update.identityConflict");
+                    });
             var release = releases.save(new SoftwareUpdateRelease(grouping.getApplicationId(), grouping.getId(),
                     request.machineVersion(), request.tag(), request.targetOs(), request.targetArch(), request.channel(),
                     request.variant(), request.protocol(), request.piVersion(), grouping.getReleaseNotes(), actor));
             record("software.update.create", release.getId(), actor);
             return queries.project(release);
-        });
+            });
+        } catch (org.springframework.dao.DataIntegrityViolationException conflict) {
+            // The database unique constraint also serializes two simultaneous admissions of the same identity.
+            throw new DomainConflictException("error.software.update.identityConflict");
+        }
     }
 
     public List<SoftwareUpdateReleaseResponse> list(Long catalogReleaseId) {
         return releases.findByCatalogReleaseIdOrderByIdDesc(catalogReleaseId).stream().map(queries::project).toList();
+    }
+
+    public List<SoftwareUpdateReleaseResponse> listPublished(Long applicationId) {
+        return releases.findByApplicationIdAndStatusOrderByPublishedAtDesc(applicationId, "PUBLISHED").stream().map(queries::project).toList();
     }
 
     public SoftwareUpdateReleaseResponse get(Long id) { return queries.project(requireRelease(id)); }
@@ -135,13 +154,16 @@ public class SoftwareUpdateAppService {
     public SoftwareReleaseAssetResponse uploadAsset(Long id, String path, String role, long bytes, InputStream body, String actor) {
         SoftwareUpdateRules.path(path);
         SoftwareUpdateRules.role(role);
+        String lowerPath = path.toLowerCase(java.util.Locale.ROOT);
+        if (List.of(".exe", ".msi", ".deb", ".rpm", ".zip", ".dmg", ".tar.gz", ".tar.xz").stream().anyMatch(lowerPath::endsWith))
+            invalid("installers must use the confirmed software package workflow");
         SoftwareAssetUpload admission = tx.execute(status -> {
             var release = locked(id);
             release.requireDraft();
             requireFreePath(id, path);
             var config = policies.requireActive().config();
             if (bytes <= 0 || bytes > config.maxPackageBytes()) invalid("byte size");
-            if ("METADATA".equals(role) && bytes > 2L * 1024 * 1024) invalid("metadata exceeds 2 MiB");
+            if (("METADATA".equals(role) || "CHECKSUM".equals(role)) && bytes > 2L * 1024 * 1024) invalid("metadata/checksum exceeds 2 MiB");
             quota.reserve(bytes, config.totalQuotaBytes());
             if (uploads.countByOwnerUserIdAndState(actor, "RESERVED") >= config.maxActiveUploadsPerAdmin())
                 throw new DomainConflictException("error.software.upload.tooManyActive");
@@ -151,33 +173,43 @@ public class SoftwareUpdateAppService {
         });
         try {
             String ref = storage.initiateUpload(admission.getObjectKey());
+            admission.assignStorageSessionRef(ref);
             tx.executeWithoutResult(status -> {
                 var upload = uploads.findLockedById(admission.getId()).orElseThrow();
+                requireReserved(upload);
                 upload.assignStorageSessionRef(ref);
                 uploads.save(upload);
             });
-            admission.assignStorageSessionRef(ref);
             List<Integer> parts = new ArrayList<>();
             long remaining = bytes;
             long chunkSize = policies.requireActive().config().chunkSizeBytes();
             for (int part = 1; remaining > 0; part++) {
                 long length = Math.min(remaining, chunkSize);
-                storage.stageChunk(ref, part, new LimitedInput(body, length), length);
-                storage.commitChunk(ref, admission.getObjectKey(), part);
+                int partNumber = part;
+                // Serialize each bounded provider operation with cleanup. A timed-out writer
+                // cannot create uncharged parts after a cleanup worker has reclaimed its lease.
+                tx.executeWithoutResult(status -> {
+                    var upload = uploads.findLockedById(admission.getId()).orElseThrow();
+                    requireReserved(upload);
+                    storage.stageChunk(ref, partNumber, new LimitedInput(body, length), length);
+                    storage.commitChunk(ref, admission.getObjectKey(), partNumber);
+                    upload.touch(Instant.now().plus(policies.requireActive().config().uploadIdleTimeoutMinutes(), ChronoUnit.MINUTES));
+                    uploads.save(upload);
+                });
                 parts.add(part);
                 remaining -= length;
             }
             if (body.read() != -1) invalid("unexpected extra bytes");
-            var complete = storage.completeUpload(ref, admission.getObjectKey(), parts);
-            if (complete.byteSize() != bytes) invalid("completed length");
-            var hashes = hashes(admission.getObjectKey(), bytes);
-            if (!complete.sha256Hex().equals(hashes.sha256())) invalid("completed checksum");
             return tx.execute(status -> {
                 var release = locked(id);
                 release.requireDraft();
                 var upload = uploads.findLockedById(admission.getId()).orElseThrow();
-                if (!"RESERVED".equals(upload.getState())) throw new DomainConflictException("error.software.update.uploadExpired");
+                requireReserved(upload);
                 if (assets.findByReleaseIdAndRelativePath(id, path).isPresent()) conflict();
+                var complete = storage.completeUpload(ref, admission.getObjectKey(), parts);
+                if (complete.byteSize() != bytes) invalid("completed length");
+                var hashes = hashes(admission.getObjectKey(), bytes);
+                if (!complete.sha256Hex().equals(hashes.sha256())) invalid("completed checksum");
                 var asset = assets.save(new SoftwareReleaseAsset(id, path, role, null, upload.getObjectKey(),
                         bytes, hashes.sha256(), hashes.sha512()));
                 quota.confirmReservation(bytes, bytes);
@@ -188,7 +220,10 @@ public class SoftwareUpdateAppService {
             });
         } catch (IOException | RuntimeException ex) {
             tx.executeWithoutResult(status -> uploads.findLockedById(admission.getId()).ifPresent(upload -> {
-                if ("RESERVED".equals(upload.getState())) { upload.requireCleanup(); uploads.save(upload); }
+                if ("RESERVED".equals(upload.getState())) {
+                    if (upload.getStorageSessionRef() == null) upload.assignStorageSessionRef(admission.getStorageSessionRef());
+                    upload.requireCleanup(); uploads.save(upload);
+                }
             }));
             try { cleanupUpload(admission.getId()); } catch (RuntimeException cleanupFailure) { ex.addSuppressed(cleanupFailure); }
             if (ex instanceof RuntimeException runtime) throw runtime;
@@ -200,6 +235,29 @@ public class SoftwareUpdateAppService {
         var release = requireRelease(id);
         requireGovernedPackages(release);
         metadata.validate(release, assets.findByReleaseIdOrderByIdAsc(id));
+    }
+
+    public void removeAsset(Long id, Long assetId, String actor) {
+        Long cleanupId = tx.execute(status -> {
+            locked(id).requireDraft();
+            var asset = assets.findById(assetId).filter(found -> found.getReleaseId().equals(id))
+                    .orElseThrow(() -> missing("asset"));
+            Long pending = null;
+            if (asset.getPackageRevisionId() == null) {
+                var upload = uploads.findByObjectKey(asset.getObjectKey()).orElseThrow(() -> missing("asset ownership"));
+                upload.deleteUsedObject();
+                pending = uploads.save(upload).getId();
+            }
+            // A linked installer is only detached; its existing package bytes and quota stay owned by the package.
+            assets.delete(asset);
+            record("software.update.asset.remove", id, actor);
+            return pending;
+        });
+        if (cleanupId != null) {
+            try { cleanupUpload(cleanupId); } catch (RuntimeException ex) {
+                org.slf4j.LoggerFactory.getLogger(getClass()).warn("Detached update asset remains charged until cleanup succeeds: {}", cleanupId, ex);
+            }
+        }
     }
 
     public SoftwareUpdateReleaseResponse publish(Long id, String actor) {
@@ -237,7 +295,7 @@ public class SoftwareUpdateAppService {
 
     @Scheduled(fixedDelay = 300000)
     public void cleanupExpiredUploads() {
-        for (var upload : uploads.findTop20ByStateInAndExpiresAtBefore(List.of("RESERVED", "CLEANUP"), Instant.now())) {
+        for (var upload : uploads.findTop20ByStateInAndExpiresAtBefore(List.of("RESERVED", "CLEANUP", "DELETE_USED"), Instant.now())) {
             try { cleanupUpload(upload.getId()); } catch (RuntimeException ex) {
                 org.slf4j.LoggerFactory.getLogger(getClass()).warn("Update asset cleanup will retry for {}", upload.getId(), ex);
             }
@@ -248,10 +306,12 @@ public class SoftwareUpdateAppService {
         tx.executeWithoutResult(status -> {
             var upload = uploads.findLockedById(uploadId).orElseThrow();
             if ("COMPLETED".equals(upload.getState()) || "CLEANED".equals(upload.getState())) return;
+            if ("RESERVED".equals(upload.getState()) && upload.getExpiresAt().isAfter(Instant.now())) return;
             // No capacity is released if abort/delete fails. The durable row remains available for retry.
-            if (upload.getStorageSessionRef() != null) storage.abortUpload(upload.getStorageSessionRef(), upload.getObjectKey());
+            if (upload.getStorageSessionRef() != null) storage.abortUploadVerified(upload.getStorageSessionRef(), upload.getObjectKey());
             storage.deleteObject(upload.getObjectKey());
-            quota.releaseReservation(upload.getReservedBytes());
+            if ("DELETE_USED".equals(upload.getState())) quota.releaseUsed(upload.getReservedBytes());
+            else quota.releaseReservation(upload.getReservedBytes());
             upload.cleaned();
             uploads.save(upload);
         });
@@ -293,6 +353,9 @@ public class SoftwareUpdateAppService {
     private static DomainNotFoundException missing(String resource) { return new DomainNotFoundException("error.software.update.notFound", resource); }
     private static void invalid(String detail) { SoftwareUpdateRules.invalid(detail); }
     private static void conflict() { throw new DomainConflictException("error.software.update.pathConflict"); }
+    private static void requireReserved(SoftwareAssetUpload upload) {
+        if (!"RESERVED".equals(upload.getState())) throw new DomainConflictException("error.software.update.uploadExpired");
+    }
     /** Presents exactly one chunk without closing the request stream or reading the following chunk. */
     private static final class LimitedInput extends FilterInputStream {
         private long remaining;

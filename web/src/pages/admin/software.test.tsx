@@ -5,6 +5,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
 
+vi.mock('@/features/software/software-update-manager', () => ({ SoftwareUpdateManager: () => null, SoftwareUpdateSourceManager: () => null }))
+
 vi.mock('react-i18next', async () => {
   const actual = await vi.importActual<typeof import('react-i18next')>('react-i18next')
   return {

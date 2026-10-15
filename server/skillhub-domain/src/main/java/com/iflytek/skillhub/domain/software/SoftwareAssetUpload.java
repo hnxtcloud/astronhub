@@ -25,8 +25,10 @@ public class SoftwareAssetUpload {
         this.role = role; this.objectKey = objectKey; this.reservedBytes = bytes; this.expiresAt = expiresAt;
     }
     public void assignStorageSessionRef(String ref) { storageSessionRef = ref; }
+    public void touch(Instant expiresAt) { this.expiresAt = expiresAt; }
     public void complete() { state = "COMPLETED"; }
-    public void requireCleanup() { state = "CLEANUP"; }
+    public void requireCleanup() { state = "CLEANUP"; expiresAt = Instant.now(); }
+    public void deleteUsedObject() { state = "DELETE_USED"; expiresAt = Instant.now(); }
     public void cleaned() { state = "CLEANED"; }
     public Long getId() { return id; }
     public Long getReleaseId() { return releaseId; }
