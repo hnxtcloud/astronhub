@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-merger
+**Status:** done
 
 **Assignee:** plugin_ticket02 / codex/plugin-offline-import
 
@@ -15,7 +15,7 @@
 
 ## Evidence
 
-实现于 `codex/plugin-offline-import`，基于 `49cc3fc3`，已合并集成 `7b47af12`，功能 `be4b368b`、目录边界修复 `19bcc72a`、同步 `c4bf24dc`。V76 归此票。
+实现于 `codex/plugin-offline-import`，基于 `49cc3fc3`，功能 `be4b368b`、目录边界修复 `19bcc72a`；最终 tip `4c22703d` 已包含最新软件集成 `de385314`，以 `5e01fc77` 合入主集成。V76 归此票。
 
 - 新增安全、磁盘流式 ZIP/TGZ 扫描及三宿主适配器、24 小时持久预览、逐候选选择创建草稿，版本/宿主内容冲突不覆盖，相同摘要跳过。候选独立事务；顶层安全/预算错误停止扫描。
 - 原生单 Pi npm TGZ、根目录原生 Claude/Codex ZIP 保留原字节；仓库候选派生包显式标记，保留普通执行权限，并记录原始归档摘要、目录、资源和依赖声明。运行证据始终与静态检查分开。
@@ -28,3 +28,5 @@
 前端导入交互和原项目创建共 2 项通过；`tsc --noEmit` 与相关文件 ESLint 通过。TDD 证据含首次扫描器缺失接口红态、隐藏 TAR 红态、原生 ZIP/路径别名红态及其后绿态。根 agent 的隔离原生 Claude validate 和 Codex portable 插件加入探针提供静态格式参考，不能代替最终生成市场或真实内网安装验收。
 
 尚未执行 Docker staging、真实内网 Git/npm 发布或宿主运行安装；这些属于后续任务。新前端命名契约由集成者使用实际 Springdoc 导出后替换为生成类型，未手改 schema.d.ts。
+
+合并代理核查实际 `ticket02-merged-final.log` 的 24 项后端通过、`ticket02-merged-ui.log` 的 2 项交互通过、定向 lint 及合并软件后的全量类型检查无错误，并核查实际 Nginx 导入准入报告。主集成合并无冲突，`git diff --check` 通过；用户原有 `CONTEXT.md` 及无关未跟踪文件共 90 个 SHA256 均不变。GitLab 编码路径和更新文件 Nginx 读取仍由票 08 验证，不作为此票已通过项。

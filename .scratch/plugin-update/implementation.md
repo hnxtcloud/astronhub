@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：离线单包和仓库批量导入（进行中）；按应用匿名的 GitLab 更新读取。插件草稿/审核与软件发行资产完整发布均已完成并合入；票 08 解除阻塞，其余由明确阻塞关系推进。
+当前 frontier：插件下载/历史版本/组件治理、内网 npm 插件发布及依赖上传、内网 Git 原生市场发布，以及按应用匿名的 GitLab 更新读取。票 01、02、07 已完成并合入；票 03、04、05 的导入依赖已解除，其余由明确阻塞关系推进。
 
 ## Verification seams
 
@@ -83,3 +83,11 @@ Base branch: codex/software-center-phase1
 - 实际 Springdoc 3.0.1 导出 394 paths / 420 schemas 后重新生成前端契约，软件管理控制器、页面及生成类型均已合入。最终统一契约和回归仍在票 11。
 - 真实 PostgreSQL/Flyway V75、S3、Docker staging 和 Windows/macOS 原生安装尚未验证；GitLab 读取、generic/白泽 feed、机器发布继续分别由票 08–10 实施。
 - 合并无冲突，`git diff --check` 通过；用户现有 90 个文件 SHA256 保持不变，未清理工作树。
+
+## Merge checkpoint — ticket 02
+
+- 完整工作分支 tip `4c22703d`（已包含软件集成 `de385314`）以 `5e01fc77` 合入；票 02 关闭，票 03、04、05 均解除阻塞。
+- 实际合并后后端日志 24 项通过（扫描 7、导入 HTTP 4、既有 ZIP 9、管理 HTTP 4）；页面 2 项通过，定向 ESLint 和合并软件后的全前端类型检查通过。
+- 实际隔离 Nginx 1.28 在根路径和 `/hub/` 均让声明 101 MiB 的导入请求进入后端，未实际传送大包实体。GitLab 编码路径及 `/updates`、`/releases` 仍保留票 08 验收，不能从此准入探针推断已通过。
+- 未手改生成契约；导入临时严格类型仍须由真实 Springdoc 导出后替换。真实内网渠道、原生安装和 Docker staging 继续保留后续验收。
+- 合并无冲突、`git diff --check` 通过；90 个用户原有文件 SHA256 保持不变；未清理工作树或重跑无必要构建。
