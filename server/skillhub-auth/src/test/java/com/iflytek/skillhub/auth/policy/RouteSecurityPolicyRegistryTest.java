@@ -375,7 +375,12 @@ class RouteSecurityPolicyRegistryTest {
             if (policy.accessLevel() == RouteSecurityPolicyRegistry.AccessLevel.ROLE_PROTECTED) {
                 continue;
             }
-            if (!policy.pattern().startsWith("/api/")) {
+            // Match the surfaces processed by ApiTokenAuthenticationFilter and
+            // ApiTokenScopeFilter. GitLab update reads under /api/v4 are an
+            // independently governed anonymous surface, not token authentication.
+            if (!policy.pattern().startsWith("/api/v1/")
+                    && !policy.pattern().startsWith("/api/web/")
+                    && !policy.pattern().startsWith("/api/cli/")) {
                 continue;
             }
             String key = RouteSecurityPolicyRegistry.routeKey(policy.method(), policy.pattern());

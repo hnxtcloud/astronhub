@@ -4,6 +4,78 @@
  */
 
 export interface paths {
+    "/{owner}/{repo}/-/raw/{tag}/**": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a GitLab web-raw update asset
+         * @description The owner/repo virtual project, exact tag and original asset path are resolved within the governed channel. HEAD omits the response body.
+         */
+        get: operations["webRaw"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /**
+         * Read a GitLab web-raw update asset
+         * @description The owner/repo virtual project, exact tag and original asset path are resolved within the governed channel. HEAD omits the response body.
+         */
+        head: operations["webRaw_1"];
+        patch?: never;
+        trace?: never;
+    };
+    "/releases/{application}/{releaseId}/assets/**": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an immutable governed update asset
+         * @description Source opt-in and current application, snapshot and linked-package governance are checked before conditional or range responses. HEAD omits the response body.
+         */
+        get: operations["fixed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /**
+         * Read an immutable governed update asset
+         * @description Source opt-in and current application, snapshot and linked-package governance are checked before conditional or range responses. HEAD omits the response body.
+         */
+        head: operations["fixed_1"];
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v4/projects/**": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read GitLab-compatible update tags or raw assets
+         * @description A validated encoded project path selects one governed channel target. Tags return a bare singleton array; raw files require exactly one ref parameter. HEAD omits the response body.
+         */
+        get: operations["read"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /**
+         * Read GitLab-compatible update tags or raw assets
+         * @description A validated encoded project path selects one governed channel target. Tags return a bare singleton array; raw files require exactly one ref parameter. HEAD omits the response body.
+         */
+        head: operations["read_1"];
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/software/downloads/{sessionId}": {
         parameters: {
             query?: never;
@@ -6606,6 +6678,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        CommitNotes: {
+            message?: string;
+        };
+        GitLabTag: {
+            name?: string;
+            release?: components["schemas"]["ReleaseNotes"];
+            commit?: components["schemas"]["CommitNotes"];
+        };
+        ReleaseNotes: {
+            description?: string;
+        };
         SkillSuiteCreateRequest: {
             namespace: string;
             slug: string;
@@ -10699,6 +10782,148 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    webRaw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                owner: string;
+                repo: string;
+                tag: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    webRaw_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                owner: string;
+                repo: string;
+                tag: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    fixed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+                releaseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    fixed_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+                releaseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    read: {
+        parameters: {
+            query?: {
+                /** @description Exact original tag, required only for raw files */
+                ref?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitLabTag"][];
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    read_1: {
+        parameters: {
+            query?: {
+                /** @description Exact original tag, required only for raw files */
+                ref?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitLabTag"][];
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
     download: {
         parameters: {
             query?: never;

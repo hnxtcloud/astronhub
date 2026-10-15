@@ -56,14 +56,14 @@ esac
 
 # Reject base paths whose first segment is reserved by the server's own Nginx
 # locations (/api/, /oauth2/, /login/, /assets/, /registry/, /nginx-health,
-# /.well-known/, /runtime-config.js). Generating `location ^~ /api/` would
-# shadow the real API route and take down the whole app. Kept in sync with
+# /updates/, /releases/, /.well-known/, /runtime-config.js). A matching base
+# would collide with the real server route and take down the app. Kept in sync with
 # web/base-path-config.ts, validate-release-config.sh and the Helm checks.
 if [ "$SKILLHUB_WEB_BASE_PATH" != / ]; then
   first_segment=${SKILLHUB_WEB_BASE_PATH#/}
   first_segment=${first_segment%%/*}
   case "$first_segment" in
-    api|oauth2|login|assets|registry|nginx-health|.well-known|runtime-config.js)
+    api|oauth2|login|assets|registry|nginx-health|updates|releases|.well-known|runtime-config.js)
       echo "SKILLHUB_WEB_BASE_PATH must not start with a segment reserved by the SkillHub server ($first_segment); it would shadow the server's own Nginx location: $SKILLHUB_WEB_BASE_PATH" >&2
       exit 1
       ;;
@@ -96,7 +96,7 @@ if [ "$SKILLHUB_WEB_BASE_PATH" = / ]; then
     >"$routing_config"
 else
   base_path_without_trailing_slash=${SKILLHUB_WEB_BASE_PATH%/}
-  printf 'set $skillhub_forwarded_prefix %s;\n\nlocation = %s {\n    absolute_redirect off;\n    return 301 %s/;\n}\n\nlocation ^~ %s {\n    rewrite ^%s(.*)$ /$1 last;\n}\n' \
+  printf 'set $skillhub_forwarded_prefix %s;\n\nlocation = %s {\n    absolute_redirect off;\n    return 301 %s/;\n}\n\nlocation %s {\n    rewrite ^%s(.*)$ /$1 last;\n}\n' \
     "$base_path_without_trailing_slash" \
     "$base_path_without_trailing_slash" \
     "$base_path_without_trailing_slash" \
@@ -121,6 +121,50 @@ location = ${SKILLHUB_WEB_BASE_PATH}api/v1/plugin-management/imports {
     proxy_set_header X-Forwarded-Prefix \$skillhub_forwarded_prefix;
 }
 EOF
+
+  escaped_prefix=$(printf '%s' "$base_path_without_trailing_slash" | sed 's/\./\\./g')
+
+  # Forward only the raw suffix after a literal configured prefix. Both path and
+  # query remain encoded exactly once; mismatched/encoded prefix aliases fail.
+  append_update_proxy() {
+    route_matcher=$1
+    raw_upload=$2
+    cat >>"$routing_config" <<EOF
+
+location $route_matcher {
+    if (\$skillhub_update_raw_uri = "") {
+        return 400;
+    }
+    gzip off;
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_intercept_errors off;
+    proxy_set_header Accept-Encoding "";
+EOF
+    if [ "$raw_upload" = true ]; then
+      cat >>"$routing_config" <<'EOF'
+    client_max_body_size 0;
+    proxy_request_buffering off;
+    proxy_http_version 1.1;
+    proxy_read_timeout 300s;
+EOF
+    fi
+    cat >>"$routing_config" <<'EOF'
+    proxy_pass $skillhub_api_upstream$skillhub_update_raw_uri;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+    proxy_set_header X-Forwarded-Prefix $skillhub_forwarded_prefix;
+}
+EOF
+  }
+
+  append_update_proxy "^~ ${SKILLHUB_WEB_BASE_PATH}api/v4/projects/" false
+  append_update_proxy "^~ ${SKILLHUB_WEB_BASE_PATH}updates/" false
+  append_update_proxy "^~ ${SKILLHUB_WEB_BASE_PATH}releases/" false
+  append_update_proxy "~ ^${escaped_prefix}/[^/]+/[^/]+/-/raw/[^/]+/.+\$" false
+  append_update_proxy "~ ^${escaped_prefix}/api/v1/admin/software/update-releases/[0-9]+/assets\$" true
 fi
 
 if ! grep -rlq "$placeholder" "$root" 2>/dev/null; then

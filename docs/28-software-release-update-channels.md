@@ -57,13 +57,13 @@ HEAD /api/v4/projects/{encoded-project-path}/repository/files/{encoded-file-path
 GET /{owner}/{repo}/-/raw/{tag}/{asset-path}   # 辅助兼容入口
 ```
 
-tags 返回裸数组，name 为原生 tag，可提供 release.description 与 commit.message。仅列出已发布且更新分发启用的版本；不列出草稿、尚未齐全或已撤出的更新。按 project/ref/asset 精确解析原始文件，不接受任意存储或文件系统路径。
+tags 返回裸数组，只含该渠道显式选定且通过治理检查的一个目标，name 为原生 tag，并提供 release.description 与 commit.message。不会因存在更高版本而改变目标；回退目标后不再发现被替换版本。清除目标后，渠道 tags/raw 均不可读。同渠道已发布历史版本仍可用精确 ref 读取，前提是当前目标有效且历史快照自身也通过治理检查；固定 `/releases/{app}/{immutable-release-id}/assets/{asset-path}` 历史地址独立于渠道指针，仍受应用匿名开关、应用、快照及全部关联安装包治理约束。按 project/ref/asset 精确解析原始文件，不接受任意存储或文件系统路径。
 
 当前 Intelli Dev 只识别纯稳定 `X.Y.Z` tag；不能在服务端增加 preview 就宣称该旧客户端已支持 preview。虚拟 project path 可绑定渠道和发布变体，避免 internal/external 或平台产物混用。具体命名由管理员配置。
 
 ### Generic 与白泽灵台入口
 
-示例路径，尚未实现：
+Generic 与白泽 feed 的示例路径，尚未实现；固定历史资产入口由 GitLab 读取票提供：
 
 ```text
 GET /updates/intelli-dev/windows-x64/stable/latest.yml
@@ -77,6 +77,8 @@ GET /releases/{app}/{immutable-release-id}/assets/{asset-path}
 electron-updater 保留并校验 electron-builder 的原始元数据与文件。SHA512 使用实际对象计算的 base64 摘要；不能用 SHA256 替代。路径重定位只能按兼容投影规则处理，不能改变准确安装包或破坏签名。安装格式和签名要求由各更新器的目标平台决定。
 
 更新下载需验证 GET/HEAD、Content-Length、Content-Range、ETag 和 Range 行为。现有软件单区间解析器不等于差分更新支持。首个完整下载验收与差分验收分开；保留历史 blockmap，并针对原生请求实现多区间响应，或明确验证更新器的全量回退。不能在未测试前宣称差分完成。
+
+GitLab 读取实现使用 `no-store`、SHA256 ETag 和 Last-Modified；条件请求、HEAD 和 Range 之前均重新检查治理状态。支持单区间、后缀、开放结尾和真实 multipart/byteranges。每次最多处理 16 个区间，多区间合计最多 32 MiB，超限或格式无效时忽略 Range 返回完整 200；有效但全部越界返回 416，If-Range 不匹配则先退回完整响应。已安装 electron-updater 6.8.9 接受真实 HTTP 响应导出的 multipart 字节；该证据不代表完整差分过程、全量回退或原生安装已完成。
 
 ## 上传、校验与发布
 

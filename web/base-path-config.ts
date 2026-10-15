@@ -11,6 +11,8 @@ const RESERVED_FIRST_SEGMENTS = new Set([
   'assets',
   'registry',
   'nginx-health',
+  'updates',
+  'releases',
   '.well-known',
   'runtime-config.js',
 ])
