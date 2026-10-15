@@ -156,6 +156,13 @@ printf '%s\n' \
   >>"$missing_public_sub_path_env"
 expect_fail "$missing_public_sub_path_env" "SKILLHUB_PUBLIC_BASE_URL path"
 
+for reserved_update_path in /updates/ /releases/nested/; do
+  reserved_update_env="$tmp/reserved-update.env"
+  write_env "$reserved_update_env" "release-download-secret-32-bytes-minimum"
+  printf 'SKILLHUB_WEB_BASE_PATH=%s\n' "$reserved_update_path" >>"$reserved_update_env"
+  expect_fail "$reserved_update_env" "reserved by the SkillHub server"
+done
+
 # A public URL that merely ends with the base path but serves it under a different path
 # (/other/skillhub) must be rejected: suffix match is not enough, the path must be exact.
 wrong_public_path_env="$tmp/wrong-public-path.env"

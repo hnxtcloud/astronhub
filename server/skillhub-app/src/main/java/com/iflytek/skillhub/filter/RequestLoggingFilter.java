@@ -38,6 +38,23 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
             return;
         }
 
+        String path = com.iflytek.skillhub.auth.software.GitLabUpdatePath.requestPath(request);
+        boolean read = "GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod());
+        boolean updateStream = read && (path.startsWith("/api/v4/projects/") || path.startsWith("/releases/")
+                || path.startsWith("/updates/") || path.matches("/[^/]+/[^/]+/-/raw/.+"));
+        boolean rawUpload = "POST".equals(request.getMethod()) && (path.equals("/api/v1/plugin-management/imports")
+                || path.equals("/api/v1/plugin-management/npm/dependencies")
+                || path.matches("/api/v1/plugin-management/releases/[0-9]+/archive")
+                || path.matches("/api/v1/admin/software/update-releases/[0-9]+/assets"));
+        if (updateStream || rawUpload) {
+            // ContentCachingResponseWrapper buffers the entire installer and rewrites HEAD
+            // Content-Length to zero. Updates must remain true streaming responses.
+            long startTime = System.currentTimeMillis();
+            try { filterChain.doFilter(request, response); }
+            finally { logRequest(request, response, System.currentTimeMillis() - startTime); }
+            return;
+        }
+
         ContentCachingRequestWrapper cachedRequest = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper cachedResponse = new ContentCachingResponseWrapper(response);
 
@@ -52,7 +69,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
         }
     }
 
-    private void logRequest(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, long duration) {
+    private void logRequest(HttpServletRequest request, HttpServletResponse response, long duration) {
         String requestUri = request.getRequestURI();
         String queryString = request.getQueryString();
         String fullUrl = queryString != null ? requestUri + "?" + sanitizeQueryString(queryString) : requestUri;

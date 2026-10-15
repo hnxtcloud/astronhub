@@ -4,7 +4,11 @@
 
 **Blocked by:** 08
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+**Assignee:** software_ticket07_resume / codex/native-update-feeds
+
+**Migration reservation:** V81（如需要）
 
 **Spec coverage:** U5
 

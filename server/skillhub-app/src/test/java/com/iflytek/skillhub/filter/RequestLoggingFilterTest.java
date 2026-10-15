@@ -150,6 +150,30 @@ class RequestLoggingFilterTest {
         logger.addAppender(appender);
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {
+            "/api/v1/plugin-management/imports",
+            "/api/v1/plugin-management/npm/dependencies",
+            "/api/v1/plugin-management/releases/42/archive",
+            "/api/v1/admin/software/update-releases/42/assets"
+    })
+    void rawTransfersRemainUnwrappedAndLoggedWithoutReadingPayload(String path) throws Exception {
+        RequestLoggingFilter filter = new RequestLoggingFilter();
+        attachAppender();
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", path);
+        request.setContentType("application/octet-stream");
+        request.setContent("private binary payload".getBytes(StandardCharsets.UTF_8));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.doFilter(request, response, (incoming, outgoing) -> {
+            assertThat(incoming).isSameAs(request);
+            assertThat(outgoing).isSameAs(response);
+            outgoing.getOutputStream().write("ok".getBytes(StandardCharsets.UTF_8));
+            assertThat(response.getContentAsString()).isEqualTo("ok");
+        });
+        assertThat(loggedMessages()).anyMatch(message -> message.contains("POST " + path));
+        assertThat(loggedMessages()).noneMatch(message -> message.contains("private binary payload"));
+    }
+
     private List<String> loggedMessages() {
         return appender.list.stream()
                 .map(ILoggingEvent::getFormattedMessage)

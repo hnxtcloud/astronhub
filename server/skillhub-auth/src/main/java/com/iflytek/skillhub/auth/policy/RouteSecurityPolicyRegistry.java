@@ -17,6 +17,12 @@ import org.springframework.util.AntPathMatcher;
 public class RouteSecurityPolicyRegistry {
 
     private static final List<RouteAuthorizationPolicy> AUTHORIZATION_POLICIES = List.of(
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v4/projects/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.HEAD, "/api/v4/projects/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/releases/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.HEAD, "/releases/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/*/*/-/raw/**"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.HEAD, "/*/*/-/raw/**"),
             RouteAuthorizationPolicy.permitAll(null, "/api/v1/health"),
             RouteAuthorizationPolicy.permitAll(null, "/api/v1/search"),
             RouteAuthorizationPolicy.permitAll(null, "/api/v1/resolve/**"),
