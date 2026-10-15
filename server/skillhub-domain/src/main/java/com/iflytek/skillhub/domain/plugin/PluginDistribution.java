@@ -29,6 +29,14 @@ public class PluginDistribution {
     private String installationRecipe;
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+    @Column(name = "native_name", length = 200)
+    private String nativeName;
+    @Column(name = "native_version", length = 64)
+    private String nativeVersion;
+    @Column(name = "inventory_json", columnDefinition = "TEXT")
+    private String inventoryJson;
+    @Column(name = "manifest_json", columnDefinition = "TEXT")
+    private String manifestJson;
 
     protected PluginDistribution() {}
 
@@ -56,4 +64,22 @@ public class PluginDistribution {
     public PluginSecurityAssessment getSecurityAssessment() { return securityAssessment; }
     public String getInstallationRecipe() { return installationRecipe; }
     public Instant getCreatedAt() { return createdAt; }
+    public String getNativeName() { return nativeName; }
+    public String getNativeVersion() { return nativeVersion; }
+    public String getInventoryJson() { return inventoryJson; }
+    public String getManifestJson() { return manifestJson; }
+
+    /** Only import adapters call this after validating actual archive bytes. */
+    public static PluginDistribution hostedArchive(Long releaseId, String runtime, String objectKey,
+            String sha256, String nativeName, String nativeVersion, String inventory, String manifest) {
+        PluginDistribution distribution = new PluginDistribution(releaseId, runtime, "HOSTED_ARCHIVE", objectKey);
+        distribution.integrityDigest = sha256;
+        distribution.nativeName = nativeName;
+        distribution.nativeVersion = nativeVersion;
+        distribution.inventoryJson = inventory;
+        distribution.manifestJson = manifest;
+        distribution.compatibilityEvidence = PluginCompatibilityEvidence.MANIFEST_VALIDATED;
+        distribution.availability = PluginDistributionAvailability.AVAILABLE;
+        return distribution;
+    }
 }

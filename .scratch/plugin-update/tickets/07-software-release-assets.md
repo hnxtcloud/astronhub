@@ -6,7 +6,7 @@
 
 **Status:** claimed
 
-**Assignee:** software_ticket07 (codex/software-release-assets)
+**Assignee:** software_ticket07_resume (codex/software-release-assets)
 
 **Spec coverage:** U1、U2、U6（页面部分）
 

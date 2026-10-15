@@ -841,11 +841,7 @@
     "tabRevocationHistory": "История отзывов",
     "revocationEmpty": "Нет заявок на отзыв",
     "revocationHistoryEmpty": "Нет рассмотренных заявок на отзыв",
-    "revocationStatus": {
-      "PENDING": "Ожидает",
-      "APPROVED": "Отозван",
-      "REJECTED": "Отклонён"
-    },
+    "revocationStatus": { "PENDING": "Ожидает", "APPROVED": "Отозван", "REJECTED": "Отклонён" },
     "revocationActors": "Отправитель: {{submitter}} · Рецензент: {{reviewer}}",
     "revocationReviewComment": "Комментарий рецензии: {{comment}}",
     "revocationLoadError": "Не удалось загрузить заявки на отзыв. Повторите попытку.",
@@ -1401,11 +1397,7 @@
     "revocationHistoryItem": "{{date}} · {{status}}",
     "revocationHistoryLoading": "Загрузка истории отзывов…",
     "revocationHistoryError": "Не удалось загрузить историю отзывов. Повторите попытку.",
-    "revocationStatus": {
-      "PENDING": "Ожидает",
-      "APPROVED": "Отозван",
-      "REJECTED": "Отклонён"
-    },
+    "revocationStatus": { "PENDING": "Ожидает", "APPROVED": "Отозван", "REJECTED": "Отклонён" },
     "promotionConfirmTitle": "Отправить запрос на продвижение",
     "promotionConfirmDescription": "Отправить v{{version}} скилла «{{skill}}» на продвижение в глобальное пространство имён?",
     "promotionSuccessTitle": "Запрос на продвижение отправлен",
@@ -2783,6 +2775,76 @@
       "minutes": "минут",
       "hours": "часов",
       "seconds": "секунд"
+    }
+  },
+  "pluginManagement": {
+    "title": "Управление плагинами",
+    "description": "Архивы, проверка и публикация плагинов по пространствам имён.",
+    "createProject": "Создать проект",
+    "namespace": "Пространство имён",
+    "selectNamespace": "Выберите пространство",
+    "slug": "Идентификатор",
+    "displayName": "Название",
+    "visibility": "Видимость",
+    "summary": "Описание",
+    "pendingOnly": "Ожидают проверки",
+    "empty": "Проектов нет. Создайте проект для импорта первой версии.",
+    "selectProject": "Выберите проект для управления версиями.",
+    "editName": "Название в каталоге",
+    "saveMetadata": "Сохранить описание",
+    "newVersion": "Новая версия",
+    "version": "Версия",
+    "changelog": "Примечания к выпуску",
+    "createDraft": "Создать черновик",
+    "versions": "История версий",
+    "noVersions": "Создайте версию и импортируйте исходный ZIP.",
+    "saveDraft": "Сохранить примечания",
+    "archive": "ZIP Claude Code",
+    "archiveHelp": "Корень ZIP должен содержать .claude-plugin/plugin.json. Версия манифеста должна совпадать с выпуском. Код архива не выполняется.",
+    "importArchive": "Импортировать и проверить",
+    "inspectEvidence": "Манифест и список файлов",
+    "download": "Скачать исходный ZIP",
+    "submit": "Отправить на проверку",
+    "reviewNotes": "Заключение проверки",
+    "runtimeTest": "Проверка в среде выполнения",
+    "testEnvironment": "Среда и результаты тестирования",
+    "directApprove": "Одобрить черновик",
+    "approve": "Одобрить и создать задачу публикации",
+    "reject": "Отклонить",
+    "retryHosted": "Повторить публикацию файлов",
+    "hostedFailed": "Не удалось проверить файлы. Публикация не завершена.",
+    "visibilityValues": {
+      "PRIVATE": "Личный доступ",
+      "NAMESPACE_ONLY": "Участники пространства",
+      "PUBLIC": "Общий доступ"
+    },
+    "status": {
+      "DRAFT": "Черновик",
+      "PENDING_REVIEW": "На проверке",
+      "PUBLISHED": "Опубликовано",
+      "REJECTED": "Отклонено",
+      "YANKED": "Отозвано"
+    },
+    "publication": {
+      "QUEUED": "Одобрено, ожидает каналов",
+      "SUCCEEDED": "Публикация завершена",
+      "FAILED": "Ошибка публикации"
+    },
+    "evidence": {
+      "MANIFEST_VALIDATED": "Манифест проверен",
+      "UNKNOWN": "Не проверено",
+      "NOT_SCANNED": "Сканирование безопасности не выполнено",
+      "DECLARED": "Заявлено автором",
+      "TESTED": "Протестировано",
+      "VALIDATION_FAILED": "Ошибка проверки",
+      "SCAN_PASSED": "Проверка безопасности пройдена",
+      "SCAN_WARNINGS": "Предупреждения безопасности",
+      "SCAN_FAILED": "Ошибка безопасности"
+    },
+    "testResult": {
+      "UNKNOWN": "Не протестировано",
+      "PASSED": "Тест пройден",
+      "FAILED": "Ошибка теста"
     }
   },
   "softwareUpdates": {
