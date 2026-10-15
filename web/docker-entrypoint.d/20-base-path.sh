@@ -165,6 +165,7 @@ EOF
   append_update_proxy "^~ ${SKILLHUB_WEB_BASE_PATH}releases/" false
   append_update_proxy "~ ^${escaped_prefix}/[^/]+/[^/]+/-/raw/[^/]+/.+\$" false
   append_update_proxy "~ ^${escaped_prefix}/api/v1/admin/software/update-releases/[0-9]+/assets\$" true
+  append_update_proxy "~ ^${escaped_prefix}/api/v1/software-publishing/apps/[0-9]+/(update-releases/[0-9]+/assets|uploads/[0-9]+/chunks/[0-9]+)\$" true
 fi
 
 if ! grep -rlq "$placeholder" "$root" 2>/dev/null; then

@@ -13,7 +13,7 @@ Tracker: local-markdown
 - 沿用现有软件中心 local-markdown 跟踪方式，不发布外部 Issue。可使用 /setup-matt-pocock-skills 更改全仓库跟踪器；本次不更改其他工作的跟踪方式。
 - 用户 Q1–Q28 和“确认”构成插件决定依据；GitLab 兼容和逐应用匿名开关来自两次真实用户答复，不重新访谈。
 - 地图为索引；事实及决定保存在链接的规格/研究。实施使用 [独立实施票](implementation.md)，不得把已解决的决策票当实现完成票。
-- 实施进度（2026-10-15）：票 01、02、03、04、07、08 已合入；05 Git 市场和 09 Generic／白泽 feed 正在实施。其余按实施图推进，地图的 resolved 状态不随实现票关闭而替代验收证据。
+- 实施进度（2026-10-15）：票 01–05、07–09 已合入；06 发布恢复和 10 机器发版正在实施，随后完成 11 统一集成审查。地图的 resolved 状态不随实现票关闭而替代验收证据。
 - 依赖配置、凭据和真实安装样本属于运行验收条件，不是允许公网同步或远程安装的授权。
 
 ## Decisions so far
@@ -22,6 +22,7 @@ Tracker: local-markdown
 - [内网原生市场及 npm 依赖](decisions/02-native-channels.md)：服务器维护 Git/npm，仅 PUBLIC 插件进入公共原生渠道，分渠道恢复。
 - [多应用更新协议与客户端现状](decisions/03-update-protocols.md)：优先最小 GitLab tags/raw，另外投影 Electron generic 与白泽 manifest。
 - [逐应用匿名读取的边界](decisions/04-update-access.md)：默认关闭，显式启用后只开放完整已发布资产。
+- [受控机器发版操作](../../docs/software-machine-publishing.md)：会话管理员签发应用绑定凭据，CI 使用完整原始产物清单；状态恢复不包含凭据。真实 HTTP、工具和代理合同与真实签名安装、内网部署仍分别验收。
 
 ## Not yet specified
 

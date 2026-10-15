@@ -57,12 +57,12 @@ class SoftwareUpdatePublicationIntegrationTest {
         long catalogId = tx.execute(status -> releases.save(new SoftwareRelease(appId, "Display 2026 Q4", "notes", "admin")).getId());
         byte[] installer = "abc".getBytes(StandardCharsets.UTF_8);
         var session = uploads.createSession(new SoftwareUploadSessionCreateRequest(catalogId, "app.zip", "ZIP",
-                "WINDOWS", "X86_64", null, null, "1.2.3", 3L), "admin");
+                "MACOS", "X86_64", null, null, "1.2.3", 3L), "admin");
         uploads.putChunk(session.id(), 1, 3L, new ByteArrayInputStream(installer), "admin");
         long packageId = uploads.complete(session.id(), "admin").packageRevisionId();
         packages.confirm(packageId, "admin");
         packages.publish(packageId);
-        var draft = updates.create(new SoftwareUpdateCreateRequest(catalogId, "1.2.3", "v1.2.3", "WINDOWS",
+        var draft = updates.create(new SoftwareUpdateCreateRequest(catalogId, "1.2.3", "v1.2.3", "MACOS",
                 "X86_64", "stable", "default", "ELECTRON", null), "admin");
         var linked = updates.linkPackage(draft.id(), packageId, "app.zip", "admin");
         assertThat(linked.sha256()).isEqualTo("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");

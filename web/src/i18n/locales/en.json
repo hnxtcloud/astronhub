@@ -2903,6 +2903,13 @@
     }
   },
   "softwareUpdates": {
+    "feedUrl": "Update feed URL",
+    "gitlabMetadataRequired": "Existing Intelli Dev GitLab flows require one original latest.yml/latest-mac.yml. No unambiguous matching file is available for direct migration; use a client with Generic support.",
+    "nativeFormats": "Electron updates require Windows NSIS EXE or macOS ZIP (with optional DMG). Linux is not supported yet. Baize updates use Windows x64 ZIP.",
+    "previewHint": "Electron preview clients must also enable allowPrerelease. The existing Intelli Dev checker ignores prereleases and requires a separate adaptation.",
+    "sourceDisabled": "Anonymous updates are disabled; clients cannot read this source yet.",
+    "migrationHint": "The first client migration requires build configuration changes or a proxy for the old domain. Changing the server target does not force a downgrade. Preview clients must explicitly configure preview.",
+    "gitlabConfiguration": "Existing Intelli Dev clients use this GitLab distribution configuration. The Generic example is for clients that support that source. artifactPath must match the original latest.yml/latest-mac.yml directory.",
     "title": "Update releases",
     "immutableHint": "Published snapshots are immutable. Changed files or targets require a new snapshot.",
     "machineVersion": "Machine version",
@@ -3029,6 +3036,19 @@
       "CODEX_GIT": "Install from the confirmed Git publication at the fixed commit shown below. Git and your own repository read credentials are required. These instructions do not verify runtime behavior."
     },
     "posixShell": "POSIX shell"
+  },
+  "softwarePublishers": {
+    "title": "Machine publishing credentials",
+    "hint": "Each credential binds the current administrator to this application. Disabling the account, removing its role, expiry or revocation blocks subsequent publishing.",
+    "name": "Credential name",
+    "expires": "Expiration date (end of UTC day)",
+    "create": "Create app credential",
+    "once": "Shown once. Save this credential in your CI secret store, then clear this display.",
+    "secret": "One-time credential",
+    "clear": "Saved; clear display",
+    "revoke": "Revoke credential",
+    "revoked": "Revoked",
+    "toolHint": "Set ASTRONHUB_PUBLISH_TOKEN in your secret store. Include the deployment subpath in --server. See operator docs for manifests, inspection and initial client migration."
   },
   "pluginRecovery": {
     "title": "Recovery and channel actions",

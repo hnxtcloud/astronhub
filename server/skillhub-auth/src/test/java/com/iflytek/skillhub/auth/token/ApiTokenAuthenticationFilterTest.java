@@ -75,6 +75,7 @@ class ApiTokenAuthenticationFilterTest {
 
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         assertNotNull(authentication);
+        assertEquals(new ApiTokenIdentity(token.getId()), authentication.getDetails());
         assertTrue(authentication.getAuthorities().stream()
             .anyMatch(authority -> authority.getAuthority().equals("ROLE_SKILL_ADMIN")));
         assertTrue(authentication.getAuthorities().stream()

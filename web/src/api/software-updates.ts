@@ -7,6 +7,8 @@ export type UpdateCreate = components['schemas']['SoftwareUpdateCreateRequest']
 export type UpdateChannel = Required<components['schemas']['SoftwareUpdateChannelResponse']>
 export type UpdateSource = Omit<Required<components['schemas']['SoftwareUpdateSourceResponse']>, 'channels'> & { channels: UpdateChannel[] }
 export type UpdateChannelInput = components['schemas']['SoftwareUpdateChannelRequest']
+export type SoftwarePublisher = Required<components['schemas']['SoftwarePublisherResponse']>
+export type SoftwarePublisherCreated = Required<components['schemas']['SoftwarePublisherCreatedResponse']>
 
 const base = '/api/v1/admin/software'
 async function write<T>(path: string, body?: unknown, method = 'POST'): Promise<T> {
@@ -26,4 +28,10 @@ export const softwareUpdates = {
   source: (appId: number) => fetchJson<UpdateSource>(`${base}/apps/${appId}/update-source`),
   anonymous: (appId: number, anonymousEnabled: boolean) => write<UpdateSource>(`/apps/${appId}/update-source`, { anonymousEnabled }, 'PUT'),
   channel: (appId: number, body: UpdateChannelInput) => write<UpdateChannel>(`/apps/${appId}/update-channels`, body, 'PUT'),
+}
+
+export const softwarePublishers = {
+  list: (appId: number) => fetchJson<SoftwarePublisher[]>(`${base}/apps/${appId}/publishers`),
+  create: (appId: number, body: components['schemas']['SoftwarePublisherCreateRequest']) => write<SoftwarePublisherCreated>(`/apps/${appId}/publishers`, body),
+  revoke: (appId: number, tokenId: number) => write<void>(`/apps/${appId}/publishers/${tokenId}`, undefined, 'DELETE'),
 }

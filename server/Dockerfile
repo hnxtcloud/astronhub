@@ -25,7 +25,7 @@ RUN ./mvnw package -DskipTests -B
 FROM eclipse-temurin:21-jre-noble
 # Keep the Alpine image's numeric IDs so existing storage volumes remain writable.
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget && \
+    apt-get install -y --no-install-recommends wget git ca-certificates && \
     rm -rf /var/lib/apt/lists/* && \
     groupadd --system --gid 101 app && \
     useradd --system --uid 100 --gid app --create-home app

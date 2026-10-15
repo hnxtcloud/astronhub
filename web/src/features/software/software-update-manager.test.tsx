@@ -7,6 +7,39 @@ import { SoftwareUpdateManager, SoftwareUpdateSourceManager } from './software-u
 vi.mock('react-i18next', async () => ({ ...await vi.importActual<typeof import('react-i18next')>('react-i18next'), useTranslation: () => ({ t: (key: string) => key }) }))
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
+it('shows the selected native channel address and explicit migration configuration', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify({ code: 0, data:
+    url.includes('/update-source')
+      ? { applicationId: 7, anonymousEnabled: false, channels: [{ id: 2, slug: 'mac-stable', virtualProjectPath: 'apps/demo', targetReleaseId: 5 }] }
+      : [{ id: 5, protocol: 'ELECTRON', targetOs: 'MACOS', channel: 'stable', assets: [{ role: 'METADATA', relativePath: 'dist/latest-mac.yml' }] }],
+  }))))
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <SoftwareUpdateSourceManager appId={7} appSlug="demo" />
+  </QueryClientProvider>)
+  const address = await screen.findByLabelText('softwareUpdates.feedUrl')
+  expect((address as HTMLInputElement).value).toBe(`${window.location.origin}/updates/demo/mac-stable/latest-mac.yml`)
+  expect(screen.getByText('softwareUpdates.migrationHint')).toBeTruthy()
+  expect(screen.getByText('softwareUpdates.sourceDisabled')).toBeTruthy()
+  expect(screen.getByText(/"provider": "generic"/).textContent).toContain('mac-stable/')
+  expect(screen.getByText(/"provider": "gitlab"/).textContent).toContain('"baseUrl"')
+  expect(screen.getByText(/"provider": "gitlab"/).textContent).toContain('"owner": "apps"')
+  expect(screen.getByText(/"provider": "gitlab"/).textContent).toContain('"repo": "demo"')
+  expect(screen.getByText(/"provider": "gitlab"/).textContent).toContain('"artifactPath": "dist"')
+})
+
+it('does not offer a legacy GitLab configuration without the original native metadata filename', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => new Response(JSON.stringify({ code: 0, data:
+    url.includes('/update-source')
+      ? { applicationId: 7, anonymousEnabled: true, channels: [{ id: 2, slug: 'mac-stable', virtualProjectPath: 'apps/demo', targetReleaseId: 5 }] }
+      : [{ id: 5, protocol: 'ELECTRON', targetOs: 'MACOS', channel: 'stable', assets: [{ role: 'METADATA', relativePath: 'dist/native.json' }] }],
+  }))))
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <SoftwareUpdateSourceManager appId={7} appSlug="demo" />
+  </QueryClientProvider>)
+  await screen.findByLabelText('softwareUpdates.feedUrl')
+  expect(screen.queryByText(/"provider": "gitlab"/)).toBeNull()
+})
+
 it('creates a snapshot from an empty release and presents server validation failures', async () => {
   const requests: string[] = []
   const draft = { id: 5, status: 'DRAFT', machineVersion: '1.2.3', tag: 'v1.2.3', assets: [], targetOs: 'WINDOWS', targetArch: 'X86_64', channel: 'stable', variant: 'default' }
@@ -41,7 +74,7 @@ it('keeps anonymous reads off until the application administrator explicitly ena
     return new Response(JSON.stringify({ code: 0, data: [] }))
   }))
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-    <SoftwareUpdateSourceManager appId={7} />
+    <SoftwareUpdateSourceManager appId={7} appSlug="demo" />
   </QueryClientProvider>)
   const toggle = await screen.findByRole('checkbox', { name: 'softwareUpdates.anonymous' })
   await waitFor(() => expect((toggle as HTMLInputElement).disabled).toBe(false))

@@ -21,3 +21,22 @@
 - 使用空 user/global npmrc、独立缓存、明确 loopback registry，并关闭 lifecycle scripts、audit 和更新提示；`PI_OFFLINE=1` 禁止启动网络操作。未启动代理会话，未修改正常 Pi/npm 配置。原生安装完成后测试 registry 已停止。
 - 外部证据：`C:/Users/adolbook/.codex/worktrees/plugin-update-notes/native-pi-probe/latest-result.json`、同目录 Java/Python 探针及 `run-a348cca8c269/` 日志。首次使用 PowerShell 启动包装器的探针因进程句柄等待失败，不计为通过；进程停止后改用直接受控子进程重跑成功。
 - 这是实际组件发布与本地原生固定版本安装证据，未包含 Spring 审批整链，也未执行复杂扩展或验证用户实际内网 registry。Claude/Codex 的生成 Git 市场验收仍由票 05 补齐；原生软件签名、安装和完整差分仍未验收。
+
+### Isolated native Claude/Codex installation and update — 2026-10-15
+
+- 实际 `GitMarketplacePublisher` 生成两种市场索引和原生文件；隔离 Claude Code 2.1.273 与 Codex 0.162.1 经只读 loopback smart HTTPS Git 注册市场，安装 1.0.0。随后再次通过实际发布组件发布 1.1.0，两种客户端刷新市场并更新/安装到 1.1.0，清单与 Skill 字节核对通过；原始 commit 的 1.0.0 仍可读取。
+- 使用临时 CA，仅通过子进程 Git 配置受信，TLS 验证保持开启；所有 HOME、Claude/Codex 配置与 Git 配置隔离。仅含文档命令和 Skill，未启动代理会话、Hook、MCP 或插件可执行代码。测试 HTTPS 服务已停止，正常客户端设置未修改。
+- 成功证据：`C:/Users/adolbook/.codex/worktrees/plugin-update-notes/native-git05/run-2930989487306959924/native-acceptance-310f982959/{summary.json,results.json}`；原始 commit `8188f48c1c731fe1d22bf8b956cf5331ebe9b1d7`，新 commit `94a71fe9134c59d6e35f773b02688baa69055281`。外部 `native_git05_acceptance.py`、`NativeGitAdvanceProbe.java` 保留探针来源。
+- 首次升级探针因测试 classpath 缺 commons-compress 失败；补依赖后的首轮因宿主资源争用在 Claude 注册超时（其输出随后完成，已确认进程退出），均不计通过。放宽受控子进程超时后完整重跑成功。更早 `native-acceptance-4aa518c003` 仅证明初次安装/刷新，不替代本次升级证据。
+- 这是本地实际组件和已安装原生 CLI 的安装/更新合同验证；未包含 Spring 审批整链、复杂插件运行、企业 Git 认证或真实内网部署。软件签名、原生安装和完整差分/回退继续保留独立环境验收。
+
+### Original Intelli GitLab transport contract — 2026-10-15
+
+- 新增可选 `SoftwareIntelliClientContractIntegrationTest` 与 `/hub` 子类，使用实际嵌入 Tomcat、H2、本地对象存储、合法惰性 ZIP 和新发布的原始 `dist/latest-mac.yml`。调用只读客户端现有 `release-checker.ts`、`gitlab-feed-proxy.ts`，仅转译这两个模块至测试输出目录，不启动 Electron 或应用。
+- 根路径和 `/hub` 各 1 项、共 2 项实际 HTTP 测试通过，无失败/错误/跳过；每轮探针 17 个合同检查通过。实际 TypeScript 5.9.3、electron-updater 6.8.9 的 GenericProvider/HttpExecutor/DigestTransform/DataSplitter 完成 tags/说明、原始元数据、221 字节 ZIP 完整下载 SHA512、HEAD、单区间及 multipart 精确字节验证，代理已停止。
+- 日志 `.scratch/plugin-update-native-intelli-initial.log`；完整报告 `server/skillhub-app/target/update-contract/intelli-gitlab-*/probe-output/intelli-native-*/report.json`。复现脚本为 `scripts/tests/intelli-gitlab-contract-probe.cjs`；显式指定 `astronhub.update.intelliProbe=true` 与 `astronhub.update.intelliClientRoot`，无凭据、无公网请求或正常客户端配置改写。
+- 这补充既有 GitLab 服务端协议证据，未验证签名、安装、完整差分或全量回退；合成 ZIP 只含 README。后续机器鉴权/恢复合入后的统一回归仍属于本票，不能据此提前关闭。
+
+### Container runtime prerequisites
+
+- 代码核对发现既有生产镜像仅安装 wget，staging 镜像也没有 Git。已在两者补充 Git 与系统 CA 包，并记录企业 CA 与 Java truststore 的区别。该修正保证镜像声明包含新发布器的运行依赖；当前环境没有 Docker，未把 Dockerfile 静态核对描述为镜像构建或 staging 通过。

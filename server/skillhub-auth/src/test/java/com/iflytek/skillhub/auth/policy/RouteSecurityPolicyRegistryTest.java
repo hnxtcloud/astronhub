@@ -14,7 +14,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 class RouteSecurityPolicyRegistryTest {
 
     private static final Set<String> ALL_SCOPES =
-            Set.of("skill:read", "skill:publish", "skill:delete", "token:manage");
+            Set.of("skill:read", "skill:publish", "skill:delete", "token:manage", "software:publish");
 
     private final RouteSecurityPolicyRegistry registry = new RouteSecurityPolicyRegistry();
 

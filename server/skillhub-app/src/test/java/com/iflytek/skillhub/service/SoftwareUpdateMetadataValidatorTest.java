@@ -40,6 +40,14 @@ class SoftwareUpdateMetadataValidatorTest {
         var validator = new SoftwareUpdateMetadataValidator(storage, new ObjectMapper());
         assertThatCode(() -> validator.validate(snapshot, List.of(metadata, zip, dmg)))
                 .doesNotThrowAnyException();
+        byte[] dmgOnly = ("version: 1.0.0\nfiles:\n - url: app.dmg\n   size: 100\n   sha512: " + sha + "\n").getBytes(StandardCharsets.UTF_8);
+        String dmgRef = storage.initiateUpload("dmg-only.yml");
+        storage.stageChunk(dmgRef, 1, new ByteArrayInputStream(dmgOnly), dmgOnly.length);
+        storage.commitChunk(dmgRef, "dmg-only.yml", 1);
+        storage.completeUpload(dmgRef, "dmg-only.yml", List.of(1));
+        var dmgMetadata = new SoftwareReleaseAsset(1L, "dist/latest-mac.yml", "METADATA", null, "dmg-only.yml", dmgOnly.length, "hash", sha);
+        assertThatThrownBy(() -> validator.validate(snapshot, List.of(dmgMetadata, dmg)))
+                .hasMessageContaining("error.software.update.metadata");
         byte[] checksumBytes = ("0".repeat(64) + "  app%20name.zip\n").getBytes(StandardCharsets.UTF_8);
         String checksumRef = storage.initiateUpload("checksums");
         storage.stageChunk(checksumRef, 1, new ByteArrayInputStream(checksumBytes), checksumBytes.length);
