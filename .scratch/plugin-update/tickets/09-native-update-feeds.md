@@ -32,3 +32,4 @@
 - 缓存复核真实观察到：渠道回退时日期条件请求错误返回 304。Root 同意可变 feed 只提供投影 ETag/no-store、忽略日期条件并省略 Last-Modified；固定/raw 日期规则保持。修复后 `.scratch-software-native-date-cache-green.log` 37 项通过，包含固定资产 IMS/If-Range 日期正例。
 - 原生版本边界进一步实测：semver 将两个超限数字预发布标识比较为相等；白泽原始比较函数使用 BigInt，但有 100 字符上限。新增两项红测后，发布规则扩展到数字预发布标识和白泽版本长度。最终 `.scratch-software-native-exact-clients-final.log` 48 项通过，0 failures/errors/skips，脚本使用白泽原始比较函数的隔离执行与原始 parseFeed；没有加载白泽服务模块。覆盖当前最新代码、两个实际 native HTTP 子进程及更新后的版本校验 11 项。
 - V81 未使用；真实 PostgreSQL/S3、Docker staging、原生 Windows/macOS 签名及安装、旧版 blockmap 定位、完整差分/全量回退保留票 11 独立验收。
+- 功能提交 `c9e9e8c9`；已在 `bd2302b2` 合入最新集成 `ec1f8727`。唯一冲突是 docs28 进度段落，已合并两边事实；生成 SDK、语言资源和鉴权策略自动合并。合并后全前端 TypeScript 再次通过（`.scratch-software-native-merged-typecheck.log`），工作树干净，最终联合 Springdoc 由集成票统一核对。
