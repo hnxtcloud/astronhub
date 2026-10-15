@@ -2844,6 +2844,55 @@
       "FAILED": "运行测试失败"
     }
   },
+  "pluginImport": {
+    "title": "离线插件导入",
+    "help": "上传 ZIP 或 TGZ，预览 Claude Code、Codex 和 Pi 原生包、资源及依赖。静态检查不执行代码，也不证明运行安装成功。仓库中派生的候选包会在证据中标明。",
+    "namespace": "导入命名空间",
+    "archive": "离线归档",
+    "repository": "包含多个插件的仓库",
+    "repositoryPermission": "仓库批量导入需要命名空间所有者、管理员或插件管理员权限。",
+    "preview": "预览归档",
+    "apply": "导入选中草稿",
+    "select": "选择 {{name}}",
+    "target": "目标项目",
+    "newProject": "新建项目或匹配标识",
+    "slug": "导入项目标识",
+    "evidence": "资源、依赖及静态检查证据",
+    "expires": "预览到期时间：{{at}}。导入的草稿需要单独提交审核。",
+    "unrecognized": "未发现受支持的原生插件清单。",
+    "budgets": "字节限制：单包 {{package}}，仓库 {{repository}}，展开 {{expanded}}；文件 {{files}}，候选 {{candidates}}。",
+    "configure": "配置导入限制",
+    "save": "保存限制",
+    "saved": "新预览使用新的限制，已有预览保留原始限制快照。",
+    "limit": {
+      "packageBytes": "单包字节数",
+      "repositoryBytes": "仓库归档字节数",
+      "expandedBytes": "展开字节数",
+      "files": "最大文件数",
+      "candidates": "最大候选数"
+    },
+    "status": {
+      "NEW_PLUGIN": "新插件",
+      "NEW_VERSION": "新版本",
+      "NEW_RUNTIME": "新增宿主",
+      "IDENTICAL": "相同内容，已跳过",
+      "CONFLICT": "内容冲突，不可覆盖",
+      "INVALID": "无效候选",
+      "TARGET_UNAVAILABLE": "目标不可访问",
+      "IMPORTED": "草稿已导入",
+      "FAILED": "导入失败"
+    },
+    "validation": {
+      "manifest": "原生清单格式无效。",
+      "manifestIdentity": "原生名称或语义化版本号无效。",
+      "manifestVersion": "不支持此原生清单格式版本。",
+      "resourceType": "资源或宿主扩展的声明类型无效。",
+      "missingResource": "候选包中缺少清单声明的资源。",
+      "path": "资源路径超出候选包或存在不安全的路径。",
+      "packageSize": "候选包超出配置的大小限制。",
+      "dependencyType": "依赖声明类型无效。"
+    }
+  },
   "softwareUpdates": {
     "title": "更新发行快照",
     "immutableHint": "发布后的快照不可修改；文件或目标变更需要创建新快照。",

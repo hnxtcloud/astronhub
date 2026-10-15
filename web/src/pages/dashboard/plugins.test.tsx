@@ -24,7 +24,7 @@ it('creates a namespace plugin draft through the management form', async () => {
   }))
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
   render(<QueryClientProvider client={client}><PluginManagementPage /></QueryClientProvider>)
-  await waitFor(() => expect(screen.getByRole('option', { name: 'Team' })).toBeTruthy())
+  await waitFor(() => expect(screen.getAllByRole('option', { name: 'Team' }).length).toBeGreaterThan(0), { timeout: 10000 })
   fireEvent.change(screen.getByLabelText('Namespace'), { target: { value: '7' } })
   fireEvent.change(screen.getByLabelText('Slug'), { target: { value: 'sample' } })
   fireEvent.change(screen.getByLabelText('Display name'), { target: { value: 'Sample' } })

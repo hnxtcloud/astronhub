@@ -103,6 +103,24 @@ else
     "$SKILLHUB_WEB_BASE_PATH" \
     "$SKILLHUB_WEB_BASE_PATH" \
     >"$routing_config"
+  # Nginx checks Content-Length before the generic prefix rewrite. Give the
+  # import endpoint its streaming policy in the prefixed location as well.
+  cat >>"$routing_config" <<EOF
+
+location = ${SKILLHUB_WEB_BASE_PATH}api/v1/plugin-management/imports {
+    client_max_body_size 0;
+    proxy_request_buffering off;
+    proxy_http_version 1.1;
+    proxy_read_timeout 300s;
+    rewrite ^${SKILLHUB_WEB_BASE_PATH}(.*)\$ /\$1 break;
+    proxy_pass \$skillhub_api_upstream;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$proxy_x_forwarded_proto;
+    proxy_set_header X-Forwarded-Prefix \$skillhub_forwarded_prefix;
+}
+EOF
 fi
 
 if ! grep -rlq "$placeholder" "$root" 2>/dev/null; then

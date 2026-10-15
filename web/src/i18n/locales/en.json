@@ -2845,6 +2845,55 @@
       "FAILED": "Runtime test failed"
     }
   },
+  "pluginImport": {
+    "title": "Offline plugin import",
+    "help": "Upload a ZIP or TGZ. Preview native Claude Code, Codex and Pi packages, resources and dependencies. Static validation does not run code or verify runtime installation. Derived repository packages are marked in the evidence.",
+    "namespace": "Import namespace",
+    "archive": "Offline archive",
+    "repository": "Repository with multiple plugins",
+    "repositoryPermission": "Repository import requires namespace owner/admin or plugin administrator permission.",
+    "preview": "Preview archive",
+    "apply": "Import selected drafts",
+    "select": "Select {{name}}",
+    "target": "Target project",
+    "newProject": "Create project or match slug",
+    "slug": "Import project slug",
+    "evidence": "Resources, dependencies and static evidence",
+    "expires": "Preview expires at {{at}}. Imported drafts require a separate review.",
+    "unrecognized": "No supported native plugin manifests found.",
+    "budgets": "Bytes: package {{package}}, repository {{repository}}, expanded {{expanded}}. Files {{files}}, candidates {{candidates}}.",
+    "configure": "Configure import budgets",
+    "save": "Save budgets",
+    "saved": "Budgets saved for new previews. Existing previews keep their original limits.",
+    "limit": {
+      "packageBytes": "Single package bytes",
+      "repositoryBytes": "Repository archive bytes",
+      "expandedBytes": "Expanded bytes",
+      "files": "Maximum files",
+      "candidates": "Maximum candidates"
+    },
+    "status": {
+      "NEW_PLUGIN": "New plugin",
+      "NEW_VERSION": "New version",
+      "NEW_RUNTIME": "Additional runtime",
+      "IDENTICAL": "Identical content; skipped",
+      "CONFLICT": "Content conflict; cannot overwrite",
+      "INVALID": "Invalid candidate",
+      "TARGET_UNAVAILABLE": "Target unavailable",
+      "IMPORTED": "Draft imported",
+      "FAILED": "Import failed"
+    },
+    "validation": {
+      "manifest": "The native manifest is malformed.",
+      "manifestIdentity": "Native name or SemVer version is invalid.",
+      "manifestVersion": "This native manifest version is unsupported.",
+      "resourceType": "A resource or extension has an invalid declaration type.",
+      "missingResource": "A declared resource is absent from the candidate package.",
+      "path": "A resource reference leaves the package or uses an unsafe path.",
+      "packageSize": "The candidate package exceeds the configured size limit.",
+      "dependencyType": "A dependency declaration has an invalid type."
+    }
+  },
   "softwareUpdates": {
     "title": "Update releases",
     "immutableHint": "Published snapshots are immutable. Changed files or targets require a new snapshot.",

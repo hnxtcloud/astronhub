@@ -30,6 +30,7 @@ public class PluginManagementAppService {
     private final PluginPublicationTaskRepository tasks;
     private final PluginManagementQueryRepository queries;
     private final ClaudePluginZipValidator validator;
+    private final PluginOfflineImportAppService imports;
     private final ObjectStorageService storage;
     private final AuditLogService audit;
     private final RequestIdAccessor requestIds;
@@ -37,10 +38,10 @@ public class PluginManagementAppService {
     public PluginManagementAppService(PluginLifecycleService lifecycle, PluginReleaseWorkflow workflow,
             PluginReleaseRepository releases, PluginDistributionRepository distributions, PluginPublicationTaskRepository tasks,
             PluginManagementQueryRepository queries, ClaudePluginZipValidator validator, ObjectStorageService storage,
-            AuditLogService audit, RequestIdAccessor requestIds) {
+            AuditLogService audit, RequestIdAccessor requestIds, PluginOfflineImportAppService imports) {
         this.lifecycle = lifecycle; this.workflow = workflow; this.releases = releases; this.distributions = distributions;
         this.tasks = tasks; this.queries = queries; this.validator = validator; this.storage = storage;
-        this.audit = audit; this.requestIds = requestIds;
+        this.audit = audit; this.requestIds = requestIds; this.imports = imports;
     }
 
     @Transactional
@@ -77,8 +78,10 @@ public class PluginManagementAppService {
         if (distributions.findByReleaseIdOrderByRuntimeKey(id).stream().anyMatch(d -> "claude-code".equals(d.getRuntimeKey()))) {
             throw new DomainBadRequestException("error.plugin.archiveConflict");
         }
-        byte[] bytes = validator.readBounded(input);
-        var validated = validator.validate(bytes, release.getVersion());
+        var limits = imports.limits();
+        var configuredValidator = new ClaudePluginZipValidator(Math.min(limits.packageBytes(), 104857600L), limits.expandedBytes(), limits.files());
+        byte[] bytes = configuredValidator.readBounded(input);
+        var validated = configuredValidator.validate(bytes, release.getVersion());
         String objectKey = "plugins/archives/" + UUID.randomUUID() + "/" + validated.sha256() + ".zip";
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override public void afterCompletion(int status) {
@@ -153,7 +156,7 @@ public class PluginManagementAppService {
                 .orElseThrow(() -> new DomainNotFoundException("error.plugin.archiveMissing"));
         record(inspection ? "plugin.archive.inspect" : "plugin.archive.download", id, actor, context);
         return new Download(storage.getObject(archive.getSourceLocator()),
-                workflow.requireProject(release.getProjectId()).getSlug() + "-" + release.getVersion() + ".zip", archive.getIntegrityDigest());
+                workflow.requireProject(release.getProjectId()).getSlug() + "-" + release.getVersion() + (archive.getSourceLocator().endsWith(".tgz") ? ".tgz" : ".zip"), archive.getIntegrityDigest());
     }
 
     private void record(String action, Long id, PluginActor actor, AuditRequestContext context) {

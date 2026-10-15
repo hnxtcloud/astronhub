@@ -110,13 +110,13 @@ public class PluginManagementController extends BaseApiController {
     }
 
     private ResponseEntity<InputStreamResource> file(PluginManagementAppService.Download download) {
-        return ResponseEntity.ok().contentType(MediaType.parseMediaType("application/zip"))
+        return ResponseEntity.ok().contentType(MediaType.parseMediaType(download.filename().endsWith(".tgz") ? "application/gzip" : "application/zip"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(download.filename(), StandardCharsets.UTF_8).build().toString())
                 .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
                 .header("X-Content-SHA256", download.sha256()).body(new InputStreamResource(download.stream()));
     }
 
-    private static PluginActor actor(HttpServletRequest request) {
+    static PluginActor actor(HttpServletRequest request) {
         Map<Long, NamespaceRole> namespaces = new HashMap<>();
         if (request.getAttribute("userNsRoles") instanceof Map<?, ?> roles) {
             roles.forEach((key, value) -> { if (key instanceof Long id && value instanceof NamespaceRole role) namespaces.put(id, role); });
