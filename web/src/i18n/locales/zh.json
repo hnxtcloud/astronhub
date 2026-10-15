@@ -2902,6 +2902,13 @@
     }
   },
   "softwareUpdates": {
+    "feedUrl": "更新清单地址",
+    "gitlabMetadataRequired": "现有 Intelli Dev 的 GitLab 方式需要唯一的原始 latest.yml/latest-mac.yml；当前未提供可直接迁移的对应文件名，可使用已支持 Generic 的客户端。",
+    "nativeFormats": "Electron 更新使用 Windows NSIS EXE，或 macOS ZIP（可附 DMG）；暂不支持 Linux。白泽更新使用 Windows x64 ZIP。",
+    "previewHint": "Electron 预发布客户端还需启用 allowPrerelease。现有 Intelli Dev 检测器忽略预发布版本，需单独适配后使用。",
+    "sourceDisabled": "匿名更新源当前关闭，客户端暂不可读取。",
+    "migrationHint": "现有客户端首次迁移需要更改构建配置或代理旧域名。切换服务器目标不会强制客户端降级；预览渠道需显式配置 preview。",
+    "gitlabConfiguration": "现有 Intelli Dev 使用此 GitLab 分发配置；Generic 示例供已支持该来源的客户端使用。artifactPath 必须匹配原始 latest.yml/latest-mac.yml 所在目录。",
     "title": "更新发行快照",
     "immutableHint": "发布后的快照不可修改；文件或目标变更需要创建新快照。",
     "machineVersion": "机器版本号",

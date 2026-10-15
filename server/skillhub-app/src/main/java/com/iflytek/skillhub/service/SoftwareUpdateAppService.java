@@ -136,6 +136,7 @@ public class SoftwareUpdateAppService {
         var release = requireRelease(id);
         release.requireDraft();
         var revision = requirePackage(release, packageId);
+        requireNativeFormat(release, revision, path);
         var hashes = hashes(revision.getObjectKey(), revision.getByteSize());
         if (!hashes.sha256().equals(revision.getSha256())) invalid("installer hash");
         return tx.execute(status -> {
@@ -289,7 +290,8 @@ public class SoftwareUpdateAppService {
         var application = applications.findById(release.getApplicationId()).orElseThrow(() -> missing("application"));
         if (application.getStatus() != SoftwareApplicationStatus.PUBLISHED) invalid("application not published");
         for (var asset : assets.findByReleaseIdOrderByIdAsc(release.getId())) {
-            if (asset.getPackageRevisionId() != null) requirePackage(release, asset.getPackageRevisionId());
+            if (asset.getPackageRevisionId() != null)
+                requireNativeFormat(release, requirePackage(release, asset.getPackageRevisionId()), asset.getRelativePath());
         }
     }
 
@@ -327,6 +329,17 @@ public class SoftwareUpdateAppService {
                 || !revision.getTargetArch().name().equals(release.getTargetArch())
                 || !revision.isConfirmed() || revision.getStatus() != SoftwarePackageStatus.PUBLISHED) invalid("installer not applicable/published");
         return revision;
+    }
+    private void requireNativeFormat(SoftwareUpdateRelease release, SoftwarePackageRevision revision, String path) {
+        var allowed = "BAIZE".equals(release.getProtocol()) ? java.util.Set.of(SoftwarePackageFormat.ZIP)
+                : switch (release.getTargetOs()) {
+                    case "WINDOWS" -> java.util.Set.of(SoftwarePackageFormat.EXE);
+                    case "MACOS" -> java.util.Set.of(SoftwarePackageFormat.ZIP, SoftwarePackageFormat.DMG);
+                    default -> java.util.Set.<SoftwarePackageFormat>of();
+                };
+        if (!allowed.contains(revision.getFormat())
+                || !path.toLowerCase(java.util.Locale.ROOT).endsWith("." + revision.getFormat().name().toLowerCase(java.util.Locale.ROOT)))
+            invalid("native installer format does not match the target and asset path");
     }
     private void requireFreePath(Long id, String path) {
         if (assets.findByReleaseIdAndRelativePath(id, path).isPresent()

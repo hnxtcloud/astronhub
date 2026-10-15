@@ -17,7 +17,7 @@
 
 发布管理操作见[软件更新快照发布](skillhub/guide/software-updates.md)，其中明确原始文件集合、安装包确认、元数据校验、匿名开关和渠道目标的管理边界。读取协议和原生安装按后续实施票独立验收。
 
-已合入实施票 07、08：不可变更新快照、完整资产上传与发布管理、按应用治理的 GitLab tags/raw、固定历史地址及流式传输。Generic、白泽更新源和机器发布入口仍有后续任务。现有客户端迁移、完整差分和原生安装须独立验收。
+已合入实施票 07、08：不可变更新快照、完整资产上传与发布管理、按应用治理的 GitLab tags/raw、固定历史地址及流式传输。票 09 提供 Generic、白泽更新源及配置展示；受控机器发布入口仍有后续任务。现有客户端迁移、完整差分和原生安装须独立验收，不能由服务端协议通过代替。
 
 ## 领域与分发边界
 
@@ -63,18 +63,27 @@ tags 返回裸数组，只含该渠道显式选定且通过治理检查的一个
 
 ### Generic 与白泽灵台入口
 
-Generic 与白泽 feed 的示例路径，尚未实现；固定历史资产入口由 GitLab 读取票提供：
+规范入口使用已配置的 channel slug；slug 唯一绑定该应用的平台、架构、stable/preview 和变体，不根据 slug 文本或客户端文件名推断目标。例如：
 
 ```text
-GET /updates/intelli-dev/windows-x64/stable/latest.yml
-GET /updates/intelli-dev/macos-arm64/stable/latest-mac.yml
-GET /updates/baizelingtai/windows-x64/stable/latest.json
+GET /updates/intelli-dev/windows-stable/latest.yml
+GET /updates/intelli-dev/mac-stable/latest-mac.yml
+GET /updates/intelli-dev/mac-preview/preview-mac.yml
+GET /updates/baizelingtai/portable-stable/latest.json
 GET /releases/{app}/{immutable-release-id}/assets/{asset-path}
 ```
 
 白泽灵台返回 schemaVersion/version/piVersion/platform/arch/channel/publishedAt/package/sha256/bytes，以及可选 releasesUrl；地址同源、ZIP 路径以 .zip 结尾、不重定向、不使用带鉴权 query 的对象存储 URL。
 
+Generic 在 stable 使用 latest.yml（Windows）或 latest-mac.yml（macOS），preview 使用 preview.yml 或 preview-mac.yml；白泽两个渠道均使用 latest.json，由不同 channel slug 隔离。清除目标即关闭该渠道 feed；已发布但未选中的更高版本不会被发现。Electron preview 客户端还需显式设置 channel=preview 和 allowPrerelease，现有 Intelli Dev 的稳定版检测器不能由服务器配置自动获得预发布支持。
+
+Feed 将 Electron files[].url、兼容 path 及白泽 package/可选 releasesUrl 投影为同源的固定快照路径，逐段编码并保留部署前缀。版本、文件大小、摘要及其他原生字段保留。原始 YAML/JSON 仍按原始字节保存并从固定资产或 GitLab raw 读取；feed 响应自身的 ETag 使用实际投影字节计算。这样目标切换后，已经取得清单的客户端仍下载同一不可变快照的文件。
+
+可变 feed 使用投影 ETag 和 no-store，省略 Last-Modified 并忽略日期条件，避免渠道回退旧快照时错误返回 304。固定/raw 资产继续使用不可变内容的 Last-Modified、日期条件和 If-Range。
+
 electron-updater 保留并校验 electron-builder 的原始元数据与文件。SHA512 使用实际对象计算的 base64 摘要；不能用 SHA256 替代。路径重定位只能按兼容投影规则处理，不能改变准确安装包或破坏签名。安装格式和签名要求由各更新器的目标平台决定。
+
+第一版 Electron 更新只支持 Windows NSIS EXE 和 macOS ZIP（可附 DMG），macOS 元数据必须实际引用 ZIP。关联受管安装包的真实格式及确认/发布状态必须匹配，不能把 DMG 路径改为 .zip 绕过。Linux Electron 更新格式尚未支持；普通软件目录的 Linux 安装包能力保持独立。为兼容原生更新库，发布时将 machineVersion/piVersion 的核心分量和纯数字预发布标识限制为 JavaScript 安全整数（不超过 9007199254740991）；白泽两个版本还须不超过 100 个字符，沿用其原始比较函数的限制。草稿仍按通用机器版本语法创建，原生限制在发布时检查。
 
 更新下载需验证 GET/HEAD、Content-Length、Content-Range、ETag 和 Range 行为。现有软件单区间解析器不等于差分更新支持。首个完整下载验收与差分验收分开；保留历史 blockmap，并针对原生请求实现多区间响应，或明确验证更新器的全量回退。不能在未测试前宣称差分完成。
 

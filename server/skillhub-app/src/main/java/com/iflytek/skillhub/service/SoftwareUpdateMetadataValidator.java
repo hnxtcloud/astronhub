@@ -28,14 +28,17 @@ public class SoftwareUpdateMetadataValidator {
         this.storage = storage; this.mapper = mapper;
     }
     public void validate(SoftwareUpdateRelease release, List<SoftwareReleaseAsset> assets) {
+        int versionLimit = "BAIZE".equals(release.getProtocol()) ? 100 : 255;
+        comparableVersion(release.getMachineVersion(), versionLimit);
+        if ("BAIZE".equals(release.getProtocol())) comparableVersion(release.getPiVersion(), versionLimit);
         Map<String, SoftwareReleaseAsset> byPath = assets.stream().collect(Collectors.toMap(SoftwareReleaseAsset::getRelativePath, Function.identity()));
         List<SoftwareReleaseAsset> metadata = assets.stream().filter(a -> "METADATA".equals(a.getRole())).toList();
         if (metadata.isEmpty() || assets.stream().noneMatch(a -> "INSTALLER".equals(a.getRole()))) fail("missing installer or metadata");
         for (var asset : metadata) {
-            JsonNode document = parse(asset);
+            JsonNode document = readDocument(asset);
             if (document == null || !document.isObject()) fail("metadata must be an object");
             if (!release.getMachineVersion().equals(document.path("version").asText())) fail("version");
-            if ("ELECTRON".equals(release.getProtocol())) electron(document, asset, byPath);
+            if ("ELECTRON".equals(release.getProtocol())) electron(document, asset, byPath, release);
             else baize(document, asset, byPath, release);
         }
         for (var asset : assets) if ("CHECKSUM".equals(asset.getRole())) checksum(asset, byPath);
@@ -72,7 +75,7 @@ public class SoftwareUpdateMetadataValidator {
             return result;
         } catch (IOException ex) { throw new DomainBadRequestException("error.software.update.metadata", "metadata/checksum unavailable"); }
     }
-    private JsonNode parse(SoftwareReleaseAsset asset) {
+    public JsonNode readDocument(SoftwareReleaseAsset asset) {
         if (asset.getByteSize() > MAX_METADATA) fail("metadata exceeds 2 MiB");
         try (var input = storage.readRange(asset.getObjectKey(), 0, asset.getByteSize())) {
             byte[] content = input.readNBytes(Math.toIntExact(asset.getByteSize()) + 1);
@@ -88,7 +91,8 @@ public class SoftwareUpdateMetadataValidator {
             throw new DomainBadRequestException("error.software.update.metadata", "malformed metadata");
         }
     }
-    private void electron(JsonNode doc, SoftwareReleaseAsset metadata, Map<String, SoftwareReleaseAsset> assets) {
+    private void electron(JsonNode doc, SoftwareReleaseAsset metadata, Map<String, SoftwareReleaseAsset> assets,
+            SoftwareUpdateRelease release) {
         // NSIS-web packages use an additional installer graph. Do not publish references
         // until that protocol has its own complete validator and supported package format.
         if (doc.has("packages")) fail("web-installer packages are not supported; upload a full installer");
@@ -110,6 +114,13 @@ public class SoftwareUpdateMetadataValidator {
                         || embedded.asLong() > target.getByteSize() - 4) fail("embedded blockmap size");
             }
         }
+        String requiredExtension = switch (release.getTargetOs()) {
+            case "MACOS" -> ".zip";
+            case "WINDOWS" -> ".exe";
+            default -> throw new DomainBadRequestException("error.software.update.metadata", "unsupported Electron target; Linux native updater formats are not supported");
+        };
+        if (installerPaths.stream().noneMatch(path -> path.toLowerCase(java.util.Locale.ROOT).endsWith(requiredExtension)))
+            fail("native updater requires a referenced " + requiredExtension + " installer");
         if (doc.has("path")) {
             var target = referenced(metadata, doc.path("path").asText(), assets);
             if (!"INSTALLER".equals(target.getRole()) || !installerPaths.contains(target.getRelativePath())) fail("path must match a files installer");
@@ -171,4 +182,19 @@ public class SoftwareUpdateMetadataValidator {
         }
     }
     private static void fail(String detail) { throw new DomainBadRequestException("error.software.update.metadata", detail); }
+
+    private static void comparableVersion(String version, int lengthLimit) {
+        SoftwareUpdateRules.version(version);
+        if (version.length() > lengthLimit) fail("native client version length exceeds " + lengthLimit);
+        String[] identity = version.split("\\+", 2)[0].split("-", 2);
+        var numbers = new java.util.ArrayList<>(List.of(identity[0].split("\\.")));
+        if (identity.length == 2) {
+            for (String part : identity[1].split("\\.")) if (part.matches("[0-9]+")) numbers.add(part);
+        }
+        var maximum = java.math.BigInteger.valueOf(9_007_199_254_740_991L);
+        for (String component : numbers) {
+            if (new java.math.BigInteger(component).compareTo(maximum) > 0)
+                fail("version component exceeds the native JavaScript client's safe integer range");
+        }
+    }
 }

@@ -61,6 +61,27 @@ class SoftwareUpdateNativeManifestContractTest {
     }
 
     private void validate(String protocol, String text) {
+        validate(protocol, text, "1.2.3", "0.70.0");
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"core", "prerelease", "baize-length"})
+    void nativeUpdateVersionsMustBeComparableByTheInstalledJavascriptClients(String boundary) {
+        String unsafe = switch (boundary) {
+            case "core" -> "9007199254740992.0.0";
+            case "prerelease" -> "1.0.0-beta.9007199254740992";
+            default -> "1.2.3+" + "x".repeat(95);
+        };
+        String yaml = "version: " + unsafe + "\nfiles:\n - url: app.zip\n   size: 3\n   sha512: " + SHA512 + "\n";
+        String protocol = "baize-length".equals(boundary) ? "BAIZE" : "ELECTRON";
+        String document = "BAIZE".equals(protocol) ? MANIFEST.replace("\"1.2.3\"", "\"" + unsafe + "\"") : yaml;
+        assertThatThrownBy(() -> validate(protocol, document, unsafe, "0.70.0"))
+                .hasMessageContaining("error.software.update.metadata");
+        assertThatThrownBy(() -> validate("BAIZE", MANIFEST.replace("0.70.0", unsafe), "1.2.3", unsafe))
+                .hasMessageContaining("error.software.update.metadata");
+    }
+
+    private void validate(String protocol, String text, String version, String piVersion) {
         var properties = new StorageProperties();
         properties.getLocal().setBasePath(temp.resolve("base").toString());
         var transfer = new SoftwareTransferStorageProperties();
@@ -72,7 +93,8 @@ class SoftwareUpdateNativeManifestContractTest {
         storage.stageChunk(ref, 1, new ByteArrayInputStream(bytes), bytes.length);
         storage.commitChunk(ref, key, 1);
         storage.completeUpload(ref, key, List.of(1));
-        var snapshot = new SoftwareUpdateRelease(1L, 1L, "1.2.3", "v1.2.3", "WINDOWS", "X86_64", "stable", "default", protocol, "BAIZE".equals(protocol) ? "0.70.0" : null, null, "admin");
+        var snapshot = new SoftwareUpdateRelease(1L, 1L, version, "v" + version, "BAIZE".equals(protocol) ? "WINDOWS" : "MACOS", "X86_64",
+                version.split("\\+", 2)[0].contains("-") ? "preview" : "stable", "default", protocol, "BAIZE".equals(protocol) ? piVersion : null, null, "admin");
         var metadata = new SoftwareReleaseAsset(1L, "latest." + ("BAIZE".equals(protocol) ? "json" : "yml"), "METADATA", null, key, bytes.length, SHA256, SHA512);
         var installer = new SoftwareReleaseAsset(1L, "app.zip", "INSTALLER", 2L, "installer", 3, SHA256, SHA512);
         var notes = new SoftwareReleaseAsset(1L, "notes.txt", "OTHER", null, "notes", 3, SHA256, SHA512);

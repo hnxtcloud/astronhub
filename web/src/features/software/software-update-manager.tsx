@@ -5,12 +5,13 @@ import { softwareUpdates, type UpdateRelease } from '@/api/software-updates'
 import type { SoftwarePackage } from '@/api/types'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
+import { withBasePath } from '@/shared/lib/base-path'
 
 const updateKey = ['software', 'updates'] as const
 const targets = ['WINDOWS', 'LINUX', 'MACOS']
 const arches = ['X86_64', 'ARM64', 'X86', 'UNIVERSAL']
 
-export function SoftwareUpdateSourceManager({ appId }: { appId: number }) {
+export function SoftwareUpdateSourceManager({ appId, appSlug }: { appId: number; appSlug: string }) {
   const { t } = useTranslation()
   const cache = useQueryClient()
   const [slug, setSlug] = useState('windows-stable')
@@ -23,6 +24,8 @@ export function SoftwareUpdateSourceManager({ appId }: { appId: number }) {
   return <section className="space-y-3 rounded border p-3">
     <h3 className="font-medium">{t('softwareUpdates.sourceTitle')}</h3>
     <p className="text-sm text-muted-foreground">{t('softwareUpdates.anonymousHint')}</p>
+    {source.data && !source.data.anonymousEnabled && <p role="status" className="text-sm">{t('softwareUpdates.sourceDisabled')}</p>}
+    <p className="text-sm text-muted-foreground">{t('softwareUpdates.migrationHint')}</p>
     <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={source.data?.anonymousEnabled ?? false} disabled={!source.data || mutation.isPending} onChange={event => { const enabled = event.currentTarget.checked; mutation.mutate(() => softwareUpdates.anonymous(appId, enabled)) }} />{t('softwareUpdates.anonymous')}</label>
     <div className="grid gap-3 sm:grid-cols-3">
       <label className="text-sm">{t('softwareUpdates.channelSlug')}<Input value={slug} onChange={event => setSlug(event.target.value)} /></label>
@@ -31,6 +34,32 @@ export function SoftwareUpdateSourceManager({ appId }: { appId: number }) {
     </div>
     <Button size="sm" disabled={mutation.isPending || !slug || !project || !selected} onClick={() => mutation.mutate(() => softwareUpdates.channel(appId, { slug, virtualProjectPath: project, targetOs: selected?.targetOs, targetArch: selected?.targetArch, channel: selected?.channel, variant: selected?.variant, targetReleaseId: selected?.id }))}>{t('softwareUpdates.saveChannel')}</Button>
     <ul className="space-y-2 text-sm">{source.data?.channels.map(channel => <li key={channel.id} className="flex flex-wrap items-center gap-2"><code>{channel.slug} → {channel.virtualProjectPath} → #{channel.targetReleaseId ?? '—'}</code><Button size="sm" variant="ghost" onClick={() => { setSlug(channel.slug); setProject(channel.virtualProjectPath); setTarget(String(channel.targetReleaseId ?? '')) }}>{t('softwareUpdates.editChannel')}</Button><Button size="sm" variant="ghost" disabled={mutation.isPending || !channel.targetReleaseId} onClick={() => mutation.mutate(() => softwareUpdates.channel(appId, { ...channel, targetReleaseId: undefined }))}>{t('softwareUpdates.clearTarget')}</Button></li>)}</ul>
+    {source.data?.channels.map(channel => {
+      const release = published.data?.find(item => item.id === channel.targetReleaseId)
+      if (!release) return null
+      const base = new URL(withBasePath(`/updates/${encodeURIComponent(appSlug)}/${encodeURIComponent(channel.slug)}/`), window.location.origin).href
+      const file = release.protocol === 'BAIZE' ? 'latest.json' : `${release.channel === 'stable' ? 'latest' : 'preview'}${release.targetOs === 'MACOS' ? '-mac' : ''}.yml`
+      const configuration = release.protocol === 'BAIZE'
+        ? `BAIZELINGTAI_UPDATE_FEED_URL=${base}${file}`
+        : JSON.stringify({ provider: 'generic', url: base, ...(release.channel === 'preview' ? { channel: 'preview' } : {}) }, null, 2)
+      const host = new URL(withBasePath('/'), window.location.origin).href
+      const projectParts = channel.virtualProjectPath.split('/')
+      const candidates = release.assets?.filter(asset => asset.role === 'METADATA'
+        && (asset.relativePath === file || asset.relativePath.endsWith(`/${file}`))) ?? []
+      const metadata = candidates.length === 1 ? candidates[0] : undefined
+      const artifactPath = metadata?.relativePath.includes('/') ? metadata.relativePath.slice(0, metadata.relativePath.lastIndexOf('/')) : ''
+      return <div key={channel.id} className="space-y-2 rounded border p-3 text-sm">
+        <strong>{channel.slug} · {release.targetOs}/{release.targetArch} · {release.channel}/{release.variant}</strong>
+        <label className="block">{t('softwareUpdates.feedUrl')}<Input readOnly value={`${base}${file}`} /></label>
+        <pre className="overflow-x-auto rounded bg-muted p-2">{configuration}</pre>
+        {release.protocol === 'ELECTRON' && release.channel === 'preview' && <p className="text-muted-foreground">{t('softwareUpdates.previewHint')}</p>}
+        {release.protocol === 'ELECTRON' && release.channel === 'stable' && !metadata && <p className="text-muted-foreground">{t('softwareUpdates.gitlabMetadataRequired')}</p>}
+        {release.protocol === 'ELECTRON' && release.channel === 'stable' && metadata && <>
+          <p className="text-muted-foreground">{t('softwareUpdates.gitlabConfiguration')}</p>
+          <pre className="overflow-x-auto rounded bg-muted p-2">{JSON.stringify({ provider: 'gitlab', baseUrl: host.replace(/\/$/, ''), owner: projectParts.slice(0, -1).join('/'), repo: projectParts.at(-1), artifactPath }, null, 2)}</pre>
+        </>}
+      </div>
+    })}
     {(source.error || published.error || mutation.error) && <p role="alert" className="text-sm text-destructive">{(source.error || published.error || mutation.error)?.message}</p>}
   </section>
 }
@@ -53,6 +82,7 @@ export function SoftwareUpdateManager({ release }: { release: { id: number; pack
   return <section className="space-y-3 border-t pt-3">
     <h3 className="font-medium">{t('softwareUpdates.title')}</h3>
     <p className="text-sm text-muted-foreground">{t('softwareUpdates.immutableHint')}</p>
+    <p className="text-sm text-muted-foreground">{t('softwareUpdates.nativeFormats')}</p>
     <div className="grid gap-3 sm:grid-cols-3">
       <label className="text-sm">{t('softwareUpdates.machineVersion')}<Input value={version} onChange={event => setVersion(event.target.value)} placeholder="1.2.3" /></label>
       {select('os', os, targets, setOs)}{select('arch', arch, arches, setArch)}

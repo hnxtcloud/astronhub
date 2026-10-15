@@ -136,7 +136,7 @@ class SoftwareGitLabUpdateReadIntegrationTest {
         String tag = "/api/v4/projects/apps%2F" + fixture.slug() + "/repository/tags";
         var json = new com.fasterxml.jackson.databind.ObjectMapper();
         assertThat(json.readTree(get(tag).body()).get(0).path("name").asText()).isEqualTo("v1.2.3");
-        updates.saveChannel(fixture.applicationId(), new SoftwareUpdateChannelRequest("windows-stable", "apps/" + fixture.slug(), "WINDOWS", "X86_64", "stable", "default", newer.id()), "admin");
+        updates.saveChannel(fixture.applicationId(), new SoftwareUpdateChannelRequest("windows-stable", "apps/" + fixture.slug(), "MACOS", "X86_64", "stable", "default", newer.id()), "admin");
         assertThat(json.readTree(get(tag).body())).hasSize(1);
         assertThat(json.readTree(get(tag).body()).get(0).path("name").asText()).isEqualTo("v2.0.0");
         String oldRaw = "/api/v4/projects/apps%2F" + fixture.slug() + "/repository/files/dist%2Fapp%2Bdemo.zip/raw?ref=v1.2.3";
@@ -145,7 +145,7 @@ class SoftwareGitLabUpdateReadIntegrationTest {
         assertThat(get("/releases/" + fixture.slug() + "/" + draft.id() + "/assets/dist/app+demo.zip").statusCode()).isEqualTo(404);
         var other = publish();
         assertThat(get("/releases/" + other.slug() + "/" + fixture.releaseId() + "/assets/dist/app+demo.zip").statusCode()).isEqualTo(404);
-        updates.saveChannel(fixture.applicationId(), new SoftwareUpdateChannelRequest("windows-stable", "apps/" + fixture.slug(), "WINDOWS", "X86_64", "stable", "default", null), "admin");
+        updates.saveChannel(fixture.applicationId(), new SoftwareUpdateChannelRequest("windows-stable", "apps/" + fixture.slug(), "MACOS", "X86_64", "stable", "default", null), "admin");
         assertThat(get(tag).statusCode()).isEqualTo(404);
         assertThat(get(oldRaw).statusCode()).isEqualTo(404);
         assertThat(get(fixed).statusCode()).isEqualTo(200);
@@ -196,7 +196,7 @@ class SoftwareGitLabUpdateReadIntegrationTest {
     }
 
     private SoftwareUpdateReleaseResponse version(Fixture fixture, String version, boolean publish) {
-        var draft = updates.create(new SoftwareUpdateCreateRequest(fixture.catalogId(), version, "v" + version, "WINDOWS", "X86_64", "stable", "default", "ELECTRON", null), "admin");
+        var draft = updates.create(new SoftwareUpdateCreateRequest(fixture.catalogId(), version, "v" + version, "MACOS", "X86_64", "stable", "default", "ELECTRON", null), "admin");
         var linked = updates.linkPackage(draft.id(), fixture.packageId(), "dist/app+demo.zip", "admin");
         byte[] yaml = ("version: " + version + "\nfiles:\n - url: app%2Bdemo.zip\n   size: 10\n   sha512: " + linked.sha512Base64() + "\n").getBytes(StandardCharsets.UTF_8);
         updates.uploadAsset(draft.id(), "dist/latest.yml", "METADATA", yaml.length, new ByteArrayInputStream(yaml), "admin");
@@ -216,17 +216,17 @@ class SoftwareGitLabUpdateReadIntegrationTest {
         long app = tx.execute(status -> { var entity = new SoftwareApplication(slug, "GitLab App", null, null, null, "admin"); entity.publish(); return applications.save(entity).getId(); });
         long catalog = tx.execute(status -> releases.save(new SoftwareRelease(app, "Human Version", "Original notes", "admin")).getId());
         byte[] binary = "0123456789".getBytes(StandardCharsets.UTF_8);
-        var upload = uploads.createSession(new SoftwareUploadSessionCreateRequest(catalog, "app.zip", "ZIP", "WINDOWS", "X86_64", null, null, "1.2.3", 10L), "admin");
+        var upload = uploads.createSession(new SoftwareUploadSessionCreateRequest(catalog, "app.zip", "ZIP", "MACOS", "X86_64", null, null, "1.2.3", 10L), "admin");
         uploads.putChunk(upload.id(), 1, 10L, new ByteArrayInputStream(binary), "admin");
         long packageId = uploads.complete(upload.id(), "admin").packageRevisionId();
         packages.confirm(packageId, "admin"); packages.publish(packageId);
-        var snapshot = updates.create(new SoftwareUpdateCreateRequest(catalog, "1.2.3", "v1.2.3", "WINDOWS", "X86_64", "stable", "default", "ELECTRON", null), "admin");
+        var snapshot = updates.create(new SoftwareUpdateCreateRequest(catalog, "1.2.3", "v1.2.3", "MACOS", "X86_64", "stable", "default", "ELECTRON", null), "admin");
         var linked = updates.linkPackage(snapshot.id(), packageId, "dist/app+demo.zip", "admin");
         byte[] yaml = ("version: 1.2.3\nfiles:\n - url: app%2Bdemo.zip\n   size: 10\n   sha512: " + linked.sha512Base64() + "\n").getBytes(StandardCharsets.UTF_8);
         updates.uploadAsset(snapshot.id(), "dist/latest.yml", "METADATA", yaml.length, new ByteArrayInputStream(yaml), "admin");
         updates.publish(snapshot.id(), "admin");
         updates.setAnonymous(app, true, "admin");
-        updates.saveChannel(app, new SoftwareUpdateChannelRequest("windows-stable", "apps/" + slug, "WINDOWS", "X86_64", "stable", "default", snapshot.id()), "admin");
+        updates.saveChannel(app, new SoftwareUpdateChannelRequest("windows-stable", "apps/" + slug, "MACOS", "X86_64", "stable", "default", snapshot.id()), "admin");
         return new Fixture(app, snapshot.id(), packageId, slug, catalog);
     }
     record Fixture(long applicationId, long releaseId, long packageId, String slug, long catalogId) { }
