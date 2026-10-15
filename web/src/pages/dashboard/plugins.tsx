@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth/use-auth'
 import { useCreatePluginProject, usePluginCommand, usePluginNamespaces, usePluginProject, usePluginProjects,
-  type PluginProject, type PluginRelease } from '@/features/plugin/plugin-api'
+  type PluginProject, type PluginProjectInput, type PluginRelease } from '@/features/plugin/plugin-api'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Textarea } from '@/shared/ui/textarea'
@@ -22,7 +22,7 @@ export function PluginManagementPage() {
   const [slug, setSlug] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [summary, setSummary] = useState('')
-  const [visibility, setVisibility] = useState('PRIVATE')
+  const [visibility, setVisibility] = useState<PluginProjectInput['visibility']>('PRIVATE')
   const projects = usePluginProjects(page, pending)
   const project = usePluginProject(selected)
   const namespaces = usePluginNamespaces()
@@ -43,7 +43,10 @@ export function PluginManagementPage() {
         </select></label>
         <label className="space-y-1 text-sm">{t('pluginManagement.slug')}<Input required maxLength={64} value={slug} onChange={e => setSlug(e.target.value)} /></label>
         <label className="space-y-1 text-sm">{t('pluginManagement.displayName')}<Input required maxLength={200} value={displayName} onChange={e => setDisplayName(e.target.value)} /></label>
-        <label className="space-y-1 text-sm">{t('pluginManagement.visibility')}<select className={selectClass} value={visibility} onChange={e => setVisibility(e.target.value)}>
+        <label className="space-y-1 text-sm">{t('pluginManagement.visibility')}<select className={selectClass} value={visibility} onChange={e => {
+          const value = e.target.value
+          if (value === 'PRIVATE' || value === 'NAMESPACE_ONLY' || value === 'PUBLIC') setVisibility(value)
+        }}>
           {['PRIVATE', 'NAMESPACE_ONLY', 'PUBLIC'].map(value => <option key={value} value={value}>{t(`pluginManagement.visibilityValues.${value}`)}</option>)}
         </select></label>
         <label className="space-y-1 text-sm sm:col-span-2">{t('pluginManagement.summary')}<Textarea maxLength={30000} value={summary} onChange={e => setSummary(e.target.value)} /></label>
