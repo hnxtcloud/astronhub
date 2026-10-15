@@ -4,7 +4,7 @@
 
 **Blocked by:** None
 
-**Status:** claimed
+**Status:** done
 
 **Assignee:** plugin_ticket01 / codex/plugin-drafts-review
 
@@ -16,7 +16,7 @@
 
 ## Evidence
 
-实现完成，状态保留 claimed 等待集成合并和统一契约生成，未将整个插件规格标记完成。
+首条 Claude ZIP 与受限托管纵向路径实现并合入集成；整个插件规格仍由后续任务验收。统一生成契约及接入生成类型保留在集成票 11。
 
 ### Implementation — 2026-10-15
 
@@ -41,6 +41,8 @@
 - 页面通过真实 fetch 边界的创建项目交互测试：`ticket01-ui-red.log` → `ticket01-ui-green.log`。全前端 `tsc --noEmit` 通过；新增插件 API/页面/测试的定向 ESLint 通过，最终日志 `ticket01-typecheck-final.log`、`ticket01-eslint-final.log`。`git diff --check` 通过。
 
 ### Integration follow-up and honest limits
+
+- 合并代理核查上述日志及工作树后，以 `91e2962a` 合入 `codex/plugin-update-integration`。`git diff --check` 通过；合并前后 `CONTEXT.md` 与既有未跟踪文件共 90 个 SHA256 完全一致。本票勾选仅对应已验证的首条路径，不代表公开 Git/npm 和原生安装完成。
 
 - 未手改 `schema.d.ts`。新端点需由集成代理统一导出 OpenAPI，并将 `features/plugin/plugin-api.ts` 中注明的临时严格类型接到生成类型；当前使用现有 fetch/CSRF 客户端，无 any。
 - 本票只验收 Claude Code 单 ZIP 和受限托管路径。Codex/Pi、仓库批量导入、依赖管理、组件显式关联、Git/npm 配置及渠道恢复分别由后续票验收。
