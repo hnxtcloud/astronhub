@@ -49,7 +49,8 @@ class PluginGitInstallationEvidenceTest {
                 .put("runtime", "codex")
                 .put("name", "native-test")
                 .put("version", "1.0.0")
-                .put("sha256", "a".repeat(64));
+                .put("sha256", "a".repeat(64))
+                .put("indexed", true);
     }
 
     Optional<PluginInstallationQueryRepository.GitSource> read() throws Exception {
@@ -76,6 +77,11 @@ class PluginGitInstallationEvidenceTest {
             assertThat(read()).as(key).isEmpty();
             artifact.put(key, original);
         }
+        artifact.put("indexed", false);
+        assertThat(read()).as("late publication does not select this version").isEmpty();
+        artifact.remove("indexed");
+        assertThat(read()).as("legacy receipts cannot prove native index selection").isEmpty();
+        artifact.put("indexed", true);
         when(channel.getState()).thenReturn("FAILED");
         assertThat(read()).isEmpty();
     }

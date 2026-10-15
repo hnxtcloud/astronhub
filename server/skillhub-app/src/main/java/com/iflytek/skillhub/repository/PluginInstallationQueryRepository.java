@@ -112,7 +112,8 @@ public class PluginInstallationQueryRepository {
                                                     .equals(artifact.path("version").asText())
                                             && distribution
                                                     .getIntegrityDigest()
-                                                    .equals(artifact.path("sha256").asText()))
+                                                    .equals(artifact.path("sha256").asText())
+                                            && artifact.path("indexed").asBoolean(false))
                                         return new GitSource(remote, commit, market);
                                 }
                                 return null;

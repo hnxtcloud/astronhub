@@ -4,6 +4,78 @@
  */
 
 export interface paths {
+    "/{owner}/{repo}/-/raw/{tag}/**": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a GitLab web-raw update asset
+         * @description The owner/repo virtual project, exact tag and original asset path are resolved within the governed channel. HEAD omits the response body.
+         */
+        get: operations["webRaw"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /**
+         * Read a GitLab web-raw update asset
+         * @description The owner/repo virtual project, exact tag and original asset path are resolved within the governed channel. HEAD omits the response body.
+         */
+        head: operations["webRaw_1"];
+        patch?: never;
+        trace?: never;
+    };
+    "/releases/{application}/{releaseId}/assets/**": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an immutable governed update asset
+         * @description Source opt-in and current application, snapshot and linked-package governance are checked before conditional or range responses. HEAD omits the response body.
+         */
+        get: operations["fixed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /**
+         * Read an immutable governed update asset
+         * @description Source opt-in and current application, snapshot and linked-package governance are checked before conditional or range responses. HEAD omits the response body.
+         */
+        head: operations["fixed_1"];
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v4/projects/**": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read GitLab-compatible update tags or raw assets
+         * @description A validated encoded project path selects one governed channel target. Tags return a bare singleton array; raw files require exactly one ref parameter. HEAD omits the response body.
+         */
+        get: operations["read"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        /**
+         * Read GitLab-compatible update tags or raw assets
+         * @description A validated encoded project path selects one governed channel target. Tags return a bare singleton array; raw files require exactly one ref parameter. HEAD omits the response body.
+         */
+        head: operations["read_1"];
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/software/downloads/{sessionId}": {
         parameters: {
             query?: never;
@@ -2367,6 +2439,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/releases/{id}/yank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw a published version and reselect current by durable approval order */
+        post: operations["yank"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/plugin-management/releases/{id}/submit": {
         parameters: {
             query?: never;
@@ -2533,6 +2622,41 @@ export interface paths {
         put?: never;
         /** Create a new immutable version identity with editable draft metadata */
         post: operations["release"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/projects/{id}/governance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Govern catalog visibility/state without deleting external copies or changing publication snapshots */
+        post: operations["govern"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/projects/{id}/components": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read independently authorized fixed-version component links */
+        get: operations["components"];
+        put?: never;
+        /** Link an existing independently authorized component without creating or owning it */
+        post: operations["link"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3052,7 +3176,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["link"];
+        post: operations["link_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3759,7 +3883,7 @@ export interface paths {
             cookie?: never;
         };
         /** Read project drafts, immutable releases, review evidence and publication status */
-        get: operations["detail_1"];
+        get: operations["detail_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5746,6 +5870,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugins/{namespace}/{slug}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an authorized plugin and its published version history */
+        get: operations["history_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugins/{namespace}/{slug}/versions/{version}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an immutable published plugin version without storage secrets */
+        get: operations["detail_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugins/{namespace}/{slug}/versions/{version}/install": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Generate audited local instructions for a fixed version without claiming a runtime test */
+        get: operations["install"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugins/{namespace}/{slug}/versions/{version}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List inventoried files with the archive's current access policy */
+        get: operations["files"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugins/{namespace}/{slug}/versions/{version}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a bounded inert UTF-8 preview of an exact inventoried file */
+        get: operations["file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugins/{namespace}/{slug}/versions/{version}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download an authenticated authorized fixed published plugin archive */
+        get: operations["download_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/plugin-management/releases/{id}/publication-channels": {
         parameters: {
             query?: never;
@@ -5780,6 +6006,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/releases/{id}/files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List draft or historical package files as an authorized maintainer or reviewer */
+        get: operations["files_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/releases/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inspect a safe inert text file as an authorized maintainer or reviewer */
+        get: operations["file_1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/plugin-management/releases/{id}/download": {
         parameters: {
             query?: never;
@@ -5788,7 +6048,7 @@ export interface paths {
             cookie?: never;
         };
         /** Download an authorized published historical plugin archive */
-        get: operations["download_2"];
+        get: operations["download_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5921,7 +6181,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get a visible published MCP server */
-        get: operations["detail_2"];
+        get: operations["detail_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6146,7 +6406,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["history_2"];
+        get: operations["history_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6194,7 +6454,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["detail_3"];
+        get: operations["detail_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6589,6 +6849,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/projects/{id}/components/{linkId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove metadata association without changing its independent target */
+        delete: operations["unlink"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/software/update-releases/{id}/assets/{assetId}": {
         parameters: {
             query?: never;
@@ -6657,6 +6934,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        CommitNotes: {
+            message?: string;
+        };
+        GitLabTag: {
+            name?: string;
+            release?: components["schemas"]["ReleaseNotes"];
+            commit?: components["schemas"]["CommitNotes"];
+        };
+        ReleaseNotes: {
+            description?: string;
+        };
         SkillSuiteCreateRequest: {
             namespace: string;
             slug: string;
@@ -7821,6 +8109,9 @@ export interface components {
         ClawHubDeleteResponse: {
             ok?: boolean;
         };
+        PluginYankRequest: {
+            reason: string;
+        };
         ApiResponsePluginReleaseView: {
             /** Format: int32 */
             code?: number;
@@ -7872,6 +8163,10 @@ export interface components {
             distributions?: components["schemas"]["PluginDistributionView"][];
             reviews?: components["schemas"]["PluginReviewView"][];
             publication?: components["schemas"]["PluginPublicationView"];
+            /** Format: date-time */
+            yankedAt?: string;
+            yankedBy?: string;
+            yankReason?: string;
         };
         PluginReviewView: {
             reviewerId?: string;
@@ -7965,11 +8260,42 @@ export interface components {
             latestReleaseId?: number;
             canManage?: boolean;
             canReview?: boolean;
+            canGovern?: boolean;
             releases?: components["schemas"]["PluginReleaseView"][];
         };
         PluginReleaseCreateRequest: {
             version: string;
             changelog?: string;
+        };
+        PluginGovernanceRequest: {
+            action: string;
+            /** @enum {string} */
+            visibility?: "PUBLIC" | "NAMESPACE_ONLY" | "PRIVATE";
+            reason: string;
+        };
+        PluginComponentLinkRequest: {
+            kind: string;
+            namespace: string;
+            slug: string;
+            version: string;
+        };
+        ApiResponseListPluginLinkedComponentView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PluginLinkedComponentView"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PluginLinkedComponentView: {
+            /** Format: int64 */
+            id: number;
+            kind: string;
+            namespace: string;
+            slug: string;
+            version: string;
+            displayName: string;
         };
         RegistryRequest: {
             name: string;
@@ -10068,6 +10394,107 @@ export interface components {
             timestamp?: string;
             requestId?: string;
         };
+        ApiResponsePublishedPluginView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PublishedPluginView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PublishedPluginVersion: {
+            /** Format: int64 */
+            id: number;
+            version: string;
+            /** Format: date-time */
+            publishedAt: string;
+            runtimes: string[];
+        };
+        PublishedPluginView: {
+            /** Format: int64 */
+            id: number;
+            namespace: string;
+            slug: string;
+            displayName: string;
+            summary?: string;
+            /** @enum {string} */
+            visibility: "PUBLIC" | "NAMESPACE_ONLY" | "PRIVATE";
+            /** Format: int64 */
+            latestReleaseId?: number;
+            versions: components["schemas"]["PublishedPluginVersion"][];
+            components: components["schemas"]["PluginLinkedComponentView"][];
+        };
+        ApiResponsePublishedPluginReleaseView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PublishedPluginReleaseView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PublishedPluginReleaseView: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int64 */
+            projectId: number;
+            version: string;
+            changelog?: string;
+            /** Format: date-time */
+            publishedAt: string;
+            distributions: components["schemas"]["PluginDistributionView"][];
+        };
+        ApiResponsePluginInstallView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PluginInstallView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PluginInstallView: {
+            runtime: string;
+            nativeName: string;
+            version: string;
+            downloadPath: string;
+            filename: string;
+            sha256: string;
+            command: string;
+            preparation: string;
+            marketplaceJson?: string;
+            powershellCommand?: string;
+            registry?: string;
+            runtimeVerified: boolean;
+        };
+        ApiResponsePluginFileListView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PluginFileListView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PluginFileListView: {
+            files: string[];
+        };
+        ApiResponsePluginFileContentView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PluginFileContentView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PluginFileContentView: {
+            path: string;
+            content: string;
+            /** Format: int64 */
+            bytes: number;
+        };
         ApiResponseListGitIntentView: {
             /** Format: int32 */
             code?: number;
@@ -10822,6 +11249,148 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    webRaw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                owner: string;
+                repo: string;
+                tag: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    webRaw_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                owner: string;
+                repo: string;
+                tag: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    fixed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+                releaseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    fixed_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application: string;
+                releaseId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    read: {
+        parameters: {
+            query?: {
+                /** @description Exact original tag, required only for raw files */
+                ref?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitLabTag"][];
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
+    read_1: {
+        parameters: {
+            query?: {
+                /** @description Exact original tag, required only for raw files */
+                ref?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GitLabTag"][];
+                    "application/octet-stream": string;
+                };
+            };
+        };
+    };
     download: {
         parameters: {
             query?: never;
@@ -15479,6 +16048,32 @@ export interface operations {
             };
         };
     };
+    yank: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PluginYankRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePluginReleaseView"];
+                };
+            };
+        };
+    };
     submit_2: {
         parameters: {
             query?: never;
@@ -15765,6 +16360,80 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponsePluginReleaseView"];
+                };
+            };
+        };
+    };
+    govern: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PluginGovernanceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePluginProjectView"];
+                };
+            };
+        };
+    };
+    components: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListPluginLinkedComponentView"];
+                };
+            };
+        };
+    };
+    link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PluginComponentLinkRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListPluginLinkedComponentView"];
                 };
             };
         };
@@ -16591,7 +17260,7 @@ export interface operations {
             };
         };
     };
-    link: {
+    link_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -17839,7 +18508,7 @@ export interface operations {
             };
         };
     };
-    detail_1: {
+    detail_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -20869,6 +21538,158 @@ export interface operations {
             };
         };
     };
+    history_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                namespace: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublishedPluginView"];
+                };
+            };
+        };
+    };
+    detail_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                namespace: string;
+                slug: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublishedPluginReleaseView"];
+                };
+            };
+        };
+    };
+    install: {
+        parameters: {
+            query?: {
+                runtime?: string;
+            };
+            header?: never;
+            path: {
+                namespace: string;
+                slug: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePluginInstallView"];
+                };
+            };
+        };
+    };
+    files: {
+        parameters: {
+            query?: {
+                runtime?: string;
+            };
+            header?: never;
+            path: {
+                namespace: string;
+                slug: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePluginFileListView"];
+                };
+            };
+        };
+    };
+    file: {
+        parameters: {
+            query: {
+                runtime?: string;
+                path: string;
+            };
+            header?: never;
+            path: {
+                namespace: string;
+                slug: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePluginFileContentView"];
+                };
+            };
+        };
+    };
+    download_2: {
+        parameters: {
+            query?: {
+                runtime?: string;
+            };
+            header?: never;
+            path: {
+                namespace: string;
+                slug: string;
+                version: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": string;
+                };
+            };
+        };
+    };
     channels: {
         parameters: {
             query?: never;
@@ -20913,7 +21734,56 @@ export interface operations {
             };
         };
     };
-    download_2: {
+    files_1: {
+        parameters: {
+            query?: {
+                runtime?: string;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePluginFileListView"];
+                };
+            };
+        };
+    };
+    file_1: {
+        parameters: {
+            query: {
+                runtime?: string;
+                path: string;
+            };
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePluginFileContentView"];
+                };
+            };
+        };
+    };
+    download_3: {
         parameters: {
             query?: {
                 runtime?: string;
@@ -21093,7 +21963,7 @@ export interface operations {
             };
         };
     };
-    detail_2: {
+    detail_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -21397,7 +22267,7 @@ export interface operations {
             };
         };
     };
-    history_2: {
+    history_3: {
         parameters: {
             query?: {
                 page?: number;
@@ -21465,7 +22335,7 @@ export interface operations {
             };
         };
     };
-    detail_3: {
+    detail_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -22040,6 +22910,29 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseSkillDeleteResponse"];
+                };
+            };
+        };
+    };
+    unlink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                linkId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListPluginLinkedComponentView"];
                 };
             };
         };

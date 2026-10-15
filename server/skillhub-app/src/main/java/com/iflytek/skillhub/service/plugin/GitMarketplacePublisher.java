@@ -59,7 +59,8 @@ public class GitMarketplacePublisher {
 
     public record Intent(String parent, String tree, String commit, String planDigest) {}
 
-    public record PublishedArtifact(String runtime, String name, String version, String sha256) {}
+    public record PublishedArtifact(
+            String runtime, String name, String version, String sha256, boolean indexed) {}
 
     public record Receipt(
             String remote,
@@ -179,7 +180,19 @@ public class GitMarketplacePublisher {
                                                     null,
                                                     128));
                             if (tree.equals(intent.tree))
-                                return receipt(plan, market, intent, true);
+                                return receipt(
+                                        plan,
+                                        market,
+                                        intent,
+                                        true,
+                                        readCatalog(
+                                                temp,
+                                                repo,
+                                                plan.target,
+                                                credential,
+                                                intent.commit,
+                                                plan.namespace,
+                                                market));
                         }
                     }
                 ObjectNode catalog =
@@ -208,7 +221,8 @@ public class GitMarketplacePublisher {
                                                     128)),
                                     head,
                                     digest),
-                            true);
+                            true,
+                            catalog);
                 }
                 verifyVersions(temp, repo, plan, credential, head, catalog);
                 ObjectNode entries = (ObjectNode) catalog.withObject("/entries"),
@@ -353,7 +367,7 @@ public class GitMarketplacePublisher {
                                                 null,
                                                 64)
                                         .code
-                                == 0) return receipt(plan, market, intent, false);
+                                == 0) return receipt(plan, market, intent, false, catalog);
                 if (pushed.code == 0) throw new Failure("GIT_PUSH_UNCONFIRMED");
             }
             throw new Failure("GIT_CONCURRENT_UPDATE");
@@ -382,12 +396,25 @@ public class GitMarketplacePublisher {
             throws Exception {
         for (Artifact artifact : plan.artifacts) {
             String identity = artifact.runtime + ":" + artifact.name;
+            String root = artifactPath(artifact);
             var existing = catalog.path("versions").get(identity + "@" + artifact.version);
-            if (existing == null) continue;
+            if (existing == null) {
+                if (head != null
+                        && command(
+                                                temp,
+                                                repo,
+                                                plan.target,
+                                                credential,
+                                                List.of("cat-file", "-e", head + ":" + root),
+                                                null,
+                                                128)
+                                        .code
+                                == 0) throw new Failure("GIT_UNMANAGED_CONTENT");
+                continue;
+            }
             if (existing.path("projectId").asLong() != plan.projectId
                     || !existing.path("sha256").asText().equals(artifact.sha256))
                 throw new Failure("GIT_VERSION_CONFLICT");
-            String root = artifactPath(artifact);
             Result list =
                     command(
                             temp,
@@ -494,6 +521,24 @@ public class GitMarketplacePublisher {
                 || !json.path("namespace").asText().equals(namespace)
                 || !json.path("marketplace").asText().equals(market))
             throw new Failure("GIT_NAMESPACE_CONFLICT");
+        ObjectNode entries = (ObjectNode) json.path("entries");
+        for (boolean codex : List.of(false, true)) {
+            String path =
+                    codex ? ".agents/plugins/marketplace.json" : ".claude-plugin/marketplace.json";
+            Result nativeIndex =
+                    command(
+                            temp,
+                            repo,
+                            target,
+                            credential,
+                            List.of("show", head + ":" + path),
+                            null,
+                            MAX_JSON_BYTES);
+            if (nativeIndex.code != 0
+                    || !mapper.readTree(index(entries, market, codex))
+                            .equals(mapper.readTree(nativeIndex.bytes)))
+                throw new Failure("GIT_REMOTE_INDEX_CONFLICT");
+        }
         return (ObjectNode) json;
     }
 
@@ -522,7 +567,23 @@ public class GitMarketplacePublisher {
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(root);
     }
 
-    private Receipt receipt(Plan plan, String market, Intent intent, boolean reused) {
+    private boolean indexed(Plan plan, Artifact artifact, ObjectNode catalog) {
+        JsonNode entry = catalog.path("entries").path(artifact.runtime + ":" + artifact.name);
+        return entry.path("projectId").asLong(-1) == plan.projectId
+                && entry.path("version").asText().equals(artifact.version)
+                && entry.path("source")
+                        .asText()
+                        .equals(
+                                "plugins/"
+                                        + artifact.runtime
+                                        + "/"
+                                        + artifact.name
+                                        + "/"
+                                        + artifact.version);
+    }
+
+    private Receipt receipt(
+            Plan plan, String market, Intent intent, boolean reused, ObjectNode catalog) {
         StringBuilder instructions =
                 new StringBuilder(
                         "git clone -- "
@@ -531,6 +592,15 @@ public class GitMarketplacePublisher {
                                 + intent.commit
                                 + "\n");
         for (Artifact artifact : plan.artifacts) {
+            if (!indexed(plan, artifact, catalog)) {
+                instructions
+                        .append(artifact.runtime)
+                        .append(
+                                ": this commit retains the requested files but its marketplace"
+                                    + " selects a newer version. Use the fixed-version AstronHub"
+                                    + " archive and local installation recipe.\n");
+                continue;
+            }
             if (artifact.runtime.equals("claude-code"))
                 instructions
                         .append(
@@ -568,7 +638,14 @@ public class GitMarketplacePublisher {
                 reused,
                 List.of(".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json"),
                 plan.artifacts.stream()
-                        .map(a -> new PublishedArtifact(a.runtime, a.name, a.version, a.sha256))
+                        .map(
+                                a ->
+                                        new PublishedArtifact(
+                                                a.runtime,
+                                                a.name,
+                                                a.version,
+                                                a.sha256,
+                                                indexed(plan, a, catalog)))
                         .toList(),
                 instructions.toString());
     }

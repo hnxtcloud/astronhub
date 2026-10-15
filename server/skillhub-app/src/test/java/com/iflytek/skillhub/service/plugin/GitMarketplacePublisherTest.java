@@ -131,6 +131,10 @@ class GitMarketplacePublisherTest {
                     new GitMarketplacePublisher(new ObjectMapper())
                             .publish(oldPlan, null, oldStore);
             assertThat(oldStore.previous()).hasSize(2);
+            assertThat(olderReceipt.artifacts()).allMatch(a -> !a.indexed());
+            assertThat(olderReceipt.installInstructions())
+                    .contains("fixed-version AstronHub archive")
+                    .doesNotContain("plugin install sample@");
             var catalog = new ObjectMapper().readTree(show(remote, "main:.astronhub/catalog.json"));
             assertThat(catalog.path("entries").path("claude-code:sample").path("version").asText())
                     .isEqualTo("2.0.0");
@@ -249,6 +253,88 @@ class GitMarketplacePublisherTest {
         } finally {
             GitMarketplacePublisher.cleanup(root);
         }
+    }
+
+    @Test
+    void unownedFilesAndExternallyChangedIndexesAreNeverOverwritten() throws Exception {
+        Path root = Files.createTempDirectory("git-marketplace-test-");
+        Path remote = root.resolve("remote.git");
+        init(remote);
+        try {
+            var target =
+                    new GitMarketplacePublisher.Target(
+                            1L,
+                            remote.toUri().toString(),
+                            remote.toUri().toString(),
+                            "main",
+                            "fixture");
+            seed(
+                    remote,
+                    null,
+                    "plugins/claude-code/sample/1.0.0/.claude-plugin/plugin.json",
+                    "unmanaged");
+            var store = new MemoryIntents();
+            assertThatThrownBy(
+                            () ->
+                                    new GitMarketplacePublisher(new ObjectMapper())
+                                            .publish(
+                                                    fixturePlan(root, target, "1.0.0", 10L, 1L),
+                                                    null,
+                                                    store))
+                    .hasMessage("GIT_UNMANAGED_CONTENT");
+            assertThat(store.previous()).isEmpty();
+            assertThat(
+                            show(
+                                    remote,
+                                    "main:plugins/claude-code/sample/1.0.0/.claude-plugin/plugin.json"))
+                    .asString()
+                    .isEqualTo("unmanaged");
+            var first =
+                    new GitMarketplacePublisher(new ObjectMapper())
+                            .publish(
+                                    fixturePlan(root, target, "2.0.0", 20L, 1L),
+                                    null,
+                                    new MemoryIntents());
+            seed(remote, first.commit(), ".claude-plugin/marketplace.json", "{}");
+            assertThatThrownBy(
+                            () ->
+                                    new GitMarketplacePublisher(new ObjectMapper())
+                                            .publish(
+                                                    fixturePlan(root, target, "3.0.0", 30L, 1L),
+                                                    null,
+                                                    store))
+                    .hasMessage("GIT_REMOTE_INDEX_CONFLICT");
+            assertThat(store.previous()).isEmpty();
+            assertThat(show(remote, "main:.claude-plugin/marketplace.json"))
+                    .asString()
+                    .isEqualTo("{}");
+        } finally {
+            GitMarketplacePublisher.cleanup(root);
+        }
+    }
+
+    static void seed(Path remote, String parent, String path, String content) throws Exception {
+        String script =
+                "commit refs/heads/main\n"
+                    + "committer Fixture <fixture@example.invalid> 1700000000 +0000\n"
+                    + "data 4\n"
+                    + "seed\n"
+                        + (parent == null ? "" : "from " + parent + "\n")
+                        + "M 100644 inline "
+                        + path
+                        + "\ndata "
+                        + content.getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+                        + "\n"
+                        + content
+                        + "\n\ndone\n";
+        var process =
+                new ProcessBuilder("git", "--git-dir=" + remote, "fast-import", "--quiet", "--done")
+                        .redirectError(ProcessBuilder.Redirect.DISCARD)
+                        .start();
+        try (var output = process.getOutputStream()) {
+            output.write(script.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+        assertThat(process.waitFor()).isZero();
     }
 
     static class MemoryIntents implements GitMarketplacePublisher.IntentStore {

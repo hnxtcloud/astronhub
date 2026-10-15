@@ -161,11 +161,11 @@ skillhub:
 
 首版发布和读取地址必须为同一个规范 HTTPS URL；不支持 SSH、URL 内凭据、重定向、查询参数或片段。`file:///` 仅供运维明确允许的本地夹具。服务器 Git 启用 TLS 验证，企业 CA 需在部署环境信任；不能通过管理员配置关闭验证。裸 token 作为 Bearer 使用，需要 Basic 认证的 Git 服务可在部署凭据映射中提供完整 `Basic ...` 值。值只传入发布 Git 子进程的指定目标认证头，不进入数据库、参数列表、安装指引或日志。读取用户配置自己的凭据，不复用服务器发布凭据。
 
-PUBLIC Claude Code 和 Codex ZIP 按原始文件字节和执行权限写入 Git，Pi 不复制进 Git。市场名为 global 的 `astronhub`，其他 namespace 的 `astronhub-{slug}`。Claude 索引为 `.claude-plugin/marketplace.json`，Codex 索引为 `.agents/plugins/marketplace.json`，结构分别遵守宿主格式；文件放在 `plugins/{runtime}/{nativeName}/{nativeVersion}`。同市场原生名称被其他项目占用、同版本已有内容不同，或包中包含 `.git`/`.gitmodules` 控制路径时拒绝发布，不自动改名或覆盖。
+PUBLIC Claude Code 和 Codex ZIP 按原始文件字节和执行权限写入 Git，Pi 不复制进 Git。市场名为 global 的 `astronhub`，其他 namespace 的 `astronhub-{slug}`。Claude 索引为 `.claude-plugin/marketplace.json`，Codex 索引为 `.agents/plugins/marketplace.json`，结构分别遵守宿主格式；文件放在 `plugins/{runtime}/{nativeName}/{nativeVersion}`。同市场原生名称被其他项目占用、同版本已有内容不同、目标文件路径已有未管理内容、受管索引被外部修改，或包中包含 `.git`/`.gitmodules` 控制路径时拒绝发布，不自动改名或覆盖。
 
 发布复用统一任务队列和批准快照。外部网络调用在数据库事务之外，推送前短事务持久化 parent/tree/commit/计划摘要意图，普通 Git push 保留远端历史，禁止 force push。远端并发前进时最多重新读取并重建三次；不确定推送结果或重启先核对远端祖先和实际 tree，再复用已确认结果。当前索引按持久审批任务 ID、发行 ID 排序；迟到旧请求只增加历史版本，不回拨当前选择。已成功渠道及历史回执继续保留。
 
-安装接口核对成功回执中的 runtime、原生名称、版本及归档 SHA256，使用回执远端和固定 commit，不读取当前目标配置。Claude 先克隆并检出固定 commit，再注册本地市场；Codex HTTPS 注册使用 `--ref <commit>`。Codex 不接受 `file://` URL，夹具因此先克隆到本地再注册目录。页面提供 POSIX / PowerShell 指引。受限内容始终不进入 Git，继续使用鉴权包下载和本地安装流程。隐藏、归档或下架不会删除用户克隆、Git 历史或已成功的渠道记录；显式索引撤回属于恢复治理流程。
+安装接口核对成功回执中的 runtime、原生名称、版本及归档 SHA256，还核对该 commit 的原生索引是否选择此版本，再使用回执远端和固定 commit，不读取当前目标配置。迟到旧任务若只增加历史文件而索引仍选择较新版本，旧版本继续使用固定归档和本地安装，不生成会安装较新版本的市场命令。Claude 先克隆并检出固定 commit，再注册本地市场；Codex HTTPS 注册使用 `--ref <commit>`。Codex 不接受 `file://` URL，夹具因此先克隆到本地再注册目录。页面提供 POSIX / PowerShell 指引。受限内容始终不进入 Git，继续使用鉴权包下载和本地安装流程。隐藏、归档或下架不会删除用户克隆、Git 历史或已成功的渠道记录；显式索引撤回属于恢复治理流程。
 
 Git 发布使用独立临时裸仓库和 fast-import，不检出或执行导入包，不采用系统/全局 Git 配置、hooks、过滤器或子模块。单 Git 命令限 90 秒，JSON 读取限 4 MiB，新增文件累计限 2 GiB，临时 Git 目录限 4 GiB；浅读取保留最多 256 层远端历史。超出预算或无法证明历史提交时拒绝或保留失败证据，需要管理员处理，不自动放宽限额。Git 深度及容量边界不是任意规模仓库支持承诺。
 

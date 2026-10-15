@@ -210,7 +210,8 @@ class PluginGitManagementIntegrationTest {
                                     get("/api/v1/plugins/"
                                                     + namespace
                                                     + "/native-flow/versions/1.0.0/install")
-                                            .param("runtime", runtime))
+                                            .param("runtime", runtime)
+                                            .with(authentication(auth("USER"))))
                             .andExpect(status().isOk())
                             .andReturn();
             var recipe = mapper.readTree(result.getResponse().getContentAsString()).path("data");
