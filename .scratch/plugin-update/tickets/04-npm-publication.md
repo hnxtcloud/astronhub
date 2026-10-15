@@ -4,7 +4,9 @@
 
 **Blocked by:** 01,02
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+**Assignee:** npm_publication / codex/plugin-npm-publication
 
 **Spec coverage:** P5
 
