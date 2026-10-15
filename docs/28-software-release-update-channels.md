@@ -1,6 +1,6 @@
 # AstronHub 软件发布和更新渠道设计
 
-状态：兼容优先级和访问方式已确认；本设计为待实施方案。日期：2026-10-14。
+状态：兼容优先级和访问方式已确认，正在实施，尚未全部完成。确认日期：2026-10-14；进度更新：2026-10-15。
 
 实施授权：用户已要求同步文档和 Wayfinder 后开始实现。沿用 [本地决策索引](../.scratch/plugin-update/map.md) 和 [实施任务依赖图](../.scratch/plugin-update/implementation.md)，统一使用 `codex/plugin-update-integration`；真实应用仓库保持只读，客户端迁移和安装验收不隐含授权修改客户端。
 
@@ -16,6 +16,8 @@
 - [Intelli Dev](research/intelli-dev-astronhub-updates.md)：GitLab tags 发现版本、raw 文件获取、electron-updater YAML/安装包/blockmap；已有安装执行器。
 
 发布管理操作见[软件更新快照发布](skillhub/guide/software-updates.md)，其中明确原始文件集合、安装包确认、元数据校验、匿名开关和渠道目标的管理边界。读取协议和原生安装按后续实施票独立验收。
+
+已合入实施票 07：不可变更新快照、完整资产上传与发布管理。票 08 正在补齐 GitLab tags/raw、固定历史地址及流式传输；Generic、白泽更新源和机器发布入口仍有后续任务。现阶段不能将管理端可发布快照等同于现有客户端已经完成迁移或安装验收。
 
 ## 领域与分发边界
 

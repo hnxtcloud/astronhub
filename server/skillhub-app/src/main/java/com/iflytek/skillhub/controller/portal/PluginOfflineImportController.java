@@ -45,6 +45,9 @@ public class PluginOfflineImportController extends BaseApiController {
     }
 
     @PostMapping(value = "/imports", consumes = "application/octet-stream")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
+            content = @io.swagger.v3.oas.annotations.media.Content(mediaType = "application/octet-stream",
+                    schema = @io.swagger.v3.oas.annotations.media.Schema(type = "string", format = "binary")))
     @Operation(
             summary =
                     "Upload ZIP or TGZ for bounded offline candidate preview without running"
