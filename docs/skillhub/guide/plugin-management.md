@@ -68,8 +68,8 @@
 | 后台 `files` | `20000` | 归档条目数，含目录及 TAR 元数据 |
 | 后台 `candidates` | `100` | 候选插件数量 |
 | `skillhub.plugin.import-cleanup-delay-ms` | `3600000` | 过期预览清理间隔 |
-| `skillhub.plugin.hosted-worker-enabled` | `true` | 托管发布任务后台处理开关 |
-| `skillhub.plugin.hosted-worker-delay-ms` | `5000` | 托管任务轮询间隔 |
+| `skillhub.plugin.hosted-worker-enabled` | `true` | 插件托管及原生渠道发布任务后台处理开关 |
+| `skillhub.plugin.hosted-worker-delay-ms` | `5000` | 插件发布任务轮询间隔 |
 
 预算在后台持久化配置；每次预览保存快照，之后调整预算不改写已有预览。支持的服务器上限为压缩归档 2 GiB、展开 20 GiB、20 万条目及 1000 候选，管理员应按磁盘容量设置。单个原生 JSON 清单及 TAR 扩展元数据额外限制为 1 MiB；TAR 连续扩展记录最多 16 条。拒绝加密 ZIP、ZIP64、链接/特殊文件、稀疏文件、不安全或跨平台歧义路径、重复条目、文件目录冲突、ZIP 本地/中央目录不一致，以及 TAR 结束标记后的隐藏归档。ZIP 扩展元数据仅允许时间戳、NTFS 时间和 UID/GID。
 
