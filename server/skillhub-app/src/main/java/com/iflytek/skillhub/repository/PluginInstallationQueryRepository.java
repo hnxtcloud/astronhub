@@ -33,6 +33,7 @@ public class PluginInstallationQueryRepository {
                 .filter(
                         channel ->
                                 channel.getChannel().equals("NPM")
+                                        && !channel.isSourceDisabled()
                                         && channel.getState().equals("SUCCEEDED")
                                         && channel.getReceipt() != null)
                 .map(
@@ -80,6 +81,7 @@ public class PluginInstallationQueryRepository {
                 .filter(
                         channel ->
                                 channel.getChannel().equals("GIT")
+                                        && !channel.isSourceDisabled()
                                         && channel.getState().equals("SUCCEEDED")
                                         && channel.getReceipt() != null)
                 .map(

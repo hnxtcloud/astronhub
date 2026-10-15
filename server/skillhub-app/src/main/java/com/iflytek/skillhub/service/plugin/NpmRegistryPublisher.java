@@ -195,6 +195,28 @@ public class NpmRegistryPublisher {
         }
     }
 
+    /** Only GETs exact identity and compares actual tarball bytes; never submits a write. */
+    public Optional<Receipt> reconcile(
+            Path archive, String manifestJson, Target target, String token) throws IOException {
+        if (Files.size(archive) > MAX_BYTES) throw new Failure("PACKAGE_SIZE_LIMIT");
+        JsonNode manifest = mapper.readTree(manifestJson);
+        String name = manifest.path("name").asText(), version = manifest.path("version").asText();
+        if (!name.matches("(?:@[a-z0-9._-]+/)?[a-z0-9][a-z0-9._-]*")
+                || !com.iflytek.skillhub.domain.plugin.PluginVersions.valid(version))
+            throw new Failure("PACKAGE_IDENTITY");
+        JsonNode remote = metadata(target, encoded(name) + "/" + encoded(version), token);
+        if (remote == null) return Optional.empty();
+        compare(remote, archive, target, token);
+        return Optional.of(
+                new Receipt(
+                        target.registry(),
+                        name,
+                        version,
+                        digest(archive, "SHA-256", false),
+                        "sha512-" + digest(archive, "SHA-512", true),
+                        true));
+    }
+
     public Receipt publish(Path archive, String manifestJson, Target target, String token)
             throws IOException {
         if (Files.size(archive) > MAX_BYTES) throw new Failure("PACKAGE_SIZE_LIMIT");
@@ -211,6 +233,7 @@ public class NpmRegistryPublisher {
             compare(existing, archive, target, token);
             return new Receipt(target.registry(), name, version, sha256, integrity, true);
         }
+        PluginPublicationWriteGuard.check();
         Path payload = Files.createTempFile("astronhub-npm-publish-", ".json");
         try {
             ObjectNode clean = ((ObjectNode) manifest).deepCopy();
@@ -249,6 +272,7 @@ public class NpmRegistryPublisher {
             }
             String writeFailure = null;
             try {
+                PluginPublicationWriteGuard.check();
                 var response =
                         send(
                                 request(endpoint(target, encoded(name)), token)

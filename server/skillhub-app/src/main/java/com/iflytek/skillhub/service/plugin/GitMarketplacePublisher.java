@@ -55,7 +55,43 @@ public class GitMarketplacePublisher {
             Long releaseId,
             Long taskId,
             long timestamp,
-            List<Artifact> artifacts) {}
+            List<Artifact> artifacts,
+            Withdrawal withdrawal) {
+        public Plan(
+                Target target,
+                String namespace,
+                Long projectId,
+                Long releaseId,
+                Long taskId,
+                long timestamp,
+                List<Artifact> artifacts) {
+            this(target, namespace, projectId, releaseId, taskId, timestamp, artifacts, null);
+        }
+    }
+
+    public record Withdrawal(Long operationId, Long throughTaskId, Long throughReleaseId) {}
+
+    public Receipt withdraw(
+            Plan approved,
+            Long operationId,
+            Long throughTask,
+            Long throughRelease,
+            String credential,
+            IntentStore store)
+            throws Exception {
+        return publish(
+                new Plan(
+                        approved.target,
+                        approved.namespace,
+                        approved.projectId,
+                        approved.releaseId,
+                        approved.taskId,
+                        approved.timestamp,
+                        approved.artifacts,
+                        new Withdrawal(operationId, throughTask, throughRelease)),
+                credential,
+                store);
+    }
 
     public record Intent(String parent, String tree, String commit, String planDigest) {}
 
@@ -138,6 +174,86 @@ public class GitMarketplacePublisher {
         }
     }
 
+    /** Reconciles only against the immutable original target; never imports or pushes a tree. */
+    public java.util.Optional<Receipt> reconcile(Plan plan, String credential, IntentStore store)
+            throws Exception {
+        String remote = canonicalRemote(plan.target.remote());
+        if (!remote.equals(canonicalRemote(plan.target.fetchUrl()))
+                || !validBranch(plan.target.branch())) throw new Failure("GIT_INVALID_PLAN");
+        Path temp = Files.createTempDirectory("astronhub-git-reconcile-");
+        try {
+            Path repo = temp.resolve("objects.git");
+            Files.createDirectory(temp.resolve("hooks"));
+            run(temp, null, null, null, List.of("init", "--bare", repo.toString()), null, 1048576);
+            String head = fetch(temp, repo, plan.target, credential);
+            if (head == null) return java.util.Optional.empty();
+            String digest = planDigest(plan),
+                    market =
+                            plan.namespace.equals("global")
+                                    ? "astronhub"
+                                    : "astronhub-" + plan.namespace;
+            for (Intent intent : store.previous()) {
+                if (!digest.equals(intent.planDigest)) continue;
+                if (command(
+                                        temp,
+                                        repo,
+                                        plan.target,
+                                        credential,
+                                        List.of("merge-base", "--is-ancestor", intent.commit, head),
+                                        null,
+                                        64)
+                                .code
+                        == 0) {
+                    String tree =
+                            text(
+                                    command(
+                                            temp,
+                                            repo,
+                                            plan.target,
+                                            credential,
+                                            List.of("rev-parse", intent.commit + "^{tree}"),
+                                            null,
+                                            128));
+                    if (tree.equals(intent.tree)) {
+                        var catalog =
+                                readCatalog(
+                                        temp,
+                                        repo,
+                                        plan.target,
+                                        credential,
+                                        intent.commit,
+                                        plan.namespace,
+                                        market);
+                        if (plan.withdrawal == null)
+                            verifyVersions(temp, repo, plan, credential, intent.commit, catalog);
+                        return java.util.Optional.of(receipt(plan, market, intent, true, catalog));
+                    }
+                }
+            }
+            var catalog =
+                    readCatalog(temp, repo, plan.target, credential, head, plan.namespace, market);
+            String recorded = catalog.path("publications").path(publicationKey(plan)).asText();
+            if (recorded.isEmpty()) return java.util.Optional.empty();
+            if (!recorded.equals(digest)) throw new Failure("GIT_PUBLICATION_CONFLICT");
+            if (plan.withdrawal == null)
+                verifyVersions(temp, repo, plan, credential, head, catalog);
+            String tree =
+                    text(
+                            command(
+                                    temp,
+                                    repo,
+                                    plan.target,
+                                    credential,
+                                    List.of("rev-parse", head + "^{tree}"),
+                                    null,
+                                    128));
+            return java.util.Optional.of(
+                    receipt(plan, market, new Intent(head, tree, head, digest), true, catalog));
+        } finally {
+            cleanup(temp);
+        }
+    }
+
     private Receipt publishLocked(Plan plan, String credential, IntentStore store)
             throws Exception {
         Path temp = Files.createTempDirectory("astronhub-git-");
@@ -199,12 +315,13 @@ public class GitMarketplacePublisher {
                         readCatalog(
                                 temp, repo, plan.target, credential, head, plan.namespace, market);
                 ObjectNode publications = (ObjectNode) catalog.withObject("/publications");
-                String task = plan.taskId.toString();
+                String task = publicationKey(plan);
                 if (publications.has(task)) {
                     if (!publications.path(task).asText().equals(digest))
                         throw new Failure("GIT_PUBLICATION_CONFLICT");
                     // Exact task content can be reconciled after a lost local intent receipt.
-                    verifyVersions(temp, repo, plan, credential, head, catalog);
+                    if (plan.withdrawal == null)
+                        verifyVersions(temp, repo, plan, credential, head, catalog);
                     return receipt(
                             plan,
                             market,
@@ -224,7 +341,8 @@ public class GitMarketplacePublisher {
                             true,
                             catalog);
                 }
-                verifyVersions(temp, repo, plan, credential, head, catalog);
+                if (plan.withdrawal == null)
+                    verifyVersions(temp, repo, plan, credential, head, catalog);
                 ObjectNode entries = (ObjectNode) catalog.withObject("/entries"),
                         versions = (ObjectNode) catalog.withObject("/versions");
                 for (Artifact artifact : plan.artifacts) {
@@ -234,6 +352,44 @@ public class GitMarketplacePublisher {
                     JsonNode old = entries.get(identity);
                     if (old != null && old.path("projectId").asLong() != plan.projectId)
                         throw new Failure("GIT_NATIVE_NAME_CONFLICT");
+                    ObjectNode barriers = catalog.withObject("/tombstones");
+                    JsonNode barrier = barriers.get(identity);
+                    if (barrier != null && barrier.path("projectId").asLong() != plan.projectId)
+                        throw new Failure("GIT_NATIVE_NAME_CONFLICT");
+                    if (plan.withdrawal != null) {
+                        if (old != null
+                                && old.path("releaseId").asLong() == plan.releaseId
+                                && com.iflytek.skillhub.domain.plugin.PluginPublicationOrder
+                                                .compare(
+                                                        old.path("taskId").asLong(-1),
+                                                        old.path("releaseId").asLong(-1),
+                                                        plan.withdrawal.throughTaskId,
+                                                        plan.withdrawal.throughReleaseId)
+                                        <= 0) entries.remove(identity);
+                        if (barrier == null
+                                || com.iflytek.skillhub.domain.plugin.PluginPublicationOrder
+                                                .compare(
+                                                        plan.withdrawal.throughTaskId,
+                                                        plan.withdrawal.throughReleaseId,
+                                                        barrier.path("taskId").asLong(-1),
+                                                        barrier.path("releaseId").asLong(-1))
+                                        > 0) {
+                            var tombstone = barriers.putObject(identity);
+                            tombstone
+                                    .put("projectId", plan.projectId)
+                                    .put("taskId", plan.withdrawal.throughTaskId)
+                                    .put("releaseId", plan.withdrawal.throughReleaseId)
+                                    .put("operationId", plan.withdrawal.operationId);
+                        }
+                        continue;
+                    }
+                    if (barrier != null
+                            && com.iflytek.skillhub.domain.plugin.PluginPublicationOrder.compare(
+                                            plan.taskId,
+                                            plan.releaseId,
+                                            barrier.path("taskId").asLong(-1),
+                                            barrier.path("releaseId").asLong(-1))
+                                    <= 0) throw new Failure("GIT_PUBLICATION_WITHDRAWN");
                     if (old == null
                             || com.iflytek.skillhub.domain.plugin.PluginPublicationOrder.compare(
                                             plan.taskId,
@@ -276,7 +432,8 @@ public class GitMarketplacePublisher {
                                     .getBytes(StandardCharsets.UTF_8));
                     if (head != null) line(output, "from " + head);
                     long contentBytes = 0;
-                    for (Artifact artifact : plan.artifacts)
+                    for (Artifact artifact :
+                            plan.withdrawal == null ? plan.artifacts : List.<Artifact>of())
                         for (var file : new TreeMap<>(artifact.files).entrySet()) {
                             safeFile(file.getKey());
                             line(
@@ -339,6 +496,7 @@ public class GitMarketplacePublisher {
                                         128));
                 Intent intent = new Intent(head, tree, commit, digest);
                 store.record(intent); // Durable before remote mutation.
+                PluginPublicationWriteGuard.check();
                 Result pushed =
                         command(
                                 temp,
@@ -653,7 +811,7 @@ public class GitMarketplacePublisher {
     private String planDigest(Plan plan) throws Exception {
         var value =
                 mapper.createObjectNode()
-                        .put("operation", "PUBLISH")
+                        .put("operation", plan.withdrawal == null ? "PUBLISH" : "WITHDRAW_CURRENT")
                         .put("configId", plan.target.configId)
                         .put("remote", plan.target.remote)
                         .put("fetchUrl", plan.target.fetchUrl)
@@ -663,6 +821,10 @@ public class GitMarketplacePublisher {
                         .put("projectId", plan.projectId)
                         .put("releaseId", plan.releaseId)
                         .put("taskId", plan.taskId);
+        if (plan.withdrawal != null)
+            value.put("governanceOperationId", plan.withdrawal.operationId)
+                    .put("throughTaskId", plan.withdrawal.throughTaskId)
+                    .put("throughReleaseId", plan.withdrawal.throughReleaseId);
         var a = value.putArray("artifacts");
         for (Artifact artifact :
                 plan.artifacts.stream().sorted(Comparator.comparing(Artifact::runtime)).toList())
@@ -675,6 +837,12 @@ public class GitMarketplacePublisher {
                 .formatHex(
                         MessageDigest.getInstance("SHA-256")
                                 .digest(mapper.writeValueAsBytes(value)));
+    }
+
+    private static String publicationKey(Plan plan) {
+        return plan.withdrawal == null
+                ? plan.taskId.toString()
+                : "withdraw:" + plan.withdrawal.operationId;
     }
 
     private void inline(OutputStream out, String path, byte[] bytes) throws Exception {

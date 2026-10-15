@@ -99,6 +99,19 @@ public class PluginNpmPublicationAdapter implements PluginPublicationChannelAdap
     }
 
     public String publish(PluginChannelContext context) throws Exception {
+        return execute(context, false).orElseThrow();
+    }
+
+    @Override
+    public Inspection reconcile(PluginChannelContext context) throws Exception {
+        var result = execute(context, true);
+        return result.isPresent()
+                ? new Inspection("PRESENT", result.get(), null)
+                : new Inspection("ABSENT", null, "REMOTE_CONTENT_ABSENT");
+    }
+
+    private java.util.Optional<String> execute(PluginChannelContext context, boolean inspect)
+            throws Exception {
         Snapshot plan = mapper.readValue(context.snapshot(), Snapshot.class);
         Path archive = Files.createTempFile("astronhub-npm-", ".tgz");
         try {
@@ -108,12 +121,28 @@ public class PluginNpmPublicationAdapter implements PluginPublicationChannelAdap
             }
             if (!OfflinePluginScanner.sha256(archive).equals(plan.sha256()))
                 throw new NpmRegistryPublisher.Failure("PACKAGE_DIGEST_MISMATCH");
-            return mapper.writeValueAsString(
-                    publisher.publish(
-                            archive,
-                            plan.manifestJson(),
-                            plan.target(),
-                            properties.resolve(plan.target().credentialRef())));
+            if (inspect)
+                return publisher
+                        .reconcile(
+                                archive,
+                                plan.manifestJson(),
+                                plan.target(),
+                                properties.resolve(plan.target().credentialRef()))
+                        .map(
+                                value -> {
+                                    try {
+                                        return mapper.writeValueAsString(value);
+                                    } catch (IOException ex) {
+                                        throw new IllegalStateException(ex);
+                                    }
+                                });
+            return java.util.Optional.of(
+                    mapper.writeValueAsString(
+                            publisher.publish(
+                                    archive,
+                                    plan.manifestJson(),
+                                    plan.target(),
+                                    properties.resolve(plan.target().credentialRef()))));
         } finally {
             Files.deleteIfExists(archive);
         }

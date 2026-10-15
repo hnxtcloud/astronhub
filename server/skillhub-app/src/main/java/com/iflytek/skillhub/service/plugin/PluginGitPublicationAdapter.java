@@ -129,6 +129,39 @@ public class PluginGitPublicationAdapter implements PluginPublicationChannelAdap
     }
 
     public String publish(PluginChannelContext context) throws Exception {
+        return execute(context, false).orElseThrow();
+    }
+
+    @Override
+    public Inspection reconcile(PluginChannelContext context) throws Exception {
+        var result = execute(context, true);
+        return result.isPresent()
+                ? new Inspection("PRESENT", result.get(), null)
+                : new Inspection("ABSENT", null, "REMOTE_CONTENT_ABSENT");
+    }
+
+    private java.util.Optional<String> execute(PluginChannelContext context, boolean inspect)
+            throws Exception {
+        return execute(context, inspect, null);
+    }
+
+    public java.util.Optional<String> withdraw(
+            PluginChannelContext context, Long operationId, boolean inspect, Runnable beforeWrite)
+            throws Exception {
+        try (var guard = PluginPublicationWriteGuard.bind(beforeWrite)) {
+            return execute(
+                    context,
+                    inspect,
+                    new GitMarketplacePublisher.Withdrawal(
+                            operationId, context.taskId(), context.releaseId()));
+        }
+    }
+
+    private java.util.Optional<String> execute(
+            PluginChannelContext context,
+            boolean inspect,
+            GitMarketplacePublisher.Withdrawal withdrawal)
+            throws Exception {
         if (org.springframework.transaction.support.TransactionSynchronizationManager
                 .isActualTransactionActive())
             throw new GitMarketplacePublisher.Failure("GIT_TRANSACTION_BOUNDARY");
@@ -141,6 +174,16 @@ public class PluginGitPublicationAdapter implements PluginPublicationChannelAdap
             List<GitMarketplacePublisher.Artifact> artifacts = new ArrayList<>();
             int index = 0;
             for (Archive archive : plan.archives()) {
+                if (withdrawal != null) {
+                    artifacts.add(
+                            new GitMarketplacePublisher.Artifact(
+                                    archive.runtime(),
+                                    archive.name(),
+                                    archive.version(),
+                                    archive.sha256(),
+                                    Map.of()));
+                    continue;
+                }
                 Path path = staging.resolve("archive-" + (++index) + ".zip");
                 try (var input = storage.getObject(archive.key());
                         var output = Files.newOutputStream(path)) {
@@ -197,19 +240,35 @@ public class PluginGitPublicationAdapter implements PluginPublicationChannelAdap
                                     });
                         }
                     };
+            var approved =
+                    new GitMarketplacePublisher.Plan(
+                            plan.target(),
+                            plan.namespace(),
+                            plan.projectId(),
+                            plan.releaseId(),
+                            context.taskId(),
+                            plan.timestamp(),
+                            artifacts,
+                            withdrawal);
             var receipt =
-                    publisher.publish(
-                            new GitMarketplacePublisher.Plan(
-                                    plan.target(),
-                                    plan.namespace(),
-                                    plan.projectId(),
-                                    plan.releaseId(),
-                                    context.taskId(),
-                                    plan.timestamp(),
-                                    artifacts),
-                            properties.resolve(plan.target().credentialRef()),
-                            store);
-            return mapper.writeValueAsString(receipt);
+                    inspect
+                            ? publisher.reconcile(
+                                    approved,
+                                    properties.resolve(plan.target().credentialRef()),
+                                    store)
+                            : java.util.Optional.of(
+                                    publisher.publish(
+                                            approved,
+                                            properties.resolve(plan.target().credentialRef()),
+                                            store));
+            return receipt.map(
+                    value -> {
+                        try {
+                            return mapper.writeValueAsString(value);
+                        } catch (java.io.IOException ex) {
+                            throw new IllegalStateException(ex);
+                        }
+                    });
         } finally {
             for (var files : extracted) files.close();
             OfflinePluginScanner.cleanup(staging);

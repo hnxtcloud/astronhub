@@ -200,6 +200,10 @@ class PluginGitManagementIntegrationTest {
         mvc.perform(get("/api/v1/plugins/" + namespace + "/native-flow"))
                 .andExpect(status().isNotFound());
         var published = call("/releases/" + release + "/publish-channels", "{}");
+        var hostedEvidence = getData("/releases/" + release + "/publication-recovery");
+        assertThat(hostedEvidence.get(1).path("state").asText())
+                .as(hostedEvidence.toPrettyString())
+                .isEqualTo("SUCCEEDED");
         assertThat(published.get(0).path("state").asText()).isEqualTo("SUCCEEDED");
         var receipt = mapper.readTree(published.get(0).path("receipt").asText());
         assertThat(receipt.path("remote").asText()).isEqualTo(remote.toUri().toString());
@@ -267,6 +271,75 @@ class PluginGitManagementIntegrationTest {
         assertThat(recipe.path("command").asText())
                 .doesNotContain("git clone", remote.toUri().toString());
         var process = new ProcessBuilder("git", "--git-dir=" + remote, "show-ref").start();
+        assertThat(process.waitFor()).isEqualTo(1);
+    }
+
+    @Test
+    void explicitWithdrawalUsesOriginalTargetAndRetainsHistoricalPublication() throws Exception {
+        call("/git/targets", config(remote));
+        long release = importArchive(archive(false), null, "PUBLIC").path("releaseId").asLong();
+        call("/releases/" + release + "/submit", "{}");
+        call("/releases/" + release + "/approve", "{\"notes\":\"Static review\"}");
+        doAnswer(
+                        invocation -> {
+                            assertThat(
+                                            org.springframework.transaction.support
+                                                    .TransactionSynchronizationManager
+                                                    .isActualTransactionActive())
+                                    .as(
+                                            "HOSTED hashing and native extraction must not retain"
+                                                    + " database locks")
+                                    .isFalse();
+                            return new ByteArrayInputStream(objects.get(invocation.getArgument(0)));
+                        })
+                .when(storage)
+                .getObject(anyString());
+        var published = call("/releases/" + release + "/publish-channels", "{}");
+        String publicationReceipt = published.get(0).path("receipt").asText();
+        var hostedProof = getData("/releases/" + release + "/publication-recovery");
+        assertThat(hostedProof.get(1).path("state").asText())
+                .as(hostedProof.toPrettyString())
+                .isEqualTo("SUCCEEDED");
+        String history =
+                show(remote, "main:plugins/claude-code/native-flow/1.0.0/commands/hello.md");
+        call("/git/targets", config(other));
+        String request =
+                "{\"channel\":\"GIT\",\"action\":\"WITHDRAW_CURRENT\",\"expectedRevision\":0,\"reason\":\"Remove"
+                    + " current native index\"}";
+        var preview = call("/releases/" + release + "/channel-governance/preview", request);
+        var queued =
+                call(
+                        "/releases/" + release + "/channel-governance",
+                        request.substring(0, request.length() - 1)
+                                + ",\"previewDigest\":\""
+                                + preview.path("digest").asText()
+                                + "\"}");
+        var git = queued.get(0);
+        assertThat(git.path("receipt").asText()).isEqualTo(publicationReceipt);
+        long operation = git.path("operations").get(0).path("id").asLong();
+        assertThat(git.path("operations").get(0).path("state").asText()).isEqualTo("QUEUED");
+        var completed =
+                call("/releases/" + release + "/channel-governance/" + operation + "/retry", "{}")
+                        .get(0);
+        assertThat(completed.path("state").asText()).isEqualTo("SUCCEEDED");
+        assertThat(completed.path("sourceDisabled").asBoolean()).isTrue();
+        assertThat(completed.path("receipt").asText()).isEqualTo(publicationReceipt);
+        assertThat(completed.path("operations").get(0).path("state").asText())
+                .isEqualTo("SUCCEEDED");
+        assertThat(show(remote, "main:.claude-plugin/marketplace.json"))
+                .doesNotContain("native-flow");
+        assertThat(show(remote, "main:.agents/plugins/marketplace.json"))
+                .doesNotContain("native-flow");
+        assertThat(show(remote, "main:plugins/claude-code/native-flow/1.0.0/commands/hello.md"))
+                .isEqualTo(history);
+        assertThat(show(remote, "main:.astronhub/catalog.json"))
+                .contains("tombstones", "withdraw:");
+        assertThat(completed.path("attempts").toString()).contains("WITHDRAW_CURRENT", "SUCCEEDED");
+        assertThat(getData("/releases/" + release + "/git-intents").size()).isEqualTo(2);
+        var hosted = getData("/releases/" + release + "/publication-recovery").get(1);
+        assertThat(hosted.path("channel").asText()).isEqualTo("HOSTED");
+        assertThat(hosted.path("attempts").get(0).path("outcome").asText()).isEqualTo("SUCCEEDED");
+        var process = new ProcessBuilder("git", "--git-dir=" + other, "show-ref").start();
         assertThat(process.waitFor()).isEqualTo(1);
     }
 

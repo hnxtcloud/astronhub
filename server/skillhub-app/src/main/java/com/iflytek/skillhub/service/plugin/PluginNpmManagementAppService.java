@@ -311,6 +311,7 @@ public class PluginNpmManagementAppService {
                 .map(
                         task ->
                                 channels.findByTaskIdOrderByChannel(task.getId()).stream()
+                                        .filter(value -> !value.getChannel().equals("HOSTED"))
                                         .map(
                                                 value ->
                                                         new ChannelView(
@@ -327,7 +328,23 @@ public class PluginNpmManagementAppService {
     public List<ChannelView> retry(Long releaseId, PluginActor actor, AuditRequestContext context) {
         requireAdmin(actor);
         tx.executeWithoutResult(
-                status -> record("plugin.publication.retry", releaseId, actor, context));
+                status -> {
+                    requireRead(releaseId, actor);
+                    tasks.findByReleaseId(releaseId)
+                            .ifPresent(
+                                    t ->
+                                            channels.findByTaskIdOrderByChannel(t.getId())
+                                                    .forEach(
+                                                            c -> {
+                                                                var locked =
+                                                                        channels.findByIdForUpdate(
+                                                                                        c.getId())
+                                                                                .orElseThrow();
+                                                                locked.retryNow();
+                                                                channels.save(locked);
+                                                            }));
+                    record("plugin.publication.retry", releaseId, actor, context);
+                });
         coordinator.execute(releaseId);
         return channels(releaseId, actor);
     }
@@ -347,7 +364,7 @@ public class PluginNpmManagementAppService {
                                 task ->
                                         channels.findByTaskIdOrderByChannel(task.getId()).stream()
                                                 .filter(c -> c.getChannel().equals("NPM"))
-                                                .map(PluginPublicationChannel::getSnapshot)
+                                                .map(PluginPublicationChannel::getEffectiveSnapshot)
                                                 .findFirst()
                                                 .orElse("MISSING_CONFIGURATION"))
                         .orElseGet(

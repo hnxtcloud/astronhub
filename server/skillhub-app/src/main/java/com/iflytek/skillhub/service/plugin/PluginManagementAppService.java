@@ -4,7 +4,6 @@ import com.iflytek.skillhub.domain.audit.AuditLogService;
 import com.iflytek.skillhub.domain.plugin.PluginDistribution;
 import com.iflytek.skillhub.domain.plugin.PluginDistributionRepository;
 import com.iflytek.skillhub.domain.plugin.PluginProject;
-import com.iflytek.skillhub.domain.plugin.PluginPublicationTask;
 import com.iflytek.skillhub.domain.plugin.PluginPublicationTaskRepository;
 import com.iflytek.skillhub.domain.plugin.PluginRelease;
 import com.iflytek.skillhub.domain.plugin.PluginReleaseRepository;
@@ -36,9 +35,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
-import java.util.HexFormat;
-import java.util.List;
 import java.util.UUID;
 
 /** Orchestrates native validation/storage, domain rules, management projections, and audit. */
@@ -224,57 +220,15 @@ public class PluginManagementAppService {
         return queries.release(id, actor);
     }
 
-    @Transactional
     public PluginReleaseView publishHosted(
             Long id, PluginActor actor, AuditRequestContext context) {
         if (!actor.reviewer()) throw new DomainForbiddenException("error.plugin.permission");
-        executeHosted(id, actor, context);
+        coordinator.executeHosted(id, true);
         return queries.release(id, actor);
     }
 
-    /**
-     * Scheduler and HTTP retry share this transaction; failed storage checks remain durable
-     * evidence.
-     */
-    @Transactional
     public void executeHosted(Long id, PluginActor actor, AuditRequestContext context) {
-        PluginRelease release = workflow.locked(id);
-        workflow.requireActive(workflow.requireProject(release.getProjectId()));
-        PluginPublicationTask task =
-                tasks.findByReleaseId(id)
-                        .orElseThrow(
-                                () -> new DomainBadRequestException("error.plugin.reviewState"));
-        if ("SUCCEEDED".equals(task.getStatus()) || task.hasCompleted("HOSTED")) return;
-        List<PluginDistribution> archives = distributions.findByReleaseIdOrderByRuntimeKey(id);
-        boolean verified = !archives.isEmpty();
-        try {
-            for (PluginDistribution archive : archives) {
-                MessageDigest sha = MessageDigest.getInstance("SHA-256");
-                if (!storage.exists(archive.getSourceLocator())) {
-                    verified = false;
-                    break;
-                }
-                try (InputStream input = storage.getObject(archive.getSourceLocator())) {
-                    byte[] buffer = new byte[8192];
-                    int read;
-                    while ((read = input.read(buffer)) != -1) sha.update(buffer, 0, read);
-                }
-                if (!HexFormat.of().formatHex(sha.digest()).equals(archive.getIntegrityDigest())) {
-                    verified = false;
-                    break;
-                }
-            }
-        } catch (Exception ex) {
-            verified = false;
-        }
-        if (!verified) {
-            task.failHosted();
-            tasks.save(task);
-            record("plugin.publication.failed", id, actor, context);
-            return;
-        }
-        workflow.completeHosted(id);
-        record("plugin.publication.hostedComplete", id, actor, context);
+        coordinator.executeHosted(id, false);
     }
 
     @Transactional

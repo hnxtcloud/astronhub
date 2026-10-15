@@ -3049,5 +3049,30 @@
     "revoke": "Revoke credential",
     "revoked": "Revoked",
     "toolHint": "Set ASTRONHUB_PUBLISH_TOKEN in your secret store. Include the deployment subpath in --server. See operator docs for manifests, inspection and initial client migration."
+  },
+  "pluginRecovery": {
+    "title": "Recovery and channel actions",
+    "historyWarning": "Original plans and successful receipts are retained. Changing defaults never redirects approved work. Already distributed copies remain outside AstronHub.",
+    "revision": "Revision",
+    "unknown": "The remote result is unknown. Reconcile the original target before retrying or replacing it.",
+    "original": "Original plan and revisions",
+    "attempts": "Attempt history (50 per page)",
+    "heartbeat": "Last heartbeat",
+    "late": "Late external observation",
+    "target": "Replacement target",
+    "reason": "Reason for recovery",
+    "preview": "Preview replacement",
+    "preserve": "Successful channels and all previous plans remain unchanged.",
+    "confirm": "Confirm replacement",
+    "withdrawReason": "Reason for withdrawal",
+    "confirmWithdrawal": "Confirm withdrawal",
+    "previewWithdrawal": "Preview withdrawal",
+    "gitRetained": "Remove the current native marketplace index at the original target. Git history and version files remain. Previously downloaded copies remain available.",
+    "disabled": "Local native installation source is disabled. Historical publication evidence is retained.",
+    "newer": "Newer attempts",
+    "withdraw": "Withdraw native installation source",
+    "retryWithdrawal": "Retry / reconcile withdrawal",
+    "older": "Older attempts",
+    "npmRetained": "npm does not support remote deletion here. The package remains in the registry; this action only disables the local installation source."
   }
 }

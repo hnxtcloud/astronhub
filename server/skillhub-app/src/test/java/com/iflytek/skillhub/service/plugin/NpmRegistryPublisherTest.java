@@ -14,6 +14,63 @@ import java.nio.file.Path;
 
 class NpmRegistryPublisherTest {
     @Test
+    void readOnlyReconciliationDistinguishesAbsentAndExactRemoteBytesWithoutPublishing()
+            throws Exception {
+        Path archive = Files.createTempFile("npm-reconcile-", ".tgz");
+        Files.writeString(archive, "approved bytes");
+        var present = new java.util.concurrent.atomic.AtomicBoolean();
+        var writes = new java.util.concurrent.atomic.AtomicInteger();
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/internal/";
+        server.createContext(
+                "/internal/",
+                exchange -> {
+                    if (!exchange.getRequestMethod().equals("GET")) writes.incrementAndGet();
+                    if (!present.get()) {
+                        exchange.sendResponseHeaders(404, -1);
+                    } else {
+                        byte[] data =
+                                exchange.getRequestURI().getPath().endsWith(".tgz")
+                                        ? "approved bytes".getBytes()
+                                        : ("{\"dist\":{\"tarball\":\""
+                                                        + url
+                                                        + "pkg/-/pkg-1.0.0.tgz\"}}")
+                                                .getBytes();
+                        exchange.sendResponseHeaders(200, data.length);
+                        exchange.getResponseBody().write(data);
+                    }
+                    exchange.close();
+                });
+        server.start();
+        try {
+            var publisher = new NpmRegistryPublisher(new ObjectMapper());
+            var target = new NpmRegistryPublisher.Target(1L, url, "fixture");
+            assertThat(
+                            publisher.reconcile(
+                                    archive,
+                                    "{\"name\":\"pkg\",\"version\":\"1.0.0\"}",
+                                    target,
+                                    "fixture-token"))
+                    .isEmpty();
+            present.set(true);
+            assertThat(
+                            publisher
+                                    .reconcile(
+                                            archive,
+                                            "{\"name\":\"pkg\",\"version\":\"1.0.0\"}",
+                                            target,
+                                            "fixture-token")
+                                    .orElseThrow()
+                                    .reused())
+                    .isTrue();
+            assertThat(writes).hasValue(0);
+        } finally {
+            server.stop(0);
+            Files.deleteIfExists(archive);
+        }
+    }
+
+    @Test
     void existingExactVersionIsReusedOnlyAfterComparingStoredBytes() throws Exception {
         Path archive = Files.createTempFile("npm-test-", ".tgz");
         Files.writeString(archive, "original tgz bytes");

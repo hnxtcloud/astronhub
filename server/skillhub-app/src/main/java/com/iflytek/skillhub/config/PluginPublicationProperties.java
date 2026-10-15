@@ -14,6 +14,25 @@ import java.util.Map;
 @Component
 @ConfigurationProperties(prefix = "skillhub.plugin.publication")
 public class PluginPublicationProperties {
+    private int leaseSeconds = 300;
+    private long heartbeatMillis = 30000;
+
+    public int getLeaseSeconds() {
+        return Math.max(1, leaseSeconds);
+    }
+
+    public void setLeaseSeconds(int value) {
+        leaseSeconds = value;
+    }
+
+    public long getHeartbeatMillis() {
+        return Math.max(100, Math.min(heartbeatMillis, getLeaseSeconds() * 1000L / 3));
+    }
+
+    public void setHeartbeatMillis(long value) {
+        heartbeatMillis = value;
+    }
+
     private List<String> allowedGitRemotes = new ArrayList<>();
 
     public List<String> getAllowedGitRemotes() {
