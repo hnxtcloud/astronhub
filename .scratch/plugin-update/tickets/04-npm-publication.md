@@ -4,7 +4,7 @@
 
 **Blocked by:** 01,02
 
-**Status:** implemented-awaiting-integration
+**Status:** done
 
 **Assignee:** npm_publication / codex/plugin-npm-publication
 
@@ -24,3 +24,5 @@
 - 边界：没有真实部署内网 registry 或 Pi 原生安装验收；Docker 缺失导致完整 staging 不可用，未重跑已知90分钟全基线。版本范围明确未解析，不声称完整离线可安装或运行通过。Git adapter05、完整尝试历史/心跳/显式重新规划/治理06继续独立实现。缺配置计划不能靠后续改默认源静默重定向。npm latest 是可变标签，不保证迟到发布时单调递增，用户指引固定原生版本。
 
 最终提交：实现 `e24ee60c`，合入最新 integration `5401e574` 后 `5b41a680`；实际合并 Springdoc 契约导出及领域/HTTP 7 测试通过（`ticket04-merged-contract-flow.log`）。合并后 TypeScript、2 UI 操作、scoped lint 通过（`ticket04-merged-tsc.log` / `ticket04-merged-ui.log` / `ticket04-merged-lint.log`）。最终验收由集成合并者关闭；工作树无临时 fixture 或真实凭据。
+
+集成关闭：完整工作分支 tip `8874eb7a` 已由合并代理以 `cbb94297` 合入 `codex/plugin-update-integration`。合并代理核对实际日志：首轮 26 项与合并后 7 项后端/契约均通过，真实 Verdaccio 测试未跳过，页面 2 项、TypeScript 与定向 lint 通过；核对双版本历史原包复用断言。无生成文件冲突、无手改 schema、无额外构建或半成品票 08 合入。`git diff --check` 通过，用户原有 90 个文件 SHA256 与本次合并前及票 02 保存清单一致。

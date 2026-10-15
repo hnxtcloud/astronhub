@@ -36,7 +36,7 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：插件下载/历史版本/组件治理、内网 npm 插件发布及依赖上传、内网 Git 原生市场发布，以及按应用匿名的 GitLab 更新读取。票 01、02、07 已完成并合入；票 03、04、05 的导入依赖已解除，其余由明确阻塞关系推进。
+当前 frontier：插件下载/历史版本/组件治理、内网 Git 原生市场发布，以及按应用匿名的 GitLab 更新读取。票 01、02、04、07 已完成并合入；票 06 仍等待票 03、05，票 08 尚未交付，其余由明确阻塞关系推进。
 
 票 03 已认领，由完成票 02 的实施代理在 `codex/plugin-download-governance` 独立分支继续，迁移预留 V78；08 代理路由子任务已交付 `dc2184d7`，须先汇入 08 主实施分支，不单独关闭 08。
 
@@ -104,6 +104,13 @@ Base branch: codex/software-center-phase1
 - 实际隔离 Nginx 1.28 在根路径和 `/hub/` 均让声明 101 MiB 的导入请求进入后端，未实际传送大包实体。GitLab 编码路径及 `/updates`、`/releases` 仍保留票 08 验收，不能从此准入探针推断已通过。
 - 未手改生成契约；导入临时严格类型仍须由真实 Springdoc 导出后替换。真实内网渠道、原生安装和 Docker staging 继续保留后续验收。
 - 合并无冲突、`git diff --check` 通过；90 个用户原有文件 SHA256 保持不变；未清理工作树或重跑无必要构建。
+
+## Merge checkpoint — ticket 04
+
+- npm 发布完整工作分支 tip `8874eb7a`（包含最新集成 `5401e574`）以 `cbb94297` 合入；票 04 关闭。共享渠道账本及 npm adapter 已进入集成，Git adapter 与完整恢复分别由票 05、06 继续；票 08 未合入。
+- 实际最终日志 26 项通过：领域 2、app 24，包含真实本机无 uplink Verdaccio 发布、原字节复用/冲突及第二版本发布后首版完整性。合并最新集成后实际 Springdoc/领域/HTTP 7 项通过；页面 2 项、全量 TypeScript 和定向 ESLint 通过。
+- SDK 由实际 Springdoc 导出生成；合并无冲突，无生成文件手工修改。原生 Pi 安装、用户真实内网 registry、生产 PostgreSQL 迁移、Docker staging 尚未验收；版本范围未解析、不宣称完整离线安装。完整心跳/尝试历史/显式重新规划保留票 06。
+- `git diff --check` 通过；用户原有 90 个文件 SHA256 同时与合并前及票 02 旧清单一致。未推送、建 PR、清理工作树或重复构建。
 
 ## Frontend regression checkpoint — 2026-10-15
 
