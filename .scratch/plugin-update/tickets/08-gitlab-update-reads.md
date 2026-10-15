@@ -28,3 +28,4 @@
 - PostgreSQL/Flyway、真实 S3、原生 Windows/macOS 安装、签名、完整差分及全量回退继续在票 11 独立验收；未修改客户端仓库。
 - 最终路径/响应体注解后的实际 Springdoc 导出 `.scratch-software-gitlab-openapi.log` 单项通过；导出为 401 paths / 433 schemas，已逐项检查 tags 裸数组、binary 响应和所有模板路径必填参数，再以 openapi-typescript 重新生成 SDK，未手改生成文件。
 - 生成契约后的全前端 TypeScript、代理前缀配置/测试文件定向 ESLint、`git diff --check` 通过，日志 `.scratch-software-gitlab-typecheck.log`、`.scratch-software-gitlab-lint.log`。
+- 功能提交 `0faf8753`；已在 `0ea658fc` 合入最新集成 `a3bff27f`（包含票 04），无冲突；合并后全前端 TypeScript 再次通过，日志 `.scratch-software-gitlab-merged-typecheck.log`。生成契约自动合并保留双方新增接口；最终联合 Springdoc 重导出由集成票统一核对。
