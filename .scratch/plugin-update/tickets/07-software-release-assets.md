@@ -4,7 +4,9 @@
 
 **Blocked by:** None
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+**Assignee:** software_ticket07 (codex/software-release-assets)
 
 **Spec coverage:** U1、U2、U6（页面部分）
 

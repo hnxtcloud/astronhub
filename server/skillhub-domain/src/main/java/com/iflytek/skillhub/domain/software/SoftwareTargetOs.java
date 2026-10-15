@@ -6,5 +6,6 @@ package com.iflytek.skillhub.domain.software;
  */
 public enum SoftwareTargetOs {
     WINDOWS,
-    LINUX
+    LINUX,
+    MACOS
 }
