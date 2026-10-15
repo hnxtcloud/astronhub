@@ -1,6 +1,8 @@
 package com.iflytek.skillhub.service.plugin;
 
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.skillhub.domain.plugin.PluginVersions;
 import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
 import com.iflytek.skillhub.domain.shared.exception.LocalizedDomainException;
@@ -10,11 +12,27 @@ import org.apache.commons.compress.archivers.zip.*;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.security.*;
-import java.util.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.HexFormat;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.zip.*;
 
 /**
@@ -38,9 +56,11 @@ public class OfflinePluginScanner {
             else throw invalid("format");
             List<Root> roots = new ArrayList<>();
             for (String path : files.keySet()) {
-                if ((path.equals(".claude-plugin/plugin.json") || path.endsWith("/.claude-plugin/plugin.json")))
+                if ((path.equals(".claude-plugin/plugin.json")
+                        || path.endsWith("/.claude-plugin/plugin.json")))
                     addRoot(roots, path, ".claude-plugin/plugin.json", "claude-code", limits);
-                else if ((path.equals(".codex-plugin/plugin.json") || path.endsWith("/.codex-plugin/plugin.json")))
+                else if ((path.equals(".codex-plugin/plugin.json")
+                        || path.endsWith("/.codex-plugin/plugin.json")))
                     addRoot(roots, path, ".codex-plugin/plugin.json", "codex", limits);
                 else if (path.equals("plugin.json") || path.endsWith("/plugin.json")) {
                     if (path.contains("/.claude-plugin/") || path.contains("/.codex-plugin/"))
@@ -111,7 +131,8 @@ public class OfflinePluginScanner {
                                     null,
                                     null,
                                     "INVALID",
-                                    ex instanceof LocalizedDomainException localized && localized.messageArgs().length > 0
+                                    ex instanceof LocalizedDomainException localized
+                                                    && localized.messageArgs().length > 0
                                             ? String.valueOf(localized.messageArgs()[0])
                                             : "manifest",
                                     null));
@@ -122,6 +143,43 @@ public class OfflinePluginScanner {
             cleanup(temp);
             if (ex instanceof IOException io) throw io;
             throw ex;
+        }
+    }
+
+    /**
+     * Dependency-only mode shares the exact archive safety budget and never discovers plugin
+     * projects.
+     */
+    public Scan scanDependency(Path source, PluginImportLimits limits) throws IOException {
+        limits.validate();
+        if (Files.size(source) > Math.min(limits.packageBytes(), NpmRegistryPublisher.MAX_BYTES))
+            throw invalid("packageSize");
+        Path temp = Files.createTempDirectory("astronhub-dependency-");
+        try {
+            TreeMap<String, Path> files = new TreeMap<>();
+            Map<String, Integer> modes = new HashMap<>();
+            extractTar(source, temp, files, modes, limits);
+            if (!files.containsKey("package/package.json")
+                    || files.keySet().stream().anyMatch(f -> !f.startsWith("package/")))
+                throw invalid("manifest");
+            Root root = new Root("package/", "pi", "package/package.json");
+            Candidate candidate =
+                    candidate(
+                            "1",
+                            root,
+                            List.of(root),
+                            files,
+                            modes,
+                            source,
+                            sha256(source),
+                            "TGZ",
+                            temp,
+                            limits);
+            return new Scan(temp, List.of(candidate), files.size());
+        } catch (Exception ex) {
+            cleanup(temp);
+            if (ex instanceof IOException io) throw io;
+            throw new DomainBadRequestException("error.plugin.archive", "dependency");
         }
     }
 
