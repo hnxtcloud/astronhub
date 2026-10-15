@@ -1,7 +1,7 @@
 # 插件管理与应用更新实施索引
 
 Tracker: local-markdown
-Status: ready-for-implementation
+Status: implementing
 Integration branch: codex/plugin-update-integration
 Base branch: codex/software-center-phase1
 
@@ -40,7 +40,7 @@ Base branch: codex/software-center-phase1
 
 ## Verification seams
 
-领域服务（规则与不可变性）、HTTP（权限与完整流程）、原生解析器/外部渠道适配器（协议与冲突恢复）、页面操作（管理流程）。TDD 技能要求用户确认，已提问，等待答复后再编写测试。
+领域服务（规则与不可变性）、HTTP（权限与完整流程）、原生解析器/外部渠道适配器（协议与冲突恢复）、页面操作（管理流程）。用户在上述边界已说明后于 2026-10-15 再次明确调用 implement-spec，按这些推荐边界继续；无需重复询问。真实客户端安装保留独立验收。
 
 ## Environment acceptance
 
@@ -56,3 +56,9 @@ Base branch: codex/software-center-phase1
 - 使用等价 Maven reactor 命令（`-pl skillhub-app -am test`）跑既有基线，日志在 `.scratch/plugin-update-baseline.log`。完整结果尚待确认，不能描述为全部通过。
 - 尚无新增测试或功能代码。TDD 测试边界问题仍等待用户实际答复，不能用超时或产品范围确认代替该答复。
 - 勘查修正首条插件票：必须包含真实 Claude Code 单 ZIP 静态导入和受限托管发布，否则“先审批、后验证”的空草稿会造成隐含循环依赖。后续导入票扩展其他宿主和仓库批量流程，不降低提交门禁。
+
+## Implementation checkpoint — 2026-10-15
+
+- 用户重新调用 implement-spec，继续执行已列测试边界；上节等待确认描述为历史记录。
+- 既有基线：storage/domain/auth/notification/infra/search 全部通过；app 共 1101 个测试，0 assertion failures、12 errors、1 skipped，12 errors 均为缺少可用 Docker 导致的 Testcontainers 初始化失败。此问题发生于新代码之前。
+- 已启动票 01 和票 07 的独立工作树 TDD 实现。新行为先定向 reactor 检查，不重复 90 分钟的无 Docker 全量基线；集成阶段仍须记录完整检查与环境限制。
