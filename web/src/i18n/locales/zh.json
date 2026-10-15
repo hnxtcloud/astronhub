@@ -2967,5 +2967,37 @@
     "offlineCaution": "直接依赖检查不能证明完整离线可安装。版本范围保留未解析，请分别确认 Node、平台、peer 依赖及外部服务。运行测试仍未验证，不回退公网。",
     "noRegistry": "此 Pi 发行物尚无符合条件的内网源。公开发布要求原始 npm TGZ。",
     "installHelp": "请使用用户自己的 npm registry 配置及安装凭据。此命令仅为单次调用指定源，不含服务器发布凭据。"
+  },
+  "pluginAccess": {
+    "publishedVersion": "已发布版本",
+    "downloadArchive": "下载归档包",
+    "generateInstall": "生成安装说明",
+    "notRuntimeVerified": "仅验证了包清单，尚未在你的客户端运行环境中验证这些命令。",
+    "browseFiles": "浏览包文件",
+    "components": "关联组件",
+    "componentIndependence": "仅关联已存在的固定版本。组件保持独立的权限与生命周期，无权访问或已失效的组件不会显示；关联不会创建、发布或安装组件。",
+    "unlink": "解除关联",
+    "governance": "插件目录治理",
+    "externalCopies": "隐藏、归档、收紧可见性或下架会停止 AstronHub 的访问，已通过 Git、npm 或下载分发的副本仍可能在外部保留。历史发布记录不会删除。",
+    "reason": "治理原因",
+    "changeVisibility": "修改可见性",
+    "yank": "下架版本",
+    "yankedReason": "下架原因",
+    "componentKind": "组件类型",
+    "componentVersion": "固定版本 / MCP 修订号",
+    "link": "关联已有组件",
+    "actions": {
+      "HIDE": "隐藏",
+      "SHOW": "恢复显示",
+      "ARCHIVE": "归档",
+      "RESTORE": "恢复归档"
+    },
+    "preparation": {
+      "CLAUDE_LOCAL": "下载归档并验证 SHA256，解压到命令所示目录，再启动 Claude。",
+      "PI_LOCAL": "下载并验证 tgz，解压到命令所示目录，保留 package/，再执行安装。",
+      "CODEX_LOCAL": "下载并验证归档。在 ./astronhub-local 内，按以下 JSON 的本地 source 路径解压插件，将 JSON 保存为 .agents/marketplace.json，再从父目录执行命令。",
+      "PI_NPM": "该固定版本已发布至所示内网依赖库。请选择适合当前 Shell 的命令；源配置仅用于本次执行，读取凭据由用户自行配置。安装前仍须确认 Node、OS/CPU、依赖和外部服务。"
+    },
+    "posixShell": "POSIX Shell"
   }
 }

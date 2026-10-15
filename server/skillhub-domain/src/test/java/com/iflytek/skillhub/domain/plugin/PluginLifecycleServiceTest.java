@@ -31,6 +31,7 @@ class PluginLifecycleServiceTest {
                 "a".repeat(64), "sample", "1.0.0", "[]", "{}");
         when(namespaces.findById(7L)).thenReturn(Optional.of(new Namespace("team", "Team", "owner")));
         when(projects.findById(10L)).thenReturn(Optional.of(project));
+        when(projects.findByIdForUpdate(10L)).thenReturn(Optional.of(project));
         when(releases.findByIdForUpdate(20L)).thenReturn(Optional.of(release));
         when(releases.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(distributions.findByReleaseIdOrderByRuntimeKey(20L)).thenReturn(List.of(archive));

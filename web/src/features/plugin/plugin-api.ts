@@ -8,7 +8,7 @@ export type PluginDistribution = RequiredGenerated<components['schemas']['Plugin
 type PluginReview = RequiredGenerated<components['schemas']['PluginReviewView'], 'testEnvironment'>
 type PluginPublication = RequiredGenerated<components['schemas']['PluginPublicationView'], 'lastError' | 'completedAt'>
 export type PluginRelease = Omit<RequiredGenerated<components['schemas']['PluginReleaseView'],
-  'changelog' | 'publishedAt' | 'publication'>, 'distributions' | 'reviews'> & {
+  'changelog' | 'publishedAt' | 'publication' | 'yankedAt' | 'yankedBy' | 'yankReason'>, 'distributions' | 'reviews'> & {
   distributions: PluginDistribution[]
   reviews: PluginReview[]
   publication?: PluginPublication | null
