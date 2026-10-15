@@ -48,3 +48,13 @@ Electron 元数据的 `files` 中每个文件都必须关联受管安装包，�
 | 保存渠道和目标 | `PUT /apps/{id}/update-channels` |
 
 本页描述发布管理能力。GitLab 兼容读取、generic/白泽灵台更新源和受限机器发布入口分别由后续实施票提供；真实 Windows/macOS 安装和签名验收不能由服务端单元或 HTTP 测试替代。
+
+## 反向代理和部署前缀
+
+内置 Web Nginx 将 `/api/v4/projects/`、`/updates/`、`/releases/` 以及 `/{owner}/{repo}/-/raw/{tag}/{asset...}` 转发到后端。缺少的更新文件保留后端错误状态，不回退到网页 HTML。更新读取关闭代理压缩、缓存和响应缓冲，保留 GET/HEAD、Range、If-Range、If-None-Match、ETag、Last-Modified 和原始内容长度。
+
+设置 `SKILLHUB_WEB_BASE_PATH=/hub/` 后，这些入口同样位于 `/hub/` 下。GitLab project/file 中的 `%2F` 与查询必须原样传递；Nginx 使用原始 `$request_uri` 及已验证的部署前缀映射剥离前缀，不能改为 `$uri`、常规 rewrite 或再次 URL 编码。以 `.`, 如 `/hub.v1/`，组成的合法前缀也按字面量匹配。构建、运行、发布配置和 Helm 均禁止将 `updates`、`releases` 用作部署前缀的首段。
+
+辅助文件原始上传路径 `/api/v1/admin/software/update-releases/{id}/assets` 使用独立流式代理，包含部署前缀的版本也在 Nginx 检查请求体之前匹配。该路径由后端鉴权，并依照软件策略预留容量和限制大小；代理本身不再使用全局 100 MiB 上限。其他 JSON/管理路径保持原有上限。外层 Ingress、网关和客户端超时仍需由运维按实际大小配置；本改动不表示已执行 5 GiB 端到端传输。
+
+有本地 Nginx 时，可运行 `python scripts/tests/software-update-proxy-test.py --nginx /path/to/nginx --require-nginx`。该测试仅绑定回环地址，检查原始路径、请求/响应头、HEAD、错误状态和大请求头准入，结束后停止测试进程；不发送大上传实体，也不代替应用鉴权、真实更新安装或 Docker staging 验证。

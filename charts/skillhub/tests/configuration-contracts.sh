@@ -392,6 +392,8 @@ assert_rejected subpath-reserved-api --set-string web.basePath=/api/
 assert_rejected subpath-reserved-assets --set-string web.basePath=/assets/
 assert_rejected subpath-reserved-well-known --set-string web.basePath=/.well-known/
 assert_rejected subpath-reserved-nested --set-string web.basePath=/api/nested/
+assert_rejected subpath-reserved-updates --set-string web.basePath=/updates/
+assert_rejected subpath-reserved-releases --set-string web.basePath=/releases/nested/
 
 # publicBaseUrl is concatenated with paths (/cli/auth, /.well-known/clawhub.json),
 # so a query or fragment corrupts the generated URLs. Reject it independently of

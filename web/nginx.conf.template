@@ -1,3 +1,11 @@
+# A map keeps the raw request target intact. Rewrite capture assignment would
+# escape percent signs and '?' when proxy_pass evaluates the resulting URI.
+map "$skillhub_forwarded_prefix:$request_uri" $skillhub_update_raw_uri {
+    default "";
+    ~^:(/.*)$ $1;
+    ~^([^:]+):\1(/.*)$ $2;
+}
+
 server_tokens off;
 server {
     listen 80;
@@ -44,6 +52,84 @@ server {
         proxy_http_version 1.1;
         proxy_read_timeout 300s;
         proxy_pass $skillhub_api_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Prefix $skillhub_forwarded_prefix;
+    }
+
+    # Preserve the client's original project/file encoding. Nginx's normalized
+    # $uri must never replace request_uri on the GitLab compatibility surface.
+    location ^~ /api/v4/projects/ {
+        proxy_pass $skillhub_api_upstream$request_uri;
+        gzip off;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_intercept_errors off;
+        proxy_set_header Accept-Encoding "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Prefix $skillhub_forwarded_prefix;
+    }
+
+    location ^~ /updates/ {
+        proxy_pass $skillhub_api_upstream$request_uri;
+        gzip off;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_intercept_errors off;
+        proxy_set_header Accept-Encoding "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Prefix $skillhub_forwarded_prefix;
+    }
+
+    location ^~ /releases/ {
+        proxy_pass $skillhub_api_upstream$request_uri;
+        gzip off;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_intercept_errors off;
+        proxy_set_header Accept-Encoding "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Prefix $skillhub_forwarded_prefix;
+    }
+
+    location ~ ^/[^/]+/[^/]+/-/raw/[^/]+/.+$ {
+        proxy_pass $skillhub_api_upstream$request_uri;
+        gzip off;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_intercept_errors off;
+        proxy_set_header Accept-Encoding "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
+        proxy_set_header X-Forwarded-Prefix $skillhub_forwarded_prefix;
+    }
+
+    # Raw auxiliary assets are authenticated and bounded by software policy in
+    # the backend. Keep this streaming exception confined to this upload path.
+    location ~ ^/api/v1/admin/software/update-releases/[0-9]+/assets$ {
+        client_max_body_size 0;
+        proxy_request_buffering off;
+        proxy_http_version 1.1;
+        proxy_read_timeout 300s;
+        proxy_pass $skillhub_api_upstream$request_uri;
+        gzip off;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_intercept_errors off;
+        proxy_set_header Accept-Encoding "";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
