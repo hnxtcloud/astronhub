@@ -47,7 +47,22 @@ Electron 元数据的 `files` 中每个文件都必须关联受管安装包，�
 | 查询 / 修改匿名开关 | `GET /apps/{id}/update-source`；`PUT /apps/{id}/update-source` |
 | 保存渠道和目标 | `PUT /apps/{id}/update-channels` |
 
-本页描述发布管理能力。GitLab 兼容读取、generic/白泽灵台更新源和受限机器发布入口分别由后续实施票提供；真实 Windows/macOS 安装和签名验收不能由服务端单元或 HTTP 测试替代。
+## GitLab 更新读取
+
+为应用开启匿名更新源，并为渠道配置虚拟 project path（例如 `apps/intelli-dev`）及已发布目标后，客户端可使用以下只读入口。部署前缀应加在这些路径之前。
+
+| 入口 | 行为 |
+| --- | --- |
+| `GET /api/v4/projects/apps%2Fintelli-dev/repository/tags` | 裸数组，只含渠道当前选定的一个 tag、发布说明和 commit.message |
+| `GET/HEAD /api/v4/projects/apps%2Fintelli-dev/repository/files/dist%2Flatest.yml/raw?ref=v1.2.3` | 按精确 tag 和原始相对路径读取 |
+| `GET/HEAD /apps/intelli-dev/-/raw/v1.2.3/dist/latest.yml` | 两段虚拟项目路径的辅助 raw 入口 |
+| `GET/HEAD /releases/{app}/{snapshotId}/assets/{relativePath}` | 按应用 slug 和不可变快照 ID 读取历史资产 |
+
+渠道只发现显式选定的目标，不自动选择更高版本。重新选择目标后，同渠道历史发布仍可通过精确 ref 读取；清除目标则关闭该渠道 tags/raw。固定历史地址独立于渠道指针。所有入口均要求应用匿名开关开启、应用已发布、快照已发布且全部关联安装包仍可分发；撤出快照后恢复安装包不会自动恢复该快照。旧 `PRIVATE-TOKEN` 不绕过这些条件。
+
+文件保持原始字节，无对象存储跳转。响应提供 Content-Length、SHA256 ETag、Last-Modified、Accept-Ranges 和 `Cache-Control: no-store`。即使携带条件请求或 Range，服务端也先检查治理状态。支持单区间及多区间；多区间最多 16 个、合计最多 32 MiB。超限或无效 Range 返回完整 200，全部有效区间越界返回 416；If-Range 不匹配时返回完整内容。
+
+原 Intelli Dev 保留 GitLab provider，后续构建调整 host 和虚拟 project path。已发放客户端不会自动发现新地址，首次迁移需要新构建或由运维代理旧域名。Generic/白泽灵台 feed 和受限机器发布入口继续由后续实施票提供。真实 Windows/macOS 安装、签名和完整差分更新不能由服务端 HTTP 测试或 multipart 解析器契约检查替代。
 
 ## 反向代理和部署前缀
 
