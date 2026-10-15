@@ -3028,5 +3028,30 @@
       "CODEX_GIT": "从已确认的 Git 发布安装，并固定到下方命令中的提交。需要 Git 和您自己的仓库读取凭据。这些指引不代表运行验证通过。"
     },
     "posixShell": "POSIX Shell"
+  },
+  "pluginRecovery": {
+    "title": "发布恢复与渠道操作",
+    "historyWarning": "保留原计划和成功回执，修改默认配置不会重定向已批准任务。已经分发的外部副本仍可能保留。",
+    "revision": "修订",
+    "unknown": "远程结果尚不确定，请先核对原目标，再决定重试或换目标。",
+    "original": "原计划与修订历史",
+    "attempts": "执行历史（每页50条）",
+    "heartbeat": "最近心跳",
+    "late": "迟到的远程结果",
+    "target": "替换目标",
+    "reason": "恢复原因",
+    "preview": "预览替换计划",
+    "preserve": "成功渠道与全部历史计划将保持原样。",
+    "confirm": "确认替换",
+    "withdrawReason": "撤回原因",
+    "confirmWithdrawal": "确认撤回",
+    "previewWithdrawal": "预览撤回",
+    "gitRetained": "在原始目标移除当前原生市场索引，保留 Git 历史与版本文件。已分发副本仍然可用。",
+    "disabled": "已停用本地原生安装源，历史发布证据保留。",
+    "newer": "较新的记录",
+    "withdraw": "撤回原生安装源",
+    "retryWithdrawal": "重试或核实撤回",
+    "older": "较早的记录",
+    "npmRetained": "此处不支持删除远程 npm 包。包仍保留在依赖库中，本操作仅停用本地安装源。"
   }
 }

@@ -9,6 +9,10 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+    hikari:
+      # Match Hibernate's UTC JDBC calendar; H2 otherwise uses the Windows local session
+      # zone and drifts persisted Instant leases across independent transactions.
+      connection-init-sql: SET TIME ZONE 'UTC'
   jpa:
     hibernate:
       ddl-auto: create

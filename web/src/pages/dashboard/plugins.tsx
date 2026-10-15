@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { PluginGitAdminPanel, PluginGitEvidencePanel } from '@/features/plugin/plugin-git-publication'
 import { PluginNpmAdminPanel, PluginNpmReleasePanel } from '@/features/plugin/plugin-npm-publication'
 import { PluginOfflineImportPanel } from '@/features/plugin/plugin-offline-import'
+import { PluginRecoveryPanel } from '@/features/plugin/plugin-recovery'
 import { PluginProjectGovernance, PluginReleaseGovernance, PluginFileBrowser, PluginComponentEditor } from '@/features/plugin/plugin-access'
 import { useAuth } from '@/features/auth/use-auth'
 import { useCreatePluginProject, usePluginCommand, usePluginNamespaces, usePluginProject, usePluginProjects,
@@ -165,6 +166,7 @@ function PluginReleasePanel({ release, canManage, canReview, canGovern, direct }
     </form>}
     {canReview && release.publication && release.publication.status !== 'SUCCEEDED' && !release.publication.completedChannels.includes('HOSTED') && <Button variant="outline" disabled={command.isPending} onClick={() => action('publish-hosted')}>{t('pluginManagement.retryHosted')}</Button>}
     <PluginNpmReleasePanel releaseId={release.id} canManage={canManage} canReview={canReview} draft={draft} approved={release.publication != null} hasPi={release.distributions.some(d => d.runtimeKey === 'pi')} />
+    <PluginRecoveryPanel releaseId={release.id} canReview={canReview} approved={release.publication != null} />
     {release.distributions.some(d => d.runtimeKey === 'claude-code' || d.runtimeKey === 'codex') && <PluginGitEvidencePanel releaseId={release.id} approved={release.publication != null} completed={release.publication?.status === 'SUCCEEDED'} />}
     {release.reviews.map((review, index) => <p key={index} className="whitespace-pre-wrap text-sm text-muted-foreground">{review.reviewerId}: {review.notes} · {t(`pluginManagement.testResult.${review.runtimeTestResult}`)}{review.testEnvironment ? ` (${review.testEnvironment})` : ''}</p>)}
     {canGovern && <PluginReleaseGovernance release={release} />}

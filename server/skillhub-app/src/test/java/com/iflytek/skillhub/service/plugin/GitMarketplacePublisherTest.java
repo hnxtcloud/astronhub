@@ -15,6 +15,102 @@ import java.util.Map;
 
 class GitMarketplacePublisherTest {
     @Test
+    void
+            explicitCurrentWithdrawalKeepsHistoryAndTombstoneBlocksLateReplayWithoutRemovingNewerSelection()
+                    throws Exception {
+        Path root = Files.createTempDirectory("git-marketplace-test-withdraw-");
+        Path remote = root.resolve("remote.git");
+        init(remote);
+        try {
+            var target =
+                    new GitMarketplacePublisher.Target(
+                            1L,
+                            remote.toUri().toString(),
+                            remote.toUri().toString(),
+                            "main",
+                            "fixture");
+            var original = fixturePlan(root, target, "1.0.0", 10L, 1L);
+            var publisher = new GitMarketplacePublisher(new ObjectMapper());
+            publisher.publish(original, null, new MemoryIntents());
+            var store = new MemoryIntents();
+            var removed = publisher.withdraw(original, 100L, 10L, 10L, null, store);
+            assertThat(removed.commit()).matches("[a-f0-9]{40}");
+            var mapper = new ObjectMapper();
+            var index = mapper.readTree(show(remote, "main:.claude-plugin/marketplace.json"));
+            assertThat(index.path("plugins")).isEmpty();
+            assertThat(
+                            show(
+                                    remote,
+                                    "main:plugins/claude-code/sample/1.0.0/.claude-plugin/plugin.json"))
+                    .isEqualTo(
+                            Files.readAllBytes(
+                                    original.artifacts()
+                                            .getFirst()
+                                            .files()
+                                            .get(".claude-plugin/plugin.json")
+                                            .file()));
+            publisher.publish(original, null, new MemoryIntents());
+            assertThat(
+                            mapper.readTree(show(remote, "main:.claude-plugin/marketplace.json"))
+                                    .path("plugins"))
+                    .isEmpty();
+            var older = fixturePlan(root, target, "0.9.0", 9L, 1L);
+            assertThatThrownBy(() -> publisher.publish(older, null, new MemoryIntents()))
+                    .hasMessage("GIT_PUBLICATION_WITHDRAWN");
+            var newer = fixturePlan(root, target, "1.1.0", 11L, 1L);
+            publisher.publish(newer, null, new MemoryIntents());
+            publisher.withdraw(original, 101L, 10L, 10L, null, new MemoryIntents());
+            assertThat(
+                            mapper.readTree(show(remote, "main:.claude-plugin/marketplace.json"))
+                                    .path("plugins")
+                                    .get(0)
+                                    .path("version")
+                                    .asText())
+                    .isEqualTo("1.1.0");
+            var catalog = mapper.readTree(show(remote, "main:.astronhub/catalog.json"));
+            assertThat(
+                            catalog.path("tombstones")
+                                    .path("claude-code:sample")
+                                    .path("taskId")
+                                    .asLong())
+                    .isEqualTo(10L);
+            assertThat(catalog.path("versions").has("claude-code:sample@1.0.0")).isTrue();
+        } finally {
+            GitMarketplacePublisher.cleanup(root);
+        }
+    }
+
+    @Test
+    void readOnlyReconciliationFindsTheRecordedRemoteIntentWithoutAnotherCommit() throws Exception {
+        Path root = Files.createTempDirectory("git-marketplace-test-reconcile-");
+        Path remote = root.resolve("remote.git");
+        init(remote);
+        try {
+            var target =
+                    new GitMarketplacePublisher.Target(
+                            1L,
+                            remote.toUri().toString(),
+                            remote.toUri().toString(),
+                            "main",
+                            "fixture");
+            var plan = fixturePlan(root, target, "1.0.0", 10L, 1L);
+            var store = new MemoryIntents();
+            var publisher = new GitMarketplacePublisher(new ObjectMapper());
+            assertThat(publisher.reconcile(plan, null, store)).isEmpty();
+            var published = publisher.publish(plan, null, store);
+            var recovered =
+                    new GitMarketplacePublisher(new ObjectMapper())
+                            .reconcile(plan, null, store)
+                            .orElseThrow();
+            assertThat(recovered.commit()).isEqualTo(published.commit());
+            assertThat(recovered.reused()).isTrue();
+            assertThat(store.previous()).hasSize(1);
+        } finally {
+            GitMarketplacePublisher.cleanup(root);
+        }
+    }
+
+    @Test
     void actualBareGitReceivesBothNativeIndexesAndExactResourceBytes() throws Exception {
         Path root = Files.createTempDirectory("git-marketplace-test-");
         Path remote = root.resolve("remote.git");
@@ -316,9 +412,9 @@ class GitMarketplacePublisherTest {
     static void seed(Path remote, String parent, String path, String content) throws Exception {
         String script =
                 "commit refs/heads/main\n"
-                    + "committer Fixture <fixture@example.invalid> 1700000000 +0000\n"
-                    + "data 4\n"
-                    + "seed\n"
+                        + "committer Fixture <fixture@example.invalid> 1700000000 +0000\n"
+                        + "data 4\n"
+                        + "seed\n"
                         + (parent == null ? "" : "from " + parent + "\n")
                         + "M 100644 inline "
                         + path
