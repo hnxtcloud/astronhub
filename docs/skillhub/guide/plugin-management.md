@@ -76,3 +76,41 @@
 导入使用有界原始请求流，不调整 Skill 的 multipart 或包业务限制。Nginx 为根路径及部署前缀下的 `/api/v1/plugin-management/imports` 配置单独的流式代理和无限代理请求体上限，由服务端鉴权并根据快照预算及时拒绝超限内容；其他入口仍保持原有 100 MiB 限制。若外层网关有更低限制，需要运维同步调整。单插件旧 `/releases/{id}/archive` 入口保留 100 MiB 上限，并遵守更低的后台包预算；更大的单插件请使用流式预览入口。
 
 完整跨渠道恢复、组件显式关联、公共原生市场安装和真实内网宿主验收见后续实施票。
+
+## 内网 npm 发布与独立依赖
+
+运维先在部署 YAML 中提供精确允许的 registry 基地址及发布凭据引用；管理员只选择这些地址和引用，不提交或读取发布令牌。例如：
+
+```yaml
+skillhub:
+  plugin:
+    publication:
+      allowed-registries:
+        - https://npm.internal.example/team/
+      credentials:
+        team-publisher: ${PLUGIN_TEAM_NPM_PUBLISH_TOKEN:}
+```
+
+`credentials` 是此功能专用的显式映射。引用名不会被当作任意环境变量名解析，不能引用 OAuth、S3 或引导管理员凭据。安装用户在自己的 npm 配置中处理安装认证；服务器发布令牌不会进入安装命令、管理响应、审计或包。管理员配置每次新增不可变修订，可设为之后审批的默认源，也可在草稿中选择源。
+
+公开 Pi 发行物必须保留原始 `package/` npm TGZ，原始包名及版本不变。由仓库归档派生的 Pi 重新打包产物不能直接进入 npm；需要显式导入原始 TGZ。批准时固定目标修订、凭据引用和包摘要。缺少目标时计划显示 `BLOCKED / MISSING_CONFIGURATION`；后续修改默认源不会改写该审批历史，需另行显式、审计化重新规划（恢复票实现）。受限插件只使用鉴权托管渠道。
+
+发布通过 registry HTTP 协议上传原 TGZ，文件方式流式生成 base64 请求，不执行 `npm pack`、包脚本或任何导入代码。最多处理 100 MiB TGZ、4 MiB registry 元数据和 100 条直接依赖声明；网络和响应体有超时。仅访问配置源，不跟随跳转，不接受其他 origin 或基路径外的 tarball URL，不采用包内 `publishConfig`。固定名称/版本已存在时下载并逐字节比较 TGZ，相同则复用，不同则拒绝；写入失败或结果不确定时先读取实际内容核对。不会覆盖或自动重命名。同包新版本不会删除原版本。
+
+安装指引固定 `pi install npm:@scope/name@1.2.3`，例如通过单次调用的 `npm_config_registry` 指定内网源。`latest` 是 npm registry 的可变标签，本实现沿 npm 发布协议更新它，不保证迟到发布时标签单调递增；应使用固定版本指引。直接依赖中的精确版本显示内网可用/缺失，版本范围显示 `UNRESOLVED_RANGE`，Git、URL、本地依赖显示不支持且不会抓取。Node、OS、CPU、peer 依赖和外部服务仍需单独确认，静态检查和 registry 可用性不证明完整离线安装或运行测试通过。
+
+依赖管理入口支持多选 TGZ，每包独立上传、检查并等待管理员确认。它保留上传者、来源、原摘要、固定目标、尝试次数与结果，不创建插件项目或进入插件审核。依赖包硬上限为 100 MiB，后台包预算可以降低它；提高导入预算不会提高此上限。重复确认已经成功的项只返回已有结果。
+
+| API（前缀 `/api/v1/plugin-management`） | 用途 |
+| --- | --- |
+| `GET /npm/settings`、`POST /npm/registries` | 管理员读取允许配置/凭据引用，新增源配置修订 |
+| `GET /npm/registries`、`PUT /releases/{id}/npm-registry` | 已登录用户读取配置源，维护者为草稿选择源 |
+| `GET/POST /npm/dependencies` | 管理员查看依赖记录或上传原始二进制 TGZ（`registryId`、`source` 查询参数） |
+| `POST /npm/dependencies/{id}/publish` | 确认/重试独立依赖发布 |
+| `GET /releases/{id}/publication-channels` | 查看批准计划和已成功的外部分发凭据记录 |
+| `POST /releases/{id}/publish-channels` | 管理员重试未完成渠道，保留已有成功记录 |
+| `POST /releases/{id}/npm-prerequisites` | 按固定内网源检查直接 npm 依赖 |
+
+HOSTED、npm、Git 共享一个持久任务及渠道记录。成功渠道不会因其他渠道失败而删除或重复发布，全部必需渠道完成后目录才显示已发布。轮询排除缺配置的阻塞计划，并按尝试次数公平调度；外部网络调用在数据库锁之外，短事务领取的尝试令牌防止过期执行覆盖新结果。完整尝试历史、长任务心跳、治理撤回及显式重新规划由恢复实施票继续补齐。
+
+本机实际验证使用无 uplink 的临时 Verdaccio 6.1.6；该开发夹具不是产品依赖或公网回退。真实部署 registry、原生 Pi 安装和完整 staging 应由部署环境另行验收。

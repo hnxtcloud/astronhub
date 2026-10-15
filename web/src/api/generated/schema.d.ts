@@ -458,6 +458,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/releases/{id}/npm-registry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Select configured npm registry for draft Pi distribution */
+        put: operations["select"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/import-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read current offline plugin import budgets */
+        get: operations["limits"];
+        /** Configure persisted offline import budgets as plugin administrator */
+        put: operations["configure"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users/{userId}/status": {
         parameters: {
             query?: never;
@@ -2383,6 +2418,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/releases/{id}/publish-channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry incomplete approved channels while retaining successful receipts */
+        post: operations["retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/releases/{id}/npm-prerequisites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check direct npm dependency availability against the fixed internal registry only */
+        post: operations["prerequisites"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/plugin-management/releases/{id}/direct-publish": {
         parameters: {
             query?: never;
@@ -2464,6 +2533,93 @@ export interface paths {
         put?: never;
         /** Create a new immutable version identity with editable draft metadata */
         post: operations["release"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/npm/registries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List configured npm destinations for draft selection */
+        get: operations["registries"];
+        put?: never;
+        /** Append immutable internal npm registry configuration revision */
+        post: operations["configure_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/npm/dependencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List independent dependency TGZ uploads and publication receipts */
+        get: operations["uploads"];
+        put?: never;
+        /** Upload one bounded original npm dependency TGZ for administrator confirmation */
+        post: operations["upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/npm/dependencies/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm or retry independent dependency publication without running lifecycle scripts */
+        post: operations["publish_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload ZIP or TGZ for bounded offline candidate preview without running scripts */
+        post: operations["preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/imports/{id}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create selected plugin drafts with isolated results and immutable content conflicts */
+        post: operations["apply"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2863,7 +3019,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["publish_3"];
+        post: operations["publish_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2895,7 +3051,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["upload"];
+        post: operations["upload_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3007,7 +3163,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["retry"];
+        post: operations["retry_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3520,7 +3676,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["publish_4"];
+        post: operations["publish_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5572,6 +5728,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plugin-management/releases/{id}/publication-channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read immutable approved channel plans and durable receipts */
+        get: operations["channels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/plugin-management/releases/{id}/download": {
         parameters: {
             query?: never;
@@ -5581,6 +5754,40 @@ export interface paths {
         };
         /** Download an authorized published historical plugin archive */
         get: operations["download_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/npm/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read allowed internal registries and publisher credential reference IDs */
+        get: operations["settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plugin-management/imports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an owned offline import preview */
+        get: operations["get_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5871,7 +6078,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_2"];
+        get: operations["get_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6663,6 +6870,49 @@ export interface components {
             createdAt?: string;
             expiresAt?: string;
             lastUsedAt?: string;
+        };
+        RegistrySelection: {
+            /** Format: int64 */
+            registryId: number;
+        };
+        ApiResponseRegistryView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["RegistryView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        RegistryView: {
+            /** Format: int64 */
+            id?: number;
+            name?: string;
+            registry?: string;
+            credentialRef?: string;
+            credentialAvailable?: boolean;
+            defaultRegistry?: boolean;
+        };
+        PluginImportLimits: {
+            /** Format: int64 */
+            packageBytes: number;
+            /** Format: int64 */
+            repositoryBytes: number;
+            /** Format: int64 */
+            expandedBytes: number;
+            /** Format: int32 */
+            files: number;
+            /** Format: int32 */
+            candidates: number;
+        };
+        ApiResponsePluginImportLimits: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PluginImportLimits"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
         };
         AdminUserStatusUpdateRequest: {
             status: string;
@@ -7585,6 +7835,47 @@ export interface components {
             runtimeTestResult?: string;
             testEnvironment?: string;
         };
+        ApiResponseListChannelView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["ChannelView"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ChannelView: {
+            channel?: string;
+            state?: string;
+            snapshot?: string;
+            /** Format: int32 */
+            attemptCount?: number;
+            lastError?: string;
+            receipt?: string;
+        };
+        ApiResponsePrerequisitesView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PrerequisitesView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        Dependency: {
+            name?: string;
+            range?: string;
+            kind?: string;
+            availability?: string;
+        };
+        PrerequisitesView: {
+            registry?: string;
+            dependencies?: components["schemas"]["Dependency"][];
+            requirementsJson?: string;
+            installCommand?: string;
+            registryConfiguration?: string;
+            runtimeTest?: string;
+        };
         PluginProjectCreateRequest: {
             /** Format: int64 */
             namespaceId: number;
@@ -7627,6 +7918,101 @@ export interface components {
         PluginReleaseCreateRequest: {
             version: string;
             changelog?: string;
+        };
+        RegistryRequest: {
+            name: string;
+            registry: string;
+            credentialRef: string;
+            defaultRegistry?: boolean;
+        };
+        ApiResponseDependencyUploadView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["DependencyUploadView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        DependencyUploadView: {
+            /** Format: int64 */
+            id?: number;
+            uploadedBy?: string;
+            source?: string;
+            name?: string;
+            version?: string;
+            sha256?: string;
+            registry?: string;
+            state?: string;
+            /** Format: int32 */
+            attemptCount?: number;
+            lastError?: string;
+            receipt?: string;
+            requirementsJson?: string;
+        };
+        ApiResponseImportPreviewView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["ImportPreviewView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ImportCandidateView: {
+            id: string;
+            directory: string;
+            runtime: string;
+            nativeName?: string;
+            version?: string;
+            suggestedSlug?: string;
+            sha256?: string;
+            format?: string;
+            inventoryJson?: string;
+            manifestJson?: string;
+            status: string;
+            error?: string;
+        };
+        ImportPreviewView: {
+            id: string;
+            /** Format: int64 */
+            namespaceId: number;
+            repository: boolean;
+            /** Format: date-time */
+            expiresAt: string;
+            candidates: components["schemas"]["ImportCandidateView"][];
+        };
+        ImportSelection: {
+            candidateId: string;
+            /** Format: int64 */
+            projectId?: number;
+            slug?: string;
+            /** @enum {string} */
+            visibility?: "PUBLIC" | "NAMESPACE_ONLY" | "PRIVATE";
+        };
+        ImportSelectionRequest: {
+            selections: components["schemas"]["ImportSelection"][];
+        };
+        ApiResponseImportResultsView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["ImportResultsView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ImportResultView: {
+            candidateId: string;
+            status: string;
+            /** Format: int64 */
+            projectId?: number;
+            /** Format: int64 */
+            releaseId?: number;
+            error?: string;
+        };
+        ImportResultsView: {
+            results: components["schemas"]["ImportResultView"][];
         };
         JsonNode: Record<string, never>;
         SoftwareInspectorResultRequest: {
@@ -9616,6 +10002,38 @@ export interface components {
             /** Format: int32 */
             size?: number;
         };
+        ApiResponseSettingsView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["SettingsView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        SettingsView: {
+            allowedRegistries?: string[];
+            credentialRefs?: string[];
+            registries?: components["schemas"]["RegistryView"][];
+        };
+        ApiResponseListRegistryView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["RegistryView"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ApiResponseListDependencyUploadView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["DependencyUploadView"][];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
         ApiResponsePageResponseOrganizationSummaryResponse: {
             /** Format: int32 */
             code?: number;
@@ -11564,6 +11982,76 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseTokenSummaryResponse"];
+                };
+            };
+        };
+    };
+    select: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrySelection"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseRegistryView"];
+                };
+            };
+        };
+    };
+    limits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePluginImportLimits"];
+                };
+            };
+        };
+    };
+    configure: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PluginImportLimits"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePluginImportLimits"];
                 };
             };
         };
@@ -14937,6 +15425,50 @@ export interface operations {
             };
         };
     };
+    retry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListChannelView"];
+                };
+            };
+        };
+    };
+    prerequisites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePrerequisitesView"];
+                };
+            };
+        };
+    };
     direct: {
         parameters: {
             query?: never;
@@ -15105,6 +15637,169 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponsePluginReleaseView"];
+                };
+            };
+        };
+    };
+    registries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListRegistryView"];
+                };
+            };
+        };
+    };
+    configure_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistryRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseRegistryView"];
+                };
+            };
+        };
+    };
+    uploads: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListDependencyUploadView"];
+                };
+            };
+        };
+    };
+    upload: {
+        parameters: {
+            query: {
+                registryId: number;
+                source: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDependencyUploadView"];
+                };
+            };
+        };
+    };
+    publish_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseDependencyUploadView"];
+                };
+            };
+        };
+    };
+    preview: {
+        parameters: {
+            query: {
+                namespaceId: number;
+                repository?: boolean;
+                format: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseImportPreviewView"];
+                };
+            };
+        };
+    };
+    apply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportSelectionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseImportResultsView"];
                 };
             };
         };
@@ -15718,7 +16413,7 @@ export interface operations {
             };
         };
     };
-    publish_3: {
+    publish_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -15766,7 +16461,7 @@ export interface operations {
             };
         };
     };
-    upload: {
+    upload_1: {
         parameters: {
             query: {
                 path: string;
@@ -15927,7 +16622,7 @@ export interface operations {
             };
         };
     };
-    retry: {
+    retry_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -16832,7 +17527,7 @@ export interface operations {
             };
         };
     };
-    publish_4: {
+    publish_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -20014,6 +20709,28 @@ export interface operations {
             };
         };
     };
+    channels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseListChannelView"];
+                };
+            };
+        };
+    };
     download_2: {
         parameters: {
             query?: {
@@ -20034,6 +20751,48 @@ export interface operations {
                 };
                 content: {
                     "*/*": string;
+                };
+            };
+        };
+    };
+    settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseSettingsView"];
+                };
+            };
+        };
+    };
+    get_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseImportPreviewView"];
                 };
             };
         };
@@ -20414,7 +21173,7 @@ export interface operations {
             };
         };
     };
-    get_2: {
+    get_3: {
         parameters: {
             query?: never;
             header?: never;

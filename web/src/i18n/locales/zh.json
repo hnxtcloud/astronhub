@@ -841,7 +841,11 @@
     "tabRevocationHistory": "撤销历史",
     "revocationEmpty": "暂无撤销申请",
     "revocationHistoryEmpty": "暂无已处理的撤销记录",
-    "revocationStatus": { "PENDING": "待审核", "APPROVED": "已撤销", "REJECTED": "已拒绝" },
+    "revocationStatus": {
+      "PENDING": "待审核",
+      "APPROVED": "已撤销",
+      "REJECTED": "已拒绝"
+    },
     "revocationActors": "申请人 {{submitter}} · 审核人 {{reviewer}}",
     "revocationReviewComment": "审核意见：{{comment}}",
     "revocationLoadError": "无法读取撤销申请，请稍后重试。",
@@ -1332,7 +1336,11 @@
     "revocationHistoryItem": "{{date}} · {{status}}",
     "revocationHistoryLoading": "正在读取撤销记录…",
     "revocationHistoryError": "无法读取撤销记录，请稍后重试。",
-    "revocationStatus": { "PENDING": "待审核", "APPROVED": "已撤销", "REJECTED": "已拒绝" },
+    "revocationStatus": {
+      "PENDING": "待审核",
+      "APPROVED": "已撤销",
+      "REJECTED": "已拒绝"
+    },
     "promotionConfirmTitle": "确认提交提升申请",
     "promotionConfirmDescription": "确认将“{{skill}}”的 v{{version}} 提交为提升到全局空间的申请吗？",
     "promotionSuccessTitle": "提升申请已提交",
@@ -2927,5 +2935,37 @@
     "saveChannel": "保存渠道目标",
     "editChannel": "编辑渠道",
     "clearTarget": "清除目标"
+  },
+  "pluginNpm": {
+    "title": "内网 npm 发布",
+    "description": "维护允许的内网源与部署提供的发布凭据引用。配置创建新修订，已批准计划保留原目标。",
+    "name": "配置名称",
+    "registry": "内网 registry",
+    "credentialRef": "发布凭据引用",
+    "select": "请选择…",
+    "default": "作为新审批的默认源",
+    "save": "保存新配置修订",
+    "ready": "凭据已配置",
+    "missingCredential": "凭据不可用",
+    "operatorConfiguration": "请运维在部署配置中提供允许的 registry URL 和命名发布凭据。",
+    "dependencies": "独立依赖包",
+    "dependencyHelp": "上传原始 TGZ（每包最多 100 MiB），检查后确认发布。依赖不创建插件、不进入审核；不执行 lifecycle scripts。",
+    "source": "来源 / 溯源说明",
+    "archive": "依赖 TGZ 文件",
+    "upload": "上传待确认",
+    "attempts": "尝试次数",
+    "inspect": "查看清单及发布凭据记录",
+    "confirm": "确认发布 / 重试",
+    "failed": "操作失败",
+    "publication": "原生发布渠道",
+    "defaultSelection": "审批时使用配置的默认源",
+    "selectRegistry": "为此草稿选择源",
+    "saved": "已保存目标源",
+    "blocked": "此审批计划没有有效目标。修改配置不会改写历史目标；需要管理员显式重新规划。",
+    "retry": "重试未完成渠道",
+    "check": "检查 npm 安装前提",
+    "offlineCaution": "直接依赖检查不能证明完整离线可安装。版本范围保留未解析，请分别确认 Node、平台、peer 依赖及外部服务。运行测试仍未验证，不回退公网。",
+    "noRegistry": "此 Pi 发行物尚无符合条件的内网源。公开发布要求原始 npm TGZ。",
+    "installHelp": "请使用用户自己的 npm registry 配置及安装凭据。此命令仅为单次调用指定源，不含服务器发布凭据。"
   }
 }
