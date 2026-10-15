@@ -4,7 +4,11 @@
 
 **Blocked by:** 06,10
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+**Assignee:** software_ticket07_resume
+
+**Verification base:** `fbf36ac0`（06、10 已合入；最终关闭仍须 Standards/Spec 审查及修复）。
 
 **Spec coverage:** P8、U7
 
