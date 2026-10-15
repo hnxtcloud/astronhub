@@ -23,7 +23,7 @@ export function SoftwareUpdateSourceManager({ appId }: { appId: number }) {
   return <section className="space-y-3 rounded border p-3">
     <h3 className="font-medium">{t('softwareUpdates.sourceTitle')}</h3>
     <p className="text-sm text-muted-foreground">{t('softwareUpdates.anonymousHint')}</p>
-    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={source.data?.anonymousEnabled ?? false} disabled={!source.data || mutation.isPending} onChange={event => mutation.mutate(() => softwareUpdates.anonymous(appId, event.target.checked))} />{t('softwareUpdates.anonymous')}</label>
+    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={source.data?.anonymousEnabled ?? false} disabled={!source.data || mutation.isPending} onChange={event => { const enabled = event.currentTarget.checked; mutation.mutate(() => softwareUpdates.anonymous(appId, enabled)) }} />{t('softwareUpdates.anonymous')}</label>
     <div className="grid gap-3 sm:grid-cols-3">
       <label className="text-sm">{t('softwareUpdates.channelSlug')}<Input value={slug} onChange={event => setSlug(event.target.value)} /></label>
       <label className="text-sm">{t('softwareUpdates.project')}<Input value={project} onChange={event => setProject(event.target.value)} placeholder="apps/intelli-dev" /></label>
@@ -74,7 +74,8 @@ function Snapshot({ snapshot, packages }: { snapshot: UpdateRelease; packages: S
   const [path, setPath] = useState('')
   const [role, setRole] = useState('METADATA')
   const [files, setFiles] = useState<File[]>([])
-  const [validated, setValidated] = useState(false)
+  const [validatedAssetIds, setValidatedAssetIds] = useState<string | null>(null)
+  const assetIds = snapshot.assets.map(asset => asset.id).join(',')
   const refresh = () => cache.invalidateQueries({ queryKey: updateKey })
   const mutation = useMutation({ mutationFn: async (operation: () => Promise<unknown>) => operation(), onSuccess: refresh })
   const draft = snapshot.status === 'DRAFT'
@@ -86,7 +87,7 @@ function Snapshot({ snapshot, packages }: { snapshot: UpdateRelease; packages: S
       <div className="flex flex-wrap gap-2">
         <label className="text-sm">{t('softwareUpdates.path')}<Input value={path} onChange={event => setPath(event.target.value)} placeholder="dist/app.zip" /></label>
         <label className="text-sm">{t('softwareUpdates.installer')}<select className="block rounded border bg-background p-2" value={packageId} onChange={event => setPackageId(event.target.value)}><option value="">{t('softwareUpdates.chooseInstaller')}</option>{applicable.map(pkg => <option key={pkg.id} value={pkg.id}>{pkg.fileName} (#{pkg.id})</option>)}</select></label>
-        <Button size="sm" disabled={mutation.isPending || !packageId || !path} onClick={() => mutation.mutate(() => softwareUpdates.link(snapshot.id, Number(packageId), path))}>{t('softwareUpdates.link')}</Button>
+        <Button size="sm" disabled={mutation.isPending || !packageId || !path} onClick={() => mutation.mutate(async () => { await softwareUpdates.link(snapshot.id, Number(packageId), path); setPath('') })}>{t('softwareUpdates.link')}</Button>
       </div>
       <p className="text-xs text-muted-foreground">{t('softwareUpdates.uploadHint')}</p>
       <div className="flex flex-wrap items-end gap-2">
@@ -97,9 +98,9 @@ function Snapshot({ snapshot, packages }: { snapshot: UpdateRelease; packages: S
           setFiles([])
         })}>{t('softwareUpdates.upload')}</Button>
       </div>
-      <Button size="sm" variant="outline" disabled={mutation.isPending} onClick={() => mutation.mutate(async () => { await softwareUpdates.action(snapshot.id, 'validate'); setValidated(true) })}>{t('softwareUpdates.validate')}</Button>{' '}
+      <Button size="sm" variant="outline" disabled={mutation.isPending} onClick={() => mutation.mutate(async () => { await softwareUpdates.action(snapshot.id, 'validate'); setValidatedAssetIds(assetIds) })}>{t('softwareUpdates.validate')}</Button>{' '}
       <Button size="sm" disabled={mutation.isPending} onClick={() => mutation.mutate(() => softwareUpdates.action(snapshot.id, 'publish'))}>{t('softwareUpdates.publish')}</Button>
-      {validated && <p role="status" className="text-sm">{t('softwareUpdates.valid')}</p>}
+      {validatedAssetIds === assetIds && <p role="status" className="text-sm">{t('softwareUpdates.valid')}</p>}
     </>}
     {snapshot.status === 'PUBLISHED' && <Button size="sm" variant="outline" disabled={mutation.isPending} onClick={() => mutation.mutate(() => softwareUpdates.action(snapshot.id, 'withdraw'))}>{t('softwareUpdates.withdraw')}</Button>}
     {mutation.error && <p role="alert" className="text-sm text-destructive">{mutation.error.message}</p>}

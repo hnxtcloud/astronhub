@@ -57,9 +57,15 @@ public class SoftwareUpdateAppService {
     }
 
     public SoftwareUpdateReleaseResponse create(SoftwareUpdateCreateRequest request, String actor) {
+        SoftwareUpdateRules.identity(request.machineVersion(), request.tag(), request.targetOs(), request.targetArch(),
+                request.channel(), request.variant(), request.protocol(), request.piVersion());
         try {
             return tx.execute(status -> {
             var grouping = catalog.findById(request.catalogReleaseId()).orElseThrow(() -> missing("catalog release"));
+            releases.findByApplicationIdAndMachineVersionAndTargetOsAndTargetArchAndChannelAndVariant(grouping.getApplicationId(),
+                    request.machineVersion(), request.targetOs(), request.targetArch(), request.channel(), request.variant()).ifPresent(existing -> {
+                        throw new DomainConflictException("error.software.update.identityConflict");
+                    });
             releases.findByApplicationIdAndTagAndTargetOsAndTargetArchAndChannelAndVariant(grouping.getApplicationId(),
                     request.tag(), request.targetOs(), request.targetArch(), request.channel(), request.variant()).ifPresent(existing -> {
                         throw new DomainConflictException("error.software.update.identityConflict");
@@ -148,6 +154,9 @@ public class SoftwareUpdateAppService {
     public SoftwareReleaseAssetResponse uploadAsset(Long id, String path, String role, long bytes, InputStream body, String actor) {
         SoftwareUpdateRules.path(path);
         SoftwareUpdateRules.role(role);
+        String lowerPath = path.toLowerCase(java.util.Locale.ROOT);
+        if (List.of(".exe", ".msi", ".deb", ".rpm", ".zip", ".dmg", ".tar.gz", ".tar.xz").stream().anyMatch(lowerPath::endsWith))
+            invalid("installers must use the confirmed software package workflow");
         SoftwareAssetUpload admission = tx.execute(status -> {
             var release = locked(id);
             release.requireDraft();

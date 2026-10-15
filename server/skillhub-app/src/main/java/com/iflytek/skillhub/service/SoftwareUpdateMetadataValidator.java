@@ -33,6 +33,7 @@ public class SoftwareUpdateMetadataValidator {
         if (metadata.isEmpty() || assets.stream().noneMatch(a -> "INSTALLER".equals(a.getRole()))) fail("missing installer or metadata");
         for (var asset : metadata) {
             JsonNode document = parse(asset);
+            if (document == null || !document.isObject()) fail("metadata must be an object");
             if (!release.getMachineVersion().equals(document.path("version").asText())) fail("version");
             if ("ELECTRON".equals(release.getProtocol())) electron(document, asset, byPath);
             else baize(document, asset, byPath, release);
@@ -88,13 +89,19 @@ public class SoftwareUpdateMetadataValidator {
         }
     }
     private void electron(JsonNode doc, SoftwareReleaseAsset metadata, Map<String, SoftwareReleaseAsset> assets) {
+        // NSIS-web packages use an additional installer graph. Do not publish references
+        // until that protocol has its own complete validator and supported package format.
+        if (doc.has("packages")) fail("web-installer packages are not supported; upload a full installer");
         JsonNode files = doc.path("files");
         if (!files.isArray() || files.isEmpty()) fail("files");
+        java.util.Set<String> installerPaths = new java.util.HashSet<>();
         for (JsonNode file : files) {
             SoftwareReleaseAsset target = referenced(metadata, file.path("url").asText(), assets);
             if (!"INSTALLER".equals(target.getRole()) || !file.path("size").isIntegralNumber()
+                    || !file.path("size").canConvertToLong()
                     || target.getByteSize() != file.path("size").asLong()
                     || !target.getSha512Base64().equals(file.path("sha512").asText())) fail("files checksum/size");
+            installerPaths.add(target.getRelativePath());
             if (file.has("blockMapSize")) {
                 // electron-builder uses this field for a blockmap embedded at the end of the
                 // package, followed by a four-byte size word. It is not an external .blockmap size.
@@ -105,18 +112,26 @@ public class SoftwareUpdateMetadataValidator {
         }
         if (doc.has("path")) {
             var target = referenced(metadata, doc.path("path").asText(), assets);
+            if (!"INSTALLER".equals(target.getRole()) || !installerPaths.contains(target.getRelativePath())) fail("path must match a files installer");
             if (doc.has("sha512") && !target.getSha512Base64().equals(doc.path("sha512").asText())) fail("path checksum");
         }
     }
     private void baize(JsonNode doc, SoftwareReleaseAsset metadata, Map<String, SoftwareReleaseAsset> assets,
             SoftwareUpdateRelease release) {
         var target = referenced(metadata, doc.path("package").asText(), assets);
-        if (doc.path("schemaVersion").asInt() != 1 || !"win32".equals(doc.path("platform").asText())
+        if (!doc.path("schemaVersion").isIntegralNumber() || doc.path("schemaVersion").asInt() != 1 || !"win32".equals(doc.path("platform").asText())
                 || !"x64".equals(doc.path("arch").asText()) || !release.getChannel().equals(doc.path("channel").asText())
                 || !release.getPiVersion().equals(doc.path("piVersion").asText())
                 || !"INSTALLER".equals(target.getRole()) || !target.getRelativePath().endsWith(".zip")
                 || !target.getSha256().equals(doc.path("sha256").asText())
-                || !doc.path("bytes").isIntegralNumber() || target.getByteSize() != doc.path("bytes").asLong()) fail("manifest identity/checksum/bytes");
+                || !doc.path("bytes").isIntegralNumber() || !doc.path("bytes").canConvertToLong()
+                || target.getByteSize() != doc.path("bytes").asLong()) fail("manifest identity/checksum/bytes");
+        try { java.time.Instant.parse(doc.path("publishedAt").asText()); }
+        catch (java.time.format.DateTimeParseException ex) { fail("publishedAt must be an ISO instant"); }
+        if (doc.has("releasesUrl")) {
+            String link = localReference(doc.path("releasesUrl").asText());
+            SoftwareUpdateRules.path(link);
+        }
     }
     private SoftwareReleaseAsset referenced(SoftwareReleaseAsset metadata, String reference, Map<String, SoftwareReleaseAsset> assets) {
         reference = localReference(reference);

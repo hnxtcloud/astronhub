@@ -196,7 +196,7 @@ export function AdminSoftwarePage() {
       </Card>
 
       {selectedApp ? (
-        <AppReleaseManager appId={selectedApp.id} appName={selectedApp.name} formatDate={formatDate} />
+        <AppReleaseManager key={selectedApp.id} appId={selectedApp.id} appName={selectedApp.name} formatDate={formatDate} />
       ) : null}
 
       <CreateAppDialog

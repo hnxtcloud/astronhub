@@ -112,7 +112,7 @@ class SoftwareUpdatePublicationIntegrationTest {
     }
 
     @Test
-    void machineTagCannotResolveToTwoSnapshotsForTheSameTarget() {
+    void machineTagCannotResolveToTwoSnapshotsForTheSameTarget() throws Exception {
         seed();
         long appId = tx.execute(status -> applications.save(new SoftwareApplication("identity-" + System.nanoTime(),
                 "Identity App", null, null, null, "admin")).getId());
@@ -122,6 +122,10 @@ class SoftwareUpdatePublicationIntegrationTest {
         assertThatThrownBy(() -> updates.create(request, "admin"))
                 .isInstanceOf(com.iflytek.skillhub.domain.shared.exception.DomainConflictException.class)
                 .hasMessageContaining("error.software.update.identityConflict");
+        String alias = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(new SoftwareUpdateCreateRequest(
+                catalogId, "1.0.0", "1.0.0", "MACOS", "ARM64", "stable", "default", "ELECTRON", null));
+        http.perform(post("/api/v1/admin/software/update-releases").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf())
+                .contentType("application/json").content(alias)).andExpect(status().isConflict());
     }
 
     @Test
@@ -141,12 +145,23 @@ class SoftwareUpdatePublicationIntegrationTest {
                 .contentType("application/json").content(request)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.machineVersion").value("2.0.0")).andReturn().getResponse().getContentAsString();
         long id = new com.fasterxml.jackson.databind.ObjectMapper().readTree(created).path("data").path("id").asLong();
+        String longestVersion = "1.2.3+" + "x".repeat(249);
+        String longTag = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(new SoftwareUpdateCreateRequest(
+                catalogId, longestVersion, "v" + longestVersion, "WINDOWS", "X86_64", "stable", "default", "ELECTRON", null));
+        http.perform(post(endpoint).with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf())
+                .contentType("application/json").content(longTag)).andExpect(status().isBadRequest());
         byte[] raw = "version: 2.0.0\nfiles: []\n".getBytes(StandardCharsets.UTF_8);
         http.perform(post(endpoint + "/" + id + "/assets").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf())
-                .queryParam("path", "dist/latest.yml").queryParam("role", "METADATA")
+                .queryParam("path", "dist/白泽.latest.yml").queryParam("role", "METADATA")
                 .contentType("application/octet-stream").content(raw))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.data.relativePath").value("dist/latest.yml"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.relativePath").value("dist/白泽.latest.yml"))
                 .andExpect(jsonPath("$.data.byteSize").value(raw.length));
+        long committed = quota.totalCommittedBytes();
+        http.perform(post(endpoint + "/" + id + "/assets").with(authentication(auth("SOFTWARE_ADMIN"))).with(csrf())
+                .queryParam("path", "unconfirmed.EXE").queryParam("role", "OTHER")
+                .contentType("application/octet-stream").content(new byte[] {1, 2, 3}))
+                .andExpect(status().isBadRequest());
+        assertThat(quota.totalCommittedBytes()).isEqualTo(committed);
     }
 
     private org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth(String role) {

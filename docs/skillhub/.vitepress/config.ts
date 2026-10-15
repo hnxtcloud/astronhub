@@ -41,6 +41,7 @@ export default defineConfig({
               { text: 'Skill 发布与版本管理', link: '/guide/skill-publish' },
               { text: 'Suite Bundle 批量导入', link: '/guide/suite-bundle' },
               { text: '插件管理与托管发布', link: '/guide/plugin-management' },
+              { text: '软件更新快照发布', link: '/guide/software-updates' },
               { text: 'Skill 搜索与发现', link: '/guide/skill-discovery' },
               { text: '命名空间与团队管理', link: '/guide/namespace' },
               { text: '审核与治理', link: '/guide/review' },
