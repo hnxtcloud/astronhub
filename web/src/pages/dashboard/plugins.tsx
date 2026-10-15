@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { PluginOfflineImportPanel } from '@/features/plugin/plugin-offline-import'
 import { useAuth } from '@/features/auth/use-auth'
 import { useCreatePluginProject, usePluginCommand, usePluginNamespaces, usePluginProject, usePluginProjects,
   type PluginProject, type PluginRelease } from '@/features/plugin/plugin-api'
@@ -34,6 +35,7 @@ export function PluginManagementPage() {
   return <div className="mx-auto max-w-7xl space-y-7 p-4 sm:p-6">
     <header><h1 className="text-2xl font-semibold">{t('pluginManagement.title')}</h1>
       <p className="mt-2 max-w-prose text-sm text-muted-foreground">{t('pluginManagement.description')}</p></header>
+    <PluginOfflineImportPanel reviewer={reviewer} namespaces={namespaces.data ?? []} projects={projects.data?.items ?? []} />
     <details open={selected === null} className="rounded-lg border p-4">
       <summary className="cursor-pointer font-medium">{t('pluginManagement.createProject')}</summary>
       <form onSubmit={createProject} className="mt-4 grid gap-4 sm:grid-cols-2">

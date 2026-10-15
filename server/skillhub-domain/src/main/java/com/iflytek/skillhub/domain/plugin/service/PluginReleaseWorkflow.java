@@ -44,8 +44,7 @@ public class PluginReleaseWorkflow {
         PluginProject project = projects.findByIdForUpdate(projectId)
                 .orElseThrow(() -> new DomainNotFoundException("error.plugin.notFound"));
         requireWritable(project, actor);
-        if (version == null || version.length() > 64
-                || !version.matches("(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?")
+        if (!PluginVersions.valid(version)
                 || (changelog != null && changelog.length() > 30000)) {
             throw new DomainBadRequestException("error.plugin.version");
         }
@@ -69,14 +68,23 @@ public class PluginReleaseWorkflow {
     @Transactional
     public PluginDistribution attachArchive(Long releaseId, String objectKey, String sha256, String nativeName,
             String nativeVersion, String inventoryJson, String manifestJson, PluginActor actor) {
+        return attachArchive(releaseId, "claude-code", objectKey, sha256, nativeName, nativeVersion, inventoryJson, manifestJson, actor);
+    }
+
+    @Transactional
+    public PluginDistribution attachArchive(Long releaseId, String runtime, String objectKey, String sha256, String nativeName,
+            String nativeVersion, String inventoryJson, String manifestJson, PluginActor actor) {
         PluginRelease release = locked(releaseId);
         requireWritable(requireProject(release.getProjectId()), actor);
         release.requireDraft();
-        List<PluginDistribution> existing = distributions.findByReleaseIdOrderByRuntimeKey(releaseId);
-        if (existing.stream().anyMatch(d -> "claude-code".equals(d.getRuntimeKey()))) {
+        if (!Set.of("claude-code", "codex", "pi").contains(runtime) || !release.getVersion().equals(nativeVersion)) {
             throw new DomainBadRequestException("error.plugin.archiveConflict");
         }
-        return distributions.save(PluginDistribution.hostedArchive(releaseId, "claude-code", objectKey,
+        List<PluginDistribution> existing = distributions.findByReleaseIdOrderByRuntimeKey(releaseId);
+        if (existing.stream().anyMatch(d -> runtime.equals(d.getRuntimeKey()))) {
+            throw new DomainBadRequestException("error.plugin.archiveConflict");
+        }
+        return distributions.save(PluginDistribution.hostedArchive(releaseId, runtime, objectKey,
                 sha256, nativeName, nativeVersion, inventoryJson, manifestJson));
     }
 
