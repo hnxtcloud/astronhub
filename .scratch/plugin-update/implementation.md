@@ -63,6 +63,12 @@ Base branch: codex/software-center-phase1
 - 既有基线：storage/domain/auth/notification/infra/search 全部通过；app 共 1101 个测试，0 assertion failures、12 errors、1 skipped，12 errors 均为缺少可用 Docker 导致的 Testcontainers 初始化失败。此问题发生于新代码之前。
 - 已启动票 01 和票 07 的独立工作树 TDD 实现。新行为先定向 reactor 检查，不重复 90 分钟的无 Docker 全量基线；集成阶段仍须记录完整检查与环境限制。
 
+## Contract checkpoint — 2026-10-15
+
+- 票 01 已合并并关闭（`91e2962a`、`49cc3fc3`），票 02 开始扩展三宿主和批量归档；票 07 继续补齐完整资产管理，未提前关闭。
+- `scripts/export-openapi-test.ps1` 成功导出实际 Springdoc 契约，再以 openapi-typescript 生成前端类型。首批插件管理页面已改为引用生成类型，既有软件接口的 MACOS 枚举同时进入生成文件；软件快照 DTO 尚无控制器引用，须在票 07 管理端点合并后重新生成。
+- 全前端 `tsc --noEmit`、插件 API/页面定向 ESLint、管理页面 fetch 边界交互测试 1 条均通过；日志为 `.scratch/plugin-update-{openapi,typecheck,contract-lint,ui-contract}.log`。这些检查不代替最终全量检查或 Docker staging。
+
 ## Merge checkpoint — ticket 01
 
 - `819c566c` 经合并代理核查日志与实际提交后，以合并提交 `91e2962a` 进入集成分支。票 01 首条 Claude ZIP、审核与受限托管路径验收完成；票 02 解除阻塞。

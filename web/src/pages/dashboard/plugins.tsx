@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { PluginOfflineImportPanel } from '@/features/plugin/plugin-offline-import'
 import { useAuth } from '@/features/auth/use-auth'
 import { useCreatePluginProject, usePluginCommand, usePluginNamespaces, usePluginProject, usePluginProjects,
-  type PluginProject, type PluginRelease } from '@/features/plugin/plugin-api'
+  type PluginCommandBody, type PluginProject, type PluginProjectInput, type PluginRelease } from '@/features/plugin/plugin-api'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Textarea } from '@/shared/ui/textarea'
@@ -23,7 +23,7 @@ export function PluginManagementPage() {
   const [slug, setSlug] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [summary, setSummary] = useState('')
-  const [visibility, setVisibility] = useState('PRIVATE')
+  const [visibility, setVisibility] = useState<PluginProjectInput['visibility']>('PRIVATE')
   const projects = usePluginProjects(page, pending)
   const project = usePluginProject(selected)
   const namespaces = usePluginNamespaces()
@@ -45,7 +45,10 @@ export function PluginManagementPage() {
         </select></label>
         <label className="space-y-1 text-sm">{t('pluginManagement.slug')}<Input required maxLength={64} value={slug} onChange={e => setSlug(e.target.value)} /></label>
         <label className="space-y-1 text-sm">{t('pluginManagement.displayName')}<Input required maxLength={200} value={displayName} onChange={e => setDisplayName(e.target.value)} /></label>
-        <label className="space-y-1 text-sm">{t('pluginManagement.visibility')}<select className={selectClass} value={visibility} onChange={e => setVisibility(e.target.value)}>
+        <label className="space-y-1 text-sm">{t('pluginManagement.visibility')}<select className={selectClass} value={visibility} onChange={e => {
+          const value = e.target.value
+          if (value === 'PRIVATE' || value === 'NAMESPACE_ONLY' || value === 'PUBLIC') setVisibility(value)
+        }}>
           {['PRIVATE', 'NAMESPACE_ONLY', 'PUBLIC'].map(value => <option key={value} value={value}>{t(`pluginManagement.visibilityValues.${value}`)}</option>)}
         </select></label>
         <label className="space-y-1 text-sm sm:col-span-2">{t('pluginManagement.summary')}<Textarea maxLength={30000} value={summary} onChange={e => setSummary(e.target.value)} /></label>
@@ -117,8 +120,8 @@ function PluginReleasePanel({ release, canManage, canReview, direct }: { release
   const [changelog, setChangelog] = useState(release.changelog ?? '')
   const draft = release.status === 'DRAFT'
   const reviewable = release.status === 'PENDING_REVIEW' && !release.publication
-  const reviewBody = { notes, runtimeTestResult: testResult, testEnvironment: environment || null }
-  const action = (name: string, body?: Record<string, unknown>) => command.mutate({ path: `/releases/${release.id}/${name}`, body })
+  const reviewBody = { notes, runtimeTestResult: testResult, testEnvironment: environment || undefined }
+  const action = (name: string, body?: PluginCommandBody) => command.mutate({ path: `/releases/${release.id}/${name}`, body })
   return <article className="space-y-4 rounded-lg border p-4">
     <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="font-semibold">{release.version}</h4><span className="text-sm">{t(`pluginManagement.status.${release.status}`)}</span></div>
     {release.publication && <p className="text-sm" role="status">{t(`pluginManagement.publication.${release.publication.status}`)}

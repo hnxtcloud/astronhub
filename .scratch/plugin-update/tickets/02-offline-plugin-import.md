@@ -6,6 +6,8 @@
 
 **Status:** ready-for-merger
 
+**Assignee:** plugin_ticket02 / codex/plugin-offline-import
+
 **Spec coverage:** P2、P3
 
 - [x] 预算、路径/链接/重复条目检查；单候选失败隔离；身份及内容冲突拒绝覆盖
