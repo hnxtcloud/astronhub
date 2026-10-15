@@ -4,7 +4,11 @@
 
 **Blocked by:** 01,02
 
-**Status:** ready-for-agent
+**Status:** claimed
+
+**Assignee:** plugin_ticket02 / codex/plugin-download-governance
+
+**Migration reservation:** V78
 
 **Spec coverage:** P4
 

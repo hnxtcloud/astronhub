@@ -38,6 +38,8 @@ Base branch: codex/software-center-phase1
 
 当前 frontier：插件下载/历史版本/组件治理、内网 npm 插件发布及依赖上传、内网 Git 原生市场发布，以及按应用匿名的 GitLab 更新读取。票 01、02、07 已完成并合入；票 03、04、05 的导入依赖已解除，其余由明确阻塞关系推进。
 
+票 03 已认领，由完成票 02 的实施代理在 `codex/plugin-download-governance` 独立分支继续，迁移预留 V78；08 代理路由子任务已交付 `dc2184d7`，须先汇入 08 主实施分支，不单独关闭 08。
+
 ## Migration reservations
 
 - 已合入：01 使用 V74、07 使用 V75、02 使用 V76。
