@@ -34,6 +34,7 @@ public class GitMarketplacePublisher {
     private static final long MAX_SCRATCH_BYTES = 4L * 1024 * 1024 * 1024;
     private static final int MAX_JSON_BYTES = 4194304;
     private final ObjectMapper mapper;
+    private final GitScratchBudget scratchBudget = new GitScratchBudget(MAX_SCRATCH_BYTES);
     private final ConcurrentHashMap<String, Object> locks = new ConcurrentHashMap<>();
 
     public GitMarketplacePublisher(ObjectMapper mapper) {
@@ -1017,14 +1018,7 @@ public class GitMarketplacePublisher {
                 if (System.nanoTime() > deadline) throw new Failure("GIT_COMMAND_TIMEOUT");
                 if (output.isDone() && output.get().length > max)
                     throw new Failure("GIT_OUTPUT_LIMIT");
-                try (var paths = Files.walk(temp)) {
-                    long bytes = 0;
-                    var iterator = paths.filter(Files::isRegularFile).iterator();
-                    while (iterator.hasNext()) {
-                        bytes += Files.size(iterator.next());
-                        if (bytes > MAX_SCRATCH_BYTES) throw new Failure("GIT_SCRATCH_LIMIT");
-                    }
-                }
+                scratchBudget.check(temp);
             }
             byte[] bytes = output.get(5, TimeUnit.SECONDS);
             if (bytes.length > max) throw new Failure("GIT_OUTPUT_LIMIT");
