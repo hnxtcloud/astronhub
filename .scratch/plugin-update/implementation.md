@@ -1,7 +1,7 @@
 # 插件管理与应用更新实施索引
 
 Tracker: local-markdown
-Status: implementing
+Status: done
 Integration branch: codex/plugin-update-integration
 Base branch: codex/software-center-phase1
 
@@ -36,18 +36,23 @@ Base branch: codex/software-center-phase1
 | [受控机器发版入口与运维说明](tickets/10-software-machine-publishing.md) | 07,08,09 | U6（机器入口部分） |
 | [完整集成与原生渠道验收](tickets/11-integrate-and-verify.md) | 06,10 | P8、U7 |
 
-当前 frontier：完整集成与原生渠道验收（票 11，ready-for-agent）。票 01–10 已完成并合入；票 11 的依赖全部解除，仍须完成最终回归、双轴审查及限制记录，不提前关闭。
+当前 frontier：无。票 01–11 已完成本次实现及本环境的集成验收；真实部署、签名原生安装和完整差分/回退仍按环境保留未验收。完整结果见[验收记录](../../docs/plugin-updates-validation.md)。
 
-票 03 已合入并关闭；后续恢复票复用其实施工作树。08 代理路由子任务已随 08 主实施分支合入。
+## Migration history
 
-票 05 已认领，由票 04 实施代理在 `codex/plugin-git-marketplaces` 独立分支继续，复用已合入的渠道适配器和单队列；迁移预留 V80。
+- V74：插件草稿和审核；V75：软件更新快照；V76：离线导入。
+- V77：GitLab 读取预留空迁移；V78：组件治理；V79：npm 原生发布；V80：Git 市场。
+- V81：原生 feed 预留空迁移；V82：发布恢复；V83：机器发布绑定；V84：NSIS 独立确认。
+- V77/V81 复用 V75，无额外 DDL；使用说明清楚的 SELECT 1 保持编号连续。原有 82 份迁移字节未改写。PG18 实际 Flyway 已验证全部 84 份迁移以及 V83→V84，不能代替 PG16 生产验收。
 
-## Migration reservations
+## Final integration checkpoint — 2026-10-16
 
-- 已合入：01 使用 V74、07 使用 V75、02 使用 V76。
-- 在途/后续预留：08 使用 V77（如需要）、03 使用 V78、04 使用 V79、05 使用 V80。分配新迁移前重新检查集成和在途工作树；后续票不得复用这些编号。
-- 票 09 已认领，分支 `codex/native-update-feeds`，迁移预留 V81（如需要）；以已合入 08 的选择、治理和传输规则扩展 Generic／白泽更新源。
-- 后续预留：票 06 使用 V82、票 10 使用 V83（如需要）；认领前仍须核对集成和在途迁移。预留编号不表示票已解除阻塞或认领。
+- 最终产品集成 `ba9739e1`，统一验证提交 `898384ab`；后续文档和票关闭不改变产品代码。
+- 完整后端 2408 项：2406 通过、2 跳过、0 failures/errors，381 suites；12 个既有 Docker 依赖类未执行。两项跳过分别缺 Redis 集群节点和可选原生 Git 夹具标志，未伪装为通过。
+- 实际 Springdoc 453 paths / 493 schemas 生成 SDK；237 个前端文件、967 测试全部通过，TypeScript、全量 ESLint、tsc -b、Vite 构建通过。
+- 真实 Nginx 57 项、机器发版 CLI 4 项及子路径路由通过；代理探针未传大 body。release-config 测试因缺 Docker 在 line75 阻塞，整套与 Docker staging、Helm 均未验收。
+- Standards / Spec 原审查及后续修复复核均无遗留问题。保留两轮完整失败记录：三项迁移/样本失败修复后，又发现 Git 临时对象计量竞态；该生产问题经确定性红绿、真实 Git 集成及最终单轮完整回归通过。最终结果不与旧轮次拼接。
+- Pi 固定安装、Claude/Codex 1.0→1.1 更新以及原始 Intelli/Generic/白泽 HTTP 传输已有独立证据。真实企业 Git/npm、生产 PG16/S3、签名安装、首次客户端迁移及完整差分/全量回退仍未验收。没有修改客户端、推送、创建 PR 或部署。
 
 ## Verification seams
 
