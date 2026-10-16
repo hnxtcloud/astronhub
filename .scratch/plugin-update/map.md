@@ -15,6 +15,7 @@ Tracker: local-markdown
 - 地图为索引；事实及决定保存在链接的规格/研究。实施使用 [独立实施票](implementation.md)，不得把已解决的决策票当实现完成票。
 - 实施进度（2026-10-16）：票 01–11 均已合入并关闭；统一集成验证和 Standards/Spec 审查修复已完成，票 11 记录本环境的通过、跳过和环境阻塞结果。详见[验收记录](../../docs/plugin-updates-validation.md)。地图的 resolved 状态不替代生产验收证据。
 - 依赖配置、凭据和真实安装样本属于运行验收条件，不是允许公网同步或远程安装的授权。
+- 后续真实 E2E 已独立建图：[E2E Wayfinder](../plugin-update-e2e/map.md)。该图尚未执行，不改变本图已确认的产品决定和已完成实现票。
 
 ## Decisions so far
 

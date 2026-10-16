@@ -1,0 +1,73 @@
+# 交接盘点表，不是 Spring/Compose/Playwright 自动读取的配置。
+# 复制为受限环境记录后填值；仓库只保存不含秘密的版本。
+run_id: null
+source_commit: null
+executor: null
+evidence_directory: null
+baseline: dd28864c
+
+deployment:
+  start_stop_owner: null
+  web_root_url: null
+  web_hub_url: null
+  web_dotted_prefix_url: null
+  api_url: null
+  backend_image_digest: null
+  frontend_image_digest: null
+  effective_auth_mock_disabled: null
+  effective_auth_direct_disabled: null
+  effective_auth_session_bootstrap_disabled: null
+  dedicated_pg16_database: null
+  postgres_access_secret_ref: null
+  redis_isolation: null
+  local_storage_directory: null
+  s3_endpoint: null
+  s3_test_bucket_or_prefix: null
+  s3_secret_ref: null
+  ca_bundle_reference: null
+  allowed_reset_and_cleanup_scope: null
+
+accounts:
+  super_admin_secret_ref: null
+  plugin_admin_secret_ref: null
+  software_admin_secret_ref: null
+  author_member_secret_ref: null
+  namespace_owner_secret_ref: null
+  outsider_secret_ref: null
+  can_provision_test_accounts_and_roles: null
+
+channels:
+  git_public_https_repo_one: null
+  git_public_https_repo_two: null
+  git_test_branch_and_namespace: null
+  git_publisher_credential_ref: null
+  npm_registry_one: null
+  npm_registry_two: null
+  npm_test_scope: null
+  npm_publisher_credential_ref: null
+  no_public_uplinks_verified: null
+  faults_and_service_restart_scope: null
+
+inspection_and_fixtures:
+  inspector_url_or_worker_identity: null
+  inspector_shared_secret_ref: null
+  skill_scanner_url: null
+  package_inventory_and_hashes: null
+  original_signed_old_new_installers_and_metadata: null
+  client_source_read_only_paths: null
+
+execution:
+  java_maven_node_pnpm_python_git_versions: null
+  playwright_version_and_matching_browser_path: null
+  docker_and_compose_available: null
+  helm_and_offline_chart_dependencies_available: null
+  offline_dependency_and_image_inventory: null
+  windows_resettable_test_machine: null
+  macos_resettable_test_machine: null
+  isolated_cli_config_directories_and_versions: null
+  existing_client_source_migration_method: null
+  real_large_file_bytes: null
+  download_concurrency: 20
+  disk_and_network_budget: null
+  measured_resource_capacity: null
+  remaining_blockers: []

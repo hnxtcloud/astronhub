@@ -2,6 +2,8 @@
 
 本文档描述当前 `web/e2e` 的真实请求（non-mock）测试体系、执行方式与维护规范。
 
+2026-10-16：插件管理、软件中心及多应用更新源的真实服务验收，使用[新 E2E 执行计划](plugin-updates-e2e-plan.md)和[Wayfinder](../.scratch/plugin-update-e2e/map.md)。下文套件列表/数量为既有说明，实际覆盖以 `playwright test --list` 为准。认证助手仍允许 local mock 身份回退；严格权限场景必须按新计划关闭回退并验证后端实际配置。
+
 ## 1. 当前状态
 
 `web/e2e` 已完成 API mock 迁移，现状如下：
