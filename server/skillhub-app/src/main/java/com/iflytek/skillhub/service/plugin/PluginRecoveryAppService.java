@@ -14,6 +14,7 @@ import com.iflytek.skillhub.service.AuditRequestContext;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -37,6 +38,8 @@ public class PluginRecoveryAppService {
     private final PluginRecoveryQueryRepository queries;
     private final AuditLogService audit;
     private final RequestIdAccessor ids;
+    private final TransactionTemplate tx;
+    private final PluginChannelAttemptRunner runner;
 
     public PluginRecoveryAppService(
             PluginReleaseWorkflow workflow,
@@ -54,8 +57,10 @@ public class PluginRecoveryAppService {
             PluginRecoveryQueryRepository queries,
             AuditLogService audit,
             RequestIdAccessor ids,
-            PluginChannelGovernanceOperationRepository operations) {
+            PluginChannelGovernanceOperationRepository operations, TransactionTemplate tx, PluginChannelAttemptRunner runner) {
         this.operations = operations;
+        this.tx = tx;
+        this.runner = runner;
         this.workflow = workflow;
         this.projects = projects;
         this.tasks = tasks;
@@ -340,8 +345,14 @@ public class PluginRecoveryAppService {
         return queries.read(id, actor);
     }
 
-    @Transactional
-    public Long retryGovernance(
+    public List<RecoveryChannelView> retryGovernance(
+            Long id, Long operationId, PluginActor actor, AuditRequestContext context) {
+        tx.executeWithoutResult(status -> queueGovernanceRetry(id, operationId, actor, context));
+        runner.executeGovernance(id, operationId);
+        return queries.read(id, actor);
+    }
+
+    private void queueGovernanceRetry(
             Long id, Long operationId, PluginActor actor, AuditRequestContext context) {
         if (!actor.reviewer()) throw new DomainForbiddenException("error.plugin.permission");
         workflow.locked(id);
@@ -359,7 +370,6 @@ public class PluginRecoveryAppService {
                 context.clientIp(),
                 context.userAgent(),
                 "{}");
-        return op.getId();
     }
 
     private static String sha(String value) {

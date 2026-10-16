@@ -2942,7 +2942,9 @@
     "chooseTarget": "Choose a published snapshot",
     "saveChannel": "Save channel target",
     "editChannel": "Edit channel",
-    "clearTarget": "Clear target"
+    "clearTarget": "Clear target",
+    "confirmNsis": "I confirm this installer is a full NSIS installer (publisher declaration; not binary detection or installation verification).",
+    "nsisConfirmedBy": "NSIS confirmed by {{actor}} at {{at}}"
   },
   "pluginNpm": {
     "title": "Internal npm publication",
@@ -3073,6 +3075,49 @@
     "withdraw": "Withdraw native installation source",
     "retryWithdrawal": "Retry / reconcile withdrawal",
     "older": "Older attempts",
-    "npmRetained": "npm does not support remote deletion here. The package remains in the registry; this action only disables the local installation source."
+    "npmRetained": "npm does not support remote deletion here. The package remains in the registry; this action only disables the local installation source.",
+    "pageInfo": "Page {{page}} · {{size}} per page · {{total}} attempts"
+  },
+  "publicationLabels": {
+    "states": {
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "WITHDRAWN": "Withdrawn",
+      "QUEUED": "Queued",
+      "RUNNING": "Running",
+      "SUCCEEDED": "Succeeded",
+      "FAILED": "Failed",
+      "UNKNOWN": "Result unknown",
+      "BLOCKED": "Blocked",
+      "UNSUPPORTED": "Unsupported",
+      "AWAITING_CONFIRMATION": "Awaiting confirmation",
+      "EXPIRED": "Lease expired"
+    },
+    "actions": {
+      "PUBLISH": "Publish",
+      "RECONCILE": "Reconcile publication",
+      "WITHDRAW_CURRENT": "Withdraw current index",
+      "RECONCILE_WITHDRAW": "Reconcile withdrawal"
+    },
+    "roles": {
+      "INSTALLER": "Installer",
+      "METADATA": "Update metadata",
+      "BLOCKMAP": "Blockmap",
+      "CHECKSUM": "Checksum",
+      "SIGNATURE": "Signature",
+      "OTHER": "Other asset"
+    },
+    "bytes": "bytes",
+    "dependencyKinds": {
+      "dependencies": "Required dependency",
+      "optionalDependencies": "Optional dependency",
+      "peerDependencies": "Peer dependency"
+    },
+    "availability": {
+      "AVAILABLE": "Available",
+      "MISSING": "Missing",
+      "UNRESOLVED_RANGE": "Version range unresolved",
+      "UNSUPPORTED_SOURCE": "Unsupported source"
+    }
   }
 }

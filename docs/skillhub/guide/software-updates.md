@@ -8,7 +8,7 @@
 
 1. 按现有软件包流程上传、确认并发布安装包。ZIP、DMG 使用管理员手动确认，DMG 不会被标记为已经自动检查或验签；它可以和 macOS ZIP 一起出现在原生更新元数据中。
 2. 创建更新草稿，填写机器版本和目标。页面使用 `v{机器版本}` tag；管理 API 也接受无前缀或大写 V 前缀的对应 tag。
-3. 关联相同展示版本、应用、系统和架构下已经确认并发布的安装包，填写原始相对路径。关联复用原对象，不重复计算安装包容量。
+3. 关联相同展示版本、应用、系统和架构下已经确认并发布的安装包，填写原始相对路径。关联复用原对象，不重复计算安装包容量。Windows Electron 还须主动勾选 NSIS 安装器确认（默认未勾选）；确认人和时间保存在不可变资产中，独立于原始版本元数据。该声明不等于自动识别安装器、验签或实际安装通过。
 4. 上传原始 YAML/JSON、blockmap、签名或其他辅助文件。可以一次选择多文件；单文件时路径是完整相对路径，多文件时路径是目标目录。所有文件属于同一个草稿，不需要为每个辅助文件创建软件展示版本。不同用途的文件可分批上传到同一草稿。
 5. 校验，然后发布快照。服务端再次检查元数据与实际资产的版本、字节数、SHA256/SHA512。发布前的活动上传必须完成。发布后不能增删或替换文件；内容变化必须创建新机器版本。
 6. 在应用的更新源区域，按需开启匿名读取，选择已发布快照，保存渠道标识和虚拟 GitLab project path。虚拟项目是更新协议映射，不会创建 Git 仓库。可以重新选择目标，也可以清除目标；撤出更新不会删除已有安装包。
@@ -21,7 +21,7 @@
 
 Electron 元数据的 `files` 中每个文件都必须关联受管安装包，大小和 SHA512 base64 必须匹配存储的实际字节。`blockMapSize` 表示包尾嵌入 blockmap 的长度，不表示外部 `.blockmap` 文件大小。外部 blockmap 保持独立原始资产。当前不接收包含 `packages` 的 web-installer 元数据，需使用完整安装包发行方式。
 
-白泽灵台 manifest 使用 schemaVersion 1、win32/x64、匹配的 channel/piVersion、有效 ISO 发布时间、相对 ZIP 路径、实际 SHA256 和 bytes。可选 `releasesUrl` 使用本源的相对路径。
+白泽灵台 manifest 使用 schemaVersion 1、win32/x64、匹配的 channel/piVersion、有效 ISO 发布时间、相对 ZIP 路径、实际 SHA256 和 bytes。可选 `releasesUrl` 使用本源的相对路径，必须解析到同一快照中实际上传的资产（相对 metadata 所在目录解析，支持编码空格、加号和 Unicode）。缺失目标会阻止发布；说明文件的固定下载地址同样受应用匿名开关和分发治理约束。
 
 标为 CHECKSUM 的文件支持标准 `sha256sum`/`sha512sum` 清单（十六进制摘要、空格、相对文件路径），或以 `.sha256`/`.sha512` 为后缀、仅含一个摘要的伴随文件。摘要会与所指资产交叉核对。签名文件作为原始资产保存；保存签名并不代表服务器已完成原生签名验证。
 
@@ -76,7 +76,7 @@ Electron 元数据的 `files` 中每个文件都必须关联受管安装包，�
 python scripts/publish-software-release.py --server https://hub.example/hub --app 12 --manifest release.json --state release-state.json --publish
 ```
 
-清单含展示版本、发布说明、完整 update 身份、installers 和 assets。每项指向一个原始本地文件和应保留的相对发布路径；YAML/JSON、安装包和 blockmap 的路径、大小、摘要须一致。完整清单样例位于仓库 `docs/software-machine-publishing.md`。
+清单含展示版本、发布说明、完整 update 身份、installers 和 assets。Windows Electron 的每个 installer 还须明确填写 `confirmedInstallerFamily: "NSIS"`，脚本不会推断或自动补上；断点续发会检查服务端资产声明及其确认记录。每项指向一个原始本地文件和应保留的相对发布路径；YAML/JSON、安装包和 blockmap 的路径、大小、摘要须一致。完整清单样例位于仓库 `docs/software-machine-publishing.md`。
 
 工具默认校验草稿，只有 `--publish` 才发布快照；另加 `--activate-channel` 才将清单指定的渠道移动到该快照。匿名开关仍由会话管理员单独设置。检查未完成时退出码为 2，保存不含 token 的状态文件，用同一清单和状态文件可重试；`--wait-seconds` 可有限等待。状态绑定服务、应用、清单及所有本地文件摘要，不能拿已改变的产物继续同一次发布。已发布资产不能原地替换。
 
@@ -113,3 +113,5 @@ Electron generic 客户端将 provider 设为 generic、url 设为清单所在�
 辅助文件原始上传路径 `/api/v1/admin/software/update-releases/{id}/assets`，以及机器入口的 `/apps/{appId}/update-releases/{id}/assets`、`/apps/{appId}/uploads/{id}/chunks/{number}` 使用独立流式代理，包含部署前缀的版本也在 Nginx 检查请求体之前匹配。这些路径由后端鉴权，并依照软件策略预留容量和限制大小；代理本身不再使用全局 100 MiB 上限。其他 JSON/管理路径保持原有上限。外层 Ingress、网关和客户端超时仍需由运维按实际大小配置；本改动不表示已执行 5 GiB 端到端传输。
 
 有本地 Nginx 时，可运行 `python scripts/tests/software-update-proxy-test.py --nginx /path/to/nginx --require-nginx`。该测试仅绑定回环地址，检查原始路径、请求/响应头、HEAD、错误状态和大请求头准入，结束后停止测试进程；不发送大上传实体，也不代替应用鉴权、真实更新安装或 Docker staging 验证。
+
+历史 Windows Electron 快照若没有独立的 NSIS 声明，将拒绝发布、渠道切换和读取；迁移不会自动认定已有 EXE 为 NSIS。草稿可移除旧关联后重新关联并明确确认；已发布快照需按新的版本身份创建完整快照并明确确认。普通软件目录的 EXE 支持不依赖此更新协议声明。

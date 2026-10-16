@@ -1,6 +1,7 @@
 package com.iflytek.skillhub.domain.software;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 
 /** Immutable stored-byte identity; installers reference existing package storage. */
 @Entity
@@ -15,10 +16,24 @@ public class SoftwareReleaseAsset {
     @Column(nullable = false) private long byteSize;
     @Column(nullable = false, length = 64) private String sha256;
     @Column(nullable = false, length = 88) private String sha512Base64;
+    @Column(length = 20, updatable = false) private String confirmedInstallerFamily;
+    @Column(length = 128, updatable = false) private String installerFamilyConfirmedBy;
+    @Column(updatable = false) private Instant installerFamilyConfirmedAt;
     protected SoftwareReleaseAsset() { }
     public SoftwareReleaseAsset(Long releaseId, String relativePath, String role, Long packageRevisionId,
             String objectKey, long byteSize, String sha256, String sha512Base64) {
+        this(releaseId, relativePath, role, packageRevisionId, objectKey, byteSize, sha256, sha512Base64, null, null, null);
+    }
+    public SoftwareReleaseAsset(Long releaseId, String relativePath, String role, Long packageRevisionId,
+            String objectKey, long byteSize, String sha256, String sha512Base64, String confirmedInstallerFamily,
+            String installerFamilyConfirmedBy, Instant installerFamilyConfirmedAt) {
         SoftwareUpdateRules.path(relativePath);
+        if (confirmedInstallerFamily != null && (!"NSIS".equals(confirmedInstallerFamily)
+                || !"INSTALLER".equals(role) || packageRevisionId == null
+                || installerFamilyConfirmedBy == null || installerFamilyConfirmedBy.isBlank()
+                || installerFamilyConfirmedAt == null)) SoftwareUpdateRules.invalid("installer family confirmation");
+        if (confirmedInstallerFamily == null && (installerFamilyConfirmedBy != null || installerFamilyConfirmedAt != null))
+            SoftwareUpdateRules.invalid("installer family confirmation");
         this.releaseId = releaseId;
         this.relativePath = relativePath;
         this.role = role;
@@ -27,6 +42,9 @@ public class SoftwareReleaseAsset {
         this.byteSize = byteSize;
         this.sha256 = sha256;
         this.sha512Base64 = sha512Base64;
+        this.confirmedInstallerFamily = confirmedInstallerFamily;
+        this.installerFamilyConfirmedBy = installerFamilyConfirmedBy;
+        this.installerFamilyConfirmedAt = installerFamilyConfirmedAt;
     }
     public Long getId() { return id; }
     public Long getReleaseId() { return releaseId; }
@@ -37,4 +55,11 @@ public class SoftwareReleaseAsset {
     public long getByteSize() { return byteSize; }
     public String getSha256() { return sha256; }
     public String getSha512Base64() { return sha512Base64; }
+    public String getConfirmedInstallerFamily() { return confirmedInstallerFamily; }
+    public String getInstallerFamilyConfirmedBy() { return installerFamilyConfirmedBy; }
+    public Instant getInstallerFamilyConfirmedAt() { return installerFamilyConfirmedAt; }
+    public boolean hasConfirmedNsisInstaller() {
+        return "NSIS".equals(confirmedInstallerFamily) && installerFamilyConfirmedBy != null
+                && !installerFamilyConfirmedBy.isBlank() && installerFamilyConfirmedAt != null;
+    }
 }

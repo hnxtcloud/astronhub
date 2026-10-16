@@ -10,4 +10,6 @@ public interface PluginChannelAttemptRepository {
     Optional<PluginChannelAttempt> findByAttemptToken(String token);
 
     List<PluginChannelAttempt> findByChannelIdOrderByIdDesc(Long channelId, Pageable page);
+
+    long countByChannelId(Long channelId);
 }

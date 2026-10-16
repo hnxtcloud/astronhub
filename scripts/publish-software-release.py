@@ -39,6 +39,10 @@ class Publisher:
         self.base = self.server.path.rstrip('/') + f'/api/v1/software-publishing/apps/{args.app}'
         self.manifest_path = Path(args.manifest).resolve()
         self.manifest = json.loads(self.manifest_path.read_text(encoding='utf-8-sig'))
+        update = self.manifest.get('update', {})
+        if update.get('protocol') == 'ELECTRON' and update.get('targetOs') == 'WINDOWS':
+            if any(item.get('confirmedInstallerFamily') != 'NSIS' for item in self.manifest.get('installers', [])):
+                raise ValueError('Windows Electron installers require explicit confirmedInstallerFamily=NSIS in the manifest.')
         if args.activate_channel and (not args.publish or not self.manifest.get('channel')):
             raise ValueError('--activate-channel requires --publish and an explicit channel mapping in the manifest.')
         self.files = {}
@@ -186,10 +190,15 @@ class Publisher:
                     raise ValueError('Existing snapshot asset differs from original artifact bytes or role.')
                 if role == 'INSTALLER' and asset['packageRevisionId'] != package_ids[path]:
                     raise ValueError('Existing installer points to a different confirmed package.')
+                if role == 'INSTALLER':
+                    family = item.get('confirmedInstallerFamily')
+                    if (asset.get('confirmedInstallerFamily') != family or (family == 'NSIS'
+                            and (not asset.get('installerFamilyConfirmedBy') or not asset.get('installerFamilyConfirmedAt')))):
+                        raise ValueError('Existing installer family confirmation differs from the explicit manifest declaration.')
             elif snapshot['status'] != 'DRAFT':
                 raise ValueError('Published snapshot is missing a manifest asset and cannot be changed.')
             elif role == 'INSTALLER':
-                self.request('POST', f'/update-releases/{snapshot_id}/package-assets', {'packageRevisionId': package_ids[path], 'relativePath': path})
+                self.request('POST', f'/update-releases/{snapshot_id}/package-assets', {'packageRevisionId': package_ids[path], 'relativePath': path, 'confirmedInstallerFamily': item.get('confirmedInstallerFamily')})
             else:
                 uploaded = self.request('POST', f'/update-releases/{snapshot_id}/assets?' + urlencode({'path': path, 'role': role}), file=self.files[path]['local'])
                 if uploaded['sha256'] != self.files[path]['sha256'] or uploaded['byteSize'] != self.files[path]['size']:

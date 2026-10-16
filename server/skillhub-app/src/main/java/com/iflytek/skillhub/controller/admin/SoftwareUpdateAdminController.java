@@ -42,7 +42,7 @@ public class SoftwareUpdateAdminController extends BaseApiController {
     @PostMapping("/update-releases/{id}/package-assets")
     public ApiResponse<SoftwareReleaseAssetResponse> link(@PathVariable Long id,
             @Valid @RequestBody SoftwareUpdatePackageLinkRequest body, @AuthenticationPrincipal PlatformPrincipal actor) {
-        return ok("response.success.created", updates.linkPackage(id, body.packageRevisionId(), body.relativePath(), actor.userId()));
+        return ok("response.success.created", updates.linkPackage(id, body.packageRevisionId(), body.relativePath(), body.confirmedInstallerFamily(), actor.userId()));
     }
     @PostMapping(value = "/update-releases/{id}/assets", consumes = "application/octet-stream")
     @io.swagger.v3.oas.annotations.Operation(summary = "Upload bounded original update asset bytes")

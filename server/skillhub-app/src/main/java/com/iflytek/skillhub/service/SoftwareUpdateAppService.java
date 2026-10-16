@@ -93,10 +93,7 @@ public class SoftwareUpdateAppService {
     public SoftwareUpdateReleaseResponse get(Long id) { return queries.project(requireRelease(id)); }
 
     public SoftwareUpdateSourceResponse source(Long applicationId) {
-        applications.findById(applicationId).orElseThrow(() -> missing("application"));
-        boolean enabled = sources.findById(applicationId).map(SoftwareUpdateSource::isAnonymousEnabled).orElse(false);
-        return new SoftwareUpdateSourceResponse(applicationId, enabled,
-                channels.findByApplicationIdOrderByIdAsc(applicationId).stream().map(queries::channel).toList());
+        return queries.source(applicationId);
     }
 
     public SoftwareUpdateSourceResponse setAnonymous(Long applicationId, boolean enabled, String actor) {
@@ -132,20 +129,30 @@ public class SoftwareUpdateAppService {
     }
 
     public SoftwareReleaseAssetResponse linkPackage(Long id, Long packageId, String path, String actor) {
+        return linkPackage(id, packageId, path, null, actor);
+    }
+
+    public SoftwareReleaseAssetResponse linkPackage(Long id, Long packageId, String path, String confirmedInstallerFamily, String actor) {
         SoftwareUpdateRules.path(path);
         var release = requireRelease(id);
         release.requireDraft();
         var revision = requirePackage(release, packageId);
         requireNativeFormat(release, revision, path);
+        requireInstallerDeclaration(release, confirmedInstallerFamily);
         var hashes = hashes(revision.getObjectKey(), revision.getByteSize());
         if (!hashes.sha256().equals(revision.getSha256())) invalid("installer hash");
         return tx.execute(status -> {
             var locked = locked(id);
             locked.requireDraft();
             var current = requirePackage(locked, packageId);
+            requireNativeFormat(locked, current, path);
+            requireInstallerDeclaration(locked, confirmedInstallerFamily);
             requireFreePath(id, path);
             var asset = assets.save(new SoftwareReleaseAsset(id, path, "INSTALLER", packageId, current.getObjectKey(),
-                    current.getByteSize(), hashes.sha256(), hashes.sha512()));
+                    current.getByteSize(), hashes.sha256(), hashes.sha512(), confirmedInstallerFamily,
+                    confirmedInstallerFamily == null ? null : actor, confirmedInstallerFamily == null ? null : Instant.now()));
+            if (confirmedInstallerFamily != null) audit.record(actor, "software.update.installer.nsis.confirm", "SOFTWARE_UPDATE", id,
+                    null, null, null, "{\"assetId\":" + asset.getId() + ",\"packageRevisionId\":" + packageId + ",\"installerFamily\":\"NSIS\"}");
             record("software.update.link", id, actor);
             return queries.asset(asset);
         });
@@ -290,8 +297,11 @@ public class SoftwareUpdateAppService {
         var application = applications.findById(release.getApplicationId()).orElseThrow(() -> missing("application"));
         if (application.getStatus() != SoftwareApplicationStatus.PUBLISHED) invalid("application not published");
         for (var asset : assets.findByReleaseIdOrderByIdAsc(release.getId())) {
-            if (asset.getPackageRevisionId() != null)
+            if (asset.getPackageRevisionId() != null) {
                 requireNativeFormat(release, requirePackage(release, asset.getPackageRevisionId()), asset.getRelativePath());
+                requireInstallerDeclaration(release, asset.getConfirmedInstallerFamily());
+                if (requiresNsis(release) && !asset.hasConfirmedNsisInstaller()) invalid("explicit NSIS confirmation is required");
+            }
         }
     }
 
@@ -329,6 +339,13 @@ public class SoftwareUpdateAppService {
                 || !revision.getTargetArch().name().equals(release.getTargetArch())
                 || !revision.isConfirmed() || revision.getStatus() != SoftwarePackageStatus.PUBLISHED) invalid("installer not applicable/published");
         return revision;
+    }
+    private static boolean requiresNsis(SoftwareUpdateRelease release) {
+        return "ELECTRON".equals(release.getProtocol()) && "WINDOWS".equals(release.getTargetOs());
+    }
+    private static void requireInstallerDeclaration(SoftwareUpdateRelease release, String family) {
+        if (requiresNsis(release) ? !"NSIS".equals(family) : family != null)
+            invalid("Windows Electron updates require an explicit NSIS installer declaration; other targets do not use this declaration");
     }
     private void requireNativeFormat(SoftwareUpdateRelease release, SoftwarePackageRevision revision, String path) {
         var allowed = "BAIZE".equals(release.getProtocol()) ? java.util.Set.of(SoftwarePackageFormat.ZIP)

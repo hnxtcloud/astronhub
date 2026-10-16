@@ -8696,6 +8696,10 @@ export interface components {
             byteSize?: number;
             sha256?: string;
             sha512Base64?: string;
+            confirmedInstallerFamily?: string;
+            installerFamilyConfirmedBy?: string;
+            /** Format: date-time */
+            installerFamilyConfirmedAt?: string;
         };
         SoftwareUpdateReleaseResponse: {
             /** Format: int64 */
@@ -8734,6 +8738,8 @@ export interface components {
             /** Format: int64 */
             packageRevisionId: number;
             relativePath: string;
+            /** @description Explicit publisher confirmation for Windows Electron NSIS installers; never inferred from EXE format or package metadata */
+            confirmedInstallerFamily?: string;
         };
         ApiResponseSoftwareReleaseAssetResponse: {
             /** Format: int32 */
@@ -11252,8 +11258,12 @@ export interface components {
         };
         AttemptPage: {
             items: components["schemas"]["AttemptView"][];
+            /** Format: int64 */
+            total?: number;
             /** Format: int32 */
             page: number;
+            /** Format: int32 */
+            size?: number;
             hasMore: boolean;
         };
         ApiResponseListGitIntentView: {

@@ -165,7 +165,31 @@ class SoftwareNativeUpdateFeedIntegrationTest extends SoftwareGitLabUpdateReadIn
         assertThat(send(feed, "GET", "Range", "bytes=0-1").statusCode()).isEqualTo(404);
     }
 
+    @Test
+    void baizeReleaseNotesResolveNestedEncodedNamesAndRemainGoverned() throws Exception {
+        var fixture = publish();
+        var snapshot = baize(fixture, "stable", "1.2.3", true);
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var document = mapper.readTree(get("/updates/" + fixture.slug() + "/baize-stable/latest.json").body());
+        String notes = document.path("releasesUrl").asText();
+        assertThat(notes).isEqualTo(contextPath() + "/releases/" + fixture.slug() + "/" + snapshot.id()
+                + "/assets/dist/nested/notes/release%20notes%2B%E4%B8%AD.html");
+        String relative = notes.substring(contextPath().length());
+        var response = get(relative);
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).isEqualTo("<h1>Release notes + 中</h1>".getBytes(StandardCharsets.UTF_8));
+        var original = mapper.readTree(get("/releases/" + fixture.slug() + "/" + snapshot.id()
+                + "/assets/dist/nested/latest.json").body());
+        assertThat(original.path("releasesUrl").asText()).isEqualTo("notes/release%20notes%2B%E4%B8%AD.html");
+        updates.setAnonymous(fixture.applicationId(), false, "admin");
+        assertThat(get(relative).statusCode()).isEqualTo(404);
+    }
+
     SoftwareUpdateReleaseResponse baize(Fixture fixture, String channel, String version) {
+        return baize(fixture, channel, version, false);
+    }
+
+    SoftwareUpdateReleaseResponse baize(Fixture fixture, String channel, String version, boolean withNotes) {
         byte[] bytes = ("portable-" + channel + "-" + version).getBytes(StandardCharsets.UTF_8);
         var upload = uploads.createSession(new SoftwareUploadSessionCreateRequest(fixture.catalogId(), "portable.zip", "ZIP",
                 "WINDOWS", "X86_64", null, null, version, (long) bytes.length), "admin");
@@ -174,11 +198,18 @@ class SoftwareNativeUpdateFeedIntegrationTest extends SoftwareGitLabUpdateReadIn
         packages.confirm(pkg, "admin"); packages.publish(pkg);
         var draft = updates.create(new SoftwareUpdateCreateRequest(fixture.catalogId(), version, "v" + version,
                 "WINDOWS", "X86_64", channel, "portable", "BAIZE", "0.70.0"), "admin");
-        var installer = updates.linkPackage(draft.id(), pkg, "dist/portable+app.zip", "admin");
+        String parent = withNotes ? "dist/nested/" : "dist/";
+        var installer = updates.linkPackage(draft.id(), pkg, parent + "portable+app.zip", "admin");
+        if (withNotes) {
+            byte[] notes = "<h1>Release notes + 中</h1>".getBytes(StandardCharsets.UTF_8);
+            updates.uploadAsset(draft.id(), parent + "notes/release notes+中.html", "OTHER", notes.length,
+                    new ByteArrayInputStream(notes), "admin");
+        }
         byte[] json = ("{\"schemaVersion\":1,\"version\":\"" + version + "\",\"piVersion\":\"0.70.0\",\"platform\":\"win32\",\"arch\":\"x64\","
                 + "\"channel\":\"" + channel + "\",\"publishedAt\":\"2026-10-15T08:00:00Z\",\"package\":\"portable%2Bapp.zip\","
-                + "\"sha256\":\"" + installer.sha256() + "\",\"bytes\":" + installer.byteSize() + "}").getBytes(StandardCharsets.UTF_8);
-        updates.uploadAsset(draft.id(), "dist/latest.json", "METADATA", json.length, new ByteArrayInputStream(json), "admin");
+                + "\"sha256\":\"" + installer.sha256() + "\",\"bytes\":" + installer.byteSize()
+                + (withNotes ? ",\"releasesUrl\":\"notes/release%20notes%2B%E4%B8%AD.html\"" : "") + "}").getBytes(StandardCharsets.UTF_8);
+        updates.uploadAsset(draft.id(), parent + "latest.json", "METADATA", json.length, new ByteArrayInputStream(json), "admin");
         var published = updates.publish(draft.id(), "admin");
         updates.saveChannel(fixture.applicationId(), new SoftwareUpdateChannelRequest("baize-" + channel,
                 "baize/" + fixture.slug() + "-" + channel, "WINDOWS", "X86_64", channel, "portable", published.id()), "admin");
