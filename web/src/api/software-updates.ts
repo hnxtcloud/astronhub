@@ -18,7 +18,7 @@ export const softwareUpdates = {
   list: (catalogReleaseId: number) => fetchJson<UpdateRelease[]>(`${base}/update-releases?catalogReleaseId=${catalogReleaseId}`),
   published: (applicationId: number) => fetchJson<UpdateRelease[]>(`${base}/update-releases?applicationId=${applicationId}`),
   create: (body: UpdateCreate) => write<UpdateRelease>('/update-releases', body),
-  link: (id: number, packageRevisionId: number, relativePath: string) => write<UpdateAsset>(`/update-releases/${id}/package-assets`, { packageRevisionId, relativePath }),
+  link: (id: number, packageRevisionId: number, relativePath: string, confirmedInstallerFamily?: components['schemas']['SoftwareUpdatePackageLinkRequest']['confirmedInstallerFamily']) => write<UpdateAsset>(`/update-releases/${id}/package-assets`, { packageRevisionId, relativePath, confirmedInstallerFamily } satisfies components['schemas']['SoftwareUpdatePackageLinkRequest']),
   upload: async (id: number, path: string, role: string, file: File) => fetchJson<UpdateAsset>(`${base}/update-releases/${id}/assets?${new URLSearchParams({ path, role })}`, {
     method: 'POST', headers: await ensureCsrfHeaders({ 'Content-Type': 'application/octet-stream' }), body: file,
     timeoutMs: 30 * 60 * 1000,

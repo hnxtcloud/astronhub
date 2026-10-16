@@ -30,9 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 @ActiveProfiles("test")
 @Transactional
 class PluginPublicationRecoveryIntegrationTest {
-    @Test
-    void attemptHistoryIsPagedWithoutLosingOlderDurableEvidence() throws Exception {
-        for (int i = 0; i < 53; i++) {
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(ints = {50, 53})
+    void attemptHistoryIsPagedWithoutLosingOlderDurableEvidence(int total) throws Exception {
+        for (int i = 0; i < total; i++) {
             var now = java.time.Instant.now();
             var attempt =
                     new PluginChannelAttempt(
@@ -58,7 +59,10 @@ class PluginPublicationRecoveryIntegrationTest {
                                                         "recovery-admin", "PLUGIN_ADMIN"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.items.length()").value(50))
-                .andExpect(jsonPath("$.data.hasMore").value(true));
+                .andExpect(jsonPath("$.data.total").value(total))
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(50))
+                .andExpect(jsonPath("$.data.hasMore").value(total > 50));
         mvc.perform(
                         get(path)
                                 .param("channel", "NPM")
@@ -68,7 +72,10 @@ class PluginPublicationRecoveryIntegrationTest {
                                                 PluginPublishedAccessIntegrationTest.auth(
                                                         "recovery-admin", "PLUGIN_ADMIN"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.items.length()").value(3))
+                .andExpect(jsonPath("$.data.items.length()").value(total - 50))
+                .andExpect(jsonPath("$.data.total").value(total))
+                .andExpect(jsonPath("$.data.page").value(1))
+                .andExpect(jsonPath("$.data.size").value(50))
                 .andExpect(jsonPath("$.data.hasMore").value(false));
         mvc.perform(
                         get(path)

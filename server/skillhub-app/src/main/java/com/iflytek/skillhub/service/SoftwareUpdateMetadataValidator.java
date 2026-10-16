@@ -140,8 +140,7 @@ public class SoftwareUpdateMetadataValidator {
         try { java.time.Instant.parse(doc.path("publishedAt").asText()); }
         catch (java.time.format.DateTimeParseException ex) { fail("publishedAt must be an ISO instant"); }
         if (doc.has("releasesUrl")) {
-            String link = localReference(doc.path("releasesUrl").asText());
-            SoftwareUpdateRules.path(link);
+            referenced(metadata, doc.path("releasesUrl").asText(), assets);
         }
     }
     private SoftwareReleaseAsset referenced(SoftwareReleaseAsset metadata, String reference, Map<String, SoftwareReleaseAsset> assets) {

@@ -3,6 +3,7 @@ package com.iflytek.skillhub.service;
 import com.iflytek.skillhub.domain.software.*;
 import com.iflytek.skillhub.dto.software.*;
 import java.util.List;
+import com.iflytek.skillhub.repository.SoftwareMachinePublishingQueryRepository;
 import java.util.Objects;
 import java.io.InputStream;
 import com.iflytek.skillhub.domain.shared.exception.*;
@@ -22,13 +23,14 @@ public class SoftwareMachinePublishingAppService {
     private final SoftwareInspectionTaskRepository tasks;
     private final SoftwareInspectionAppService inspections;
     private final SoftwareUpdateAppService updates;
+    private final SoftwareMachinePublishingQueryRepository queries;
     public SoftwareMachinePublishingAppService(SoftwarePublisherAppService publishers, SoftwareAdminAppService admin,
             SoftwareReleaseRepository catalog, SoftwareUploadAppService uploads, SoftwareUploadSessionService sessions,
             SoftwarePackageService packages, SoftwareInspectionTaskRepository tasks, SoftwareInspectionAppService inspections,
-            SoftwareUpdateAppService updates) {
+            SoftwareUpdateAppService updates, SoftwareMachinePublishingQueryRepository queries) {
         this.publishers = publishers; this.admin = admin;
         this.catalog = catalog; this.uploads = uploads; this.sessions = sessions; this.packages = packages;
-        this.tasks = tasks; this.inspections = inspections; this.updates = updates;
+        this.tasks = tasks; this.inspections = inspections; this.updates = updates; this.queries = queries;
     }
     public List<SoftwareReleaseResponse> releases(Long appId, Authentication auth) {
         publishers.requireMachine(appId, auth);
@@ -44,7 +46,7 @@ public class SoftwareMachinePublishingAppService {
     }
     public List<SoftwarePackageResponse> packages(Long appId, Long catalogId, Authentication auth) {
         publishers.requireMachine(appId, auth); requireCatalog(appId, catalogId);
-        return admin.listPackages(catalogId).stream().map(this::project).toList();
+        return admin.listPackages(catalogId).stream().map(queries::project).toList();
     }
     public SoftwareUploadSessionResponse createUpload(Long appId, SoftwareUploadSessionCreateRequest body, Authentication auth) {
         String actor = publishers.requireMachine(appId, auth); requireCatalog(appId, body.releaseId());
@@ -70,19 +72,18 @@ public class SoftwareMachinePublishingAppService {
     }
     public SoftwareMachinePackageResponse packageStatus(Long appId, Long id, Authentication auth) {
         publishers.requireMachine(appId, auth); var pkg = requirePackage(appId, id);
-        var inspection = tasks.findByPackageRevisionId(id).map(task -> inspections.detail(task.getId())).orElse(null);
-        return new SoftwareMachinePackageResponse(project(pkg), inspection);
+        return queries.packageStatus(pkg);
     }
     public SoftwarePackageResponse confirm(Long appId, Long id, JsonNode rawFields, Authentication auth, AuditRequestContext context) {
         String actor = publishers.requireMachine(appId, auth); var pkg = requirePackage(appId, id);
-        if (pkg.isConfirmed()) return project(pkg);
-        return project(tasks.findByPackageRevisionId(id)
+        if (pkg.isConfirmed()) return queries.project(pkg);
+        return queries.project(tasks.findByPackageRevisionId(id)
                 .map(task -> inspections.confirmMetadata(task.getId(), rawFields, actor, context))
                 .orElseGet(() -> inspections.confirmManualMetadata(id, rawFields, actor, context)));
     }
     public SoftwarePackageResponse publishPackage(Long appId, Long id, Authentication auth, AuditRequestContext context) {
         String actor = publishers.requireMachine(appId, auth); var pkg = requirePackage(appId, id);
-        return project(pkg.getStatus() == SoftwarePackageStatus.PUBLISHED ? pkg : admin.publishPackage(id, actor, context));
+        return queries.project(pkg.getStatus() == SoftwarePackageStatus.PUBLISHED ? pkg : admin.publishPackage(id, actor, context));
     }
     public SoftwareInspectionDetailResponse retryInspection(Long appId, Long id, Authentication auth, AuditRequestContext context) {
         String actor = publishers.requireMachine(appId, auth); requirePackage(appId, id);
@@ -103,7 +104,7 @@ public class SoftwareMachinePublishingAppService {
         String actor = publishers.requireMachine(appId, auth); var snapshot = requireSnapshot(appId, id);
         var pkg = requirePackage(appId, body.packageRevisionId());
         if (!Objects.equals(pkg.getReleaseId(), snapshot.getCatalogReleaseId())) throw forbidden();
-        return updates.linkPackage(id, body.packageRevisionId(), body.relativePath(), actor);
+        return updates.linkPackage(id, body.packageRevisionId(), body.relativePath(), body.confirmedInstallerFamily(), actor);
     }
     public SoftwareReleaseAssetResponse asset(Long appId, Long id, String path, String role, long size, InputStream body, Authentication auth) {
         String actor = publishers.requireMachine(appId, auth); requireSnapshot(appId, id);
@@ -133,11 +134,6 @@ public class SoftwareMachinePublishingAppService {
     }
     private SoftwareUpdateRelease requireSnapshot(Long app, Long id) {
         var release = updates.requireRelease(id); if (!Objects.equals(app, release.getApplicationId())) throw forbidden(); return release;
-    }
-    private SoftwarePackageResponse project(SoftwarePackageRevision pkg) {
-        return new SoftwarePackageResponse(pkg.getId(), pkg.getRevisionNo(), pkg.getStatus().name(), pkg.getTargetOs().name(),
-                pkg.getTargetArch().name(), pkg.getTargetDistro(), pkg.getFormat().name(), pkg.getOriginalFullVersion(), pkg.getFileName(),
-                pkg.getByteSize(), pkg.getSha256(), pkg.getApplicabilityNote(), pkg.getConfirmedBy(), pkg.getConfirmedAt(), pkg.getPublishedAt());
     }
     private static DomainForbiddenException forbidden() { return new DomainForbiddenException("error.software.publisher.forbidden"); }
 }

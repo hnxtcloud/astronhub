@@ -101,6 +101,8 @@ function Snapshot({ snapshot, packages }: { snapshot: UpdateRelease; packages: S
   const { t } = useTranslation()
   const cache = useQueryClient()
   const [packageId, setPackageId] = useState('')
+  const [nsisConfirmed, setNsisConfirmed] = useState(false)
+  const requiresNsis = snapshot.protocol === 'ELECTRON' && snapshot.targetOs === 'WINDOWS'
   const [path, setPath] = useState('')
   const [role, setRole] = useState('METADATA')
   const [files, setFiles] = useState<File[]>([])
@@ -111,17 +113,18 @@ function Snapshot({ snapshot, packages }: { snapshot: UpdateRelease; packages: S
   const draft = snapshot.status === 'DRAFT'
   const applicable = packages.filter(pkg => pkg.status === 'PUBLISHED' && pkg.confirmedBy && pkg.targetOs.toUpperCase() === snapshot.targetOs && pkg.targetArch.toUpperCase() === snapshot.targetArch)
   return <article className="space-y-3 rounded border p-3">
-    <div className="flex flex-wrap gap-3 text-sm"><strong>{snapshot.tag}</strong><span>{snapshot.targetOs}/{snapshot.targetArch} · {snapshot.channel} · {snapshot.variant}</span><span>{snapshot.status}</span></div>
-    <ul className="space-y-1 text-sm">{snapshot.assets.map(asset => <li key={asset.id} className="flex flex-wrap items-center gap-2"><code>{asset.relativePath}</code><span>{asset.role} · {asset.byteSize} bytes</span>{draft && <Button size="sm" variant="ghost" disabled={mutation.isPending} onClick={() => mutation.mutate(() => softwareUpdates.remove(snapshot.id, asset.id))}>{t('softwareUpdates.remove')}</Button>}</li>)}</ul>
+    <div className="flex flex-wrap gap-3 text-sm"><strong>{snapshot.tag}</strong><span>{snapshot.targetOs}/{snapshot.targetArch} · {snapshot.channel} · {snapshot.variant}</span><span>{t(`publicationLabels.states.${snapshot.status}`)}</span></div>
+    <ul className="space-y-1 text-sm">{snapshot.assets.map(asset => <li key={asset.id} className="flex flex-wrap items-center gap-2"><code>{asset.relativePath}</code><span>{t(`publicationLabels.roles.${asset.role}`)} · {asset.byteSize} {t('publicationLabels.bytes')}</span>{asset.confirmedInstallerFamily === 'NSIS' && <span>{t('softwareUpdates.nsisConfirmedBy', { actor: asset.installerFamilyConfirmedBy, at: asset.installerFamilyConfirmedAt })}</span>}{draft && <Button size="sm" variant="ghost" disabled={mutation.isPending} onClick={() => mutation.mutate(() => softwareUpdates.remove(snapshot.id, asset.id))}>{t('softwareUpdates.remove')}</Button>}</li>)}</ul>
     {draft && <>
       <div className="flex flex-wrap gap-2">
         <label className="text-sm">{t('softwareUpdates.path')}<Input value={path} onChange={event => setPath(event.target.value)} placeholder="dist/app.zip" /></label>
-        <label className="text-sm">{t('softwareUpdates.installer')}<select className="block rounded border bg-background p-2" value={packageId} onChange={event => setPackageId(event.target.value)}><option value="">{t('softwareUpdates.chooseInstaller')}</option>{applicable.map(pkg => <option key={pkg.id} value={pkg.id}>{pkg.fileName} (#{pkg.id})</option>)}</select></label>
-        <Button size="sm" disabled={mutation.isPending || !packageId || !path} onClick={() => mutation.mutate(async () => { await softwareUpdates.link(snapshot.id, Number(packageId), path); setPath('') })}>{t('softwareUpdates.link')}</Button>
+        <label className="text-sm">{t('softwareUpdates.installer')}<select className="block rounded border bg-background p-2" value={packageId} onChange={event => { setPackageId(event.target.value); setNsisConfirmed(false) }}><option value="">{t('softwareUpdates.chooseInstaller')}</option>{applicable.map(pkg => <option key={pkg.id} value={pkg.id}>{pkg.fileName} (#{pkg.id})</option>)}</select></label>
+        <Button size="sm" disabled={mutation.isPending || !packageId || !path || (requiresNsis && !nsisConfirmed)} onClick={() => mutation.mutate(async () => { await softwareUpdates.link(snapshot.id, Number(packageId), path, requiresNsis && nsisConfirmed ? 'NSIS' : undefined); setNsisConfirmed(false); setPath('') })}>{t('softwareUpdates.link')}</Button>
       </div>
+      {requiresNsis && <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={nsisConfirmed} onChange={event => setNsisConfirmed(event.currentTarget.checked)} />{t('softwareUpdates.confirmNsis')}</label>}
       <p className="text-xs text-muted-foreground">{t('softwareUpdates.uploadHint')}</p>
       <div className="flex flex-wrap items-end gap-2">
-        <label className="text-sm">{t('softwareUpdates.role')}<select className="block rounded border bg-background p-2" value={role} onChange={event => setRole(event.target.value)}>{['METADATA', 'BLOCKMAP', 'CHECKSUM', 'SIGNATURE', 'OTHER'].map(value => <option key={value}>{value}</option>)}</select></label>
+        <label className="text-sm">{t('softwareUpdates.role')}<select className="block rounded border bg-background p-2" value={role} onChange={event => setRole(event.target.value)}>{['METADATA', 'BLOCKMAP', 'CHECKSUM', 'SIGNATURE', 'OTHER'].map(value => <option key={value} value={value}>{t(`publicationLabels.roles.${value}`)}</option>)}</select></label>
         <label className="text-sm">{t('softwareUpdates.files')}<input type="file" multiple onChange={event => setFiles(Array.from(event.target.files ?? []))} className="block max-w-xs text-sm" /></label>
         <Button size="sm" disabled={mutation.isPending || !files.length} onClick={() => mutation.mutate(async () => {
           for (const file of files) await softwareUpdates.upload(snapshot.id, files.length === 1 && path ? path : `${path ? `${path.replace(/\/$/, '')}/` : ''}${file.name}`, role, file)

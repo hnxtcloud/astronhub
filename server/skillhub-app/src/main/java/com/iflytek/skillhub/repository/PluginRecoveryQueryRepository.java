@@ -156,7 +156,8 @@ public class PluginRecoveryQueryRepository {
                         .findFirst()
                         .orElseThrow(
                                 () -> new DomainBadRequestException("error.plugin.recoveryState"));
-        if (selected.id() == null) return new AttemptPage(List.of(), page, false);
+        if (selected.id() == null) return new AttemptPage(List.of(), 0, page, 50, false);
+        long total = attempts.countByChannelId(selected.id());
         var rows =
                 attempts.findByChannelIdOrderByIdDesc(
                         selected.id(), org.springframework.data.domain.PageRequest.of(page, 50));
@@ -178,7 +179,9 @@ public class PluginRecoveryQueryRepository {
                                                 a.getLateReceipt(),
                                                 a.getOperationId()))
                         .toList(),
+                total,
                 page,
-                rows.size() == 50);
+                50,
+                (page + 1L) * 50 < total);
     }
 }

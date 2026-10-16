@@ -15,9 +15,9 @@
 - [白泽灵台](research/baizelingtai-pi-astronhub-updates.md)：单候选原始 JSON，Windows ZIP，同源匿名访问；当前安装由独立维护窗口完成。
 - [Intelli Dev](research/intelli-dev-astronhub-updates.md)：GitLab tags 发现版本、raw 文件获取、electron-updater YAML/安装包/blockmap；已有安装执行器。
 
-发布管理操作见[软件更新快照发布](skillhub/guide/software-updates.md)，其中明确原始文件集合、安装包确认、元数据校验、匿名开关和渠道目标的管理边界。读取协议和原生安装按后续实施票独立验收。
+发布管理操作见[软件更新快照发布](skillhub/guide/software-updates.md)，其中明确原始文件集合、安装包确认、元数据校验、匿名开关和渠道目标的管理边界。读取协议的 HTTP 契约、实际原生安装及完整差分分别记录验收结果。
 
-已合入实施票 07–09：不可变更新快照、完整资产上传与发布管理、按应用治理的 GitLab tags/raw、固定历史地址及流式传输，以及 Generic、白泽更新源和配置展示。票 10 提供绑定应用/token 的独立机器入口、一次性凭据管理、完整产物上传工具和恢复校验，详见[机器发版运维说明](software-machine-publishing.md)。实际 GenericProvider、白泽解析器与版本比较函数已接受真实 HTTP 响应并核对完整下载摘要；机器 HTTP 与上传工具合同已验证。现有客户端迁移、完整差分和原生安装须独立验收，不能由服务端协议通过代替。
+已合入实施票 07–10：不可变更新快照、完整资产上传与发布管理、按应用治理的 GitLab tags/raw、固定历史地址及流式传输，以及 Generic、白泽更新源和配置展示。绑定应用/token 的独立机器入口、一次性凭据管理、完整产物上传工具和恢复校验见[机器发版运维说明](software-machine-publishing.md)。票 11 正在进行统一集成验证与审查修复，尚未关闭。实际 GenericProvider、白泽解析器与版本比较函数已接受真实 HTTP 响应并核对完整下载摘要；机器 HTTP 与上传工具合同已验证。现有客户端迁移、完整差分和原生安装须独立验收，不能由服务端协议通过代替。
 
 ## 领域与分发边界
 
@@ -83,7 +83,7 @@ Feed 将 Electron files[].url、兼容 path 及白泽 package/可选 releasesUrl
 
 electron-updater 保留并校验 electron-builder 的原始元数据与文件。SHA512 使用实际对象计算的 base64 摘要；不能用 SHA256 替代。路径重定位只能按兼容投影规则处理，不能改变准确安装包或破坏签名。安装格式和签名要求由各更新器的目标平台决定。
 
-第一版 Electron 更新只支持 Windows NSIS EXE 和 macOS ZIP（可附 DMG），macOS 元数据必须实际引用 ZIP。关联受管安装包的真实格式及确认/发布状态必须匹配，不能把 DMG 路径改为 .zip 绕过。Linux Electron 更新格式尚未支持；普通软件目录的 Linux 安装包能力保持独立。为兼容原生更新库，发布时将 machineVersion/piVersion 的核心分量和纯数字预发布标识限制为 JavaScript 安全整数（不超过 9007199254740991）；白泽两个版本还须不超过 100 个字符，沿用其原始比较函数的限制。草稿仍按通用机器版本语法创建，原生限制在发布时检查。
+第一版 Electron 更新只支持 Windows NSIS EXE 和 macOS ZIP（可附 DMG），macOS 元数据必须实际引用 ZIP。 Windows Electron 关联安装包时，发布者须显式声明 `confirmedInstallerFamily: "NSIS"`；资产独立且不可变地保存该声明、确认人和确认时间，不修改安装包的 `rawVersionFields`。该人工声明不代表自动识别 NSIS、验签或安装运行验收。发布/校验、渠道选定及每次受治理读取均复核声明；历史缺少声明的资产默认拒绝用于原生更新，需创建新版本的完整快照，不自动回填。关联受管安装包的真实格式及确认/发布状态必须匹配，不能把 DMG 路径改为 .zip 绕过。Linux Electron 更新格式尚未支持；普通软件目录的 Linux 安装包能力保持独立。为兼容原生更新库，发布时将 machineVersion/piVersion 的核心分量和纯数字预发布标识限制为 JavaScript 安全整数（不超过 9007199254740991）；白泽两个版本还须不超过 100 个字符，沿用其原始比较函数的限制。草稿仍按通用机器版本语法创建，原生限制在发布时检查。
 
 更新下载需验证 GET/HEAD、Content-Length、Content-Range、ETag 和 Range 行为。现有软件单区间解析器不等于差分更新支持。首个完整下载验收与差分验收分开；保留历史 blockmap，并针对原生请求实现多区间响应，或明确验证更新器的全量回退。不能在未测试前宣称差分完成。
 

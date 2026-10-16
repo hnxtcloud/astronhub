@@ -31,7 +31,7 @@ python scripts/publish-software-release.py --server https://hub.example/hub --ap
     "protocol": "ELECTRON"
   },
   "installers": [
-    { "file": "dist/app-2.4.0.exe", "path": "dist/app-2.4.0.exe", "format": "EXE", "originalFullVersion": "2.4.0" }
+    { "file": "dist/app-2.4.0.exe", "path": "dist/app-2.4.0.exe", "format": "EXE", "originalFullVersion": "2.4.0", "confirmedInstallerFamily": "NSIS" }
   ],
   "assets": [
     { "file": "dist/latest.yml", "path": "dist/latest.yml", "role": "METADATA" },
@@ -42,6 +42,8 @@ python scripts/publish-software-release.py --server https://hub.example/hub --ap
 ```
 
 `file` 相对清单所在目录解析；`path` 是发布后保留的原始相对路径。安装包必须走分片上传、检测、明确确认和发布；元数据、blockmap、校验和、签名按原始字节上传。不得重新生成或改写构建产物中的摘要。
+
+Windows Electron 更新中的每个 installer 必须显式填写 `confirmedInstallerFamily: "NSIS"`。它是发布者的独立人工声明，与 `confirmMetadata` 和 `rawVersionFields` 无关；服务端保存确认人和时间。脚本缺少该声明会在请求前失败，续发也会复核服务端声明。此记录不代表二进制检测、签名或安装验收；其他平台/协议不填写此字段。
 
 工具默认只完成草稿校验；`--publish` 才发布不可变快照。增加 `--activate-channel` 才会把清单指定渠道指向本次快照；应用匿名源开关仍由会话管理员配置。不要把渠道自动指向“最新上传时间”。
 

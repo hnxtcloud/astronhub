@@ -1,6 +1,6 @@
 package com.iflytek.skillhub.service;
 
-import com.iflytek.skillhub.auth.entity.ApiToken;
+import com.iflytek.skillhub.repository.SoftwarePublisherQueryRepository;
 import com.iflytek.skillhub.auth.rbac.PlatformPrincipal;
 import com.iflytek.skillhub.auth.repository.ApiTokenRepository;
 import com.iflytek.skillhub.auth.repository.UserRoleBindingRepository;
@@ -30,11 +30,12 @@ public class SoftwarePublisherAppService {
     private final ApiTokenScopeService scopes;
     private final AuditLogService audit;
     private final Clock clock;
+    private final SoftwarePublisherQueryRepository queries;
     public SoftwarePublisherAppService(SoftwarePublisherGrantRepository grants, SoftwareApplicationRepository apps,
             ApiTokenService tokens, ApiTokenRepository tokenRepository, UserAccountRepository users,
-            UserRoleBindingRepository roles, ApiTokenScopeService scopes, AuditLogService audit, Clock clock) {
+            UserRoleBindingRepository roles, ApiTokenScopeService scopes, AuditLogService audit, Clock clock, SoftwarePublisherQueryRepository queries) {
         this.grants = grants; this.apps = apps; this.tokens = tokens; this.tokenRepository = tokenRepository;
-        this.users = users; this.roles = roles; this.scopes = scopes; this.audit = audit; this.clock = clock;
+        this.users = users; this.roles = roles; this.scopes = scopes; this.audit = audit; this.clock = clock; this.queries = queries;
     }
     @Transactional
     public SoftwarePublisherCreatedResponse create(Long appId, SoftwarePublisherCreateRequest body, Authentication auth) {
@@ -43,13 +44,12 @@ public class SoftwarePublisherAppService {
         var token = tokens.createToken(actor, body.name(), "[\"software:publish\"]", body.expiresAt());
         var grant = grants.save(new SoftwarePublisherGrant(token.entity().getId(), appId, actor, actor, Instant.now(clock)));
         record("software.publisher.create", appId, actor, grant.getTokenId());
-        return new SoftwarePublisherCreatedResponse(project(grant, token.entity()), token.rawToken());
+        return new SoftwarePublisherCreatedResponse(queries.project(grant, token.entity()), token.rawToken());
     }
     @Transactional(readOnly = true)
     public List<SoftwarePublisherResponse> list(Long appId, Authentication auth) {
         requireSessionAdmin(auth); requireApp(appId);
-        return grants.findByApplicationIdOrderByCreatedAtDesc(appId).stream()
-                .map(grant -> project(grant, tokenRepository.findById(grant.getTokenId()).orElseThrow())).toList();
+        return queries.list(appId);
     }
     @Transactional
     public void revoke(Long appId, Long tokenId, Authentication auth) {
@@ -88,10 +88,6 @@ public class SoftwarePublisherAppService {
     }
     private void requireApp(Long appId) {
         if (apps.findById(appId).isEmpty()) throw new DomainNotFoundException("error.software.application.notFound", appId);
-    }
-    private SoftwarePublisherResponse project(SoftwarePublisherGrant grant, ApiToken token) {
-        return new SoftwarePublisherResponse(grant.getTokenId(), grant.getApplicationId(), grant.getOwnerUserId(), token.getName(),
-                token.getExpiresAt(), grant.getRevokedAt() != null ? grant.getRevokedAt() : token.getRevokedAt(), grant.getCreatedAt());
     }
     private void record(String action, Long appId, String actor, Long tokenId) {
         audit.record(actor, action, "SOFTWARE_APPLICATION", appId, null, null, null, "{\"tokenId\":" + tokenId + "}");
