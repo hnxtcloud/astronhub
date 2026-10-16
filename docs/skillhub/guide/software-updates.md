@@ -17,7 +17,7 @@
 
 ## 原始元数据和路径
 
-保留构建产物的原始字节和相对目录。例如 `dist/latest.yml` 中的 `app.zip` 指向 `dist/app.zip`，而不是根目录的 `app.zip`。文件名中的 URL 编码空格可以写为 `%20`；查询、fragment、绝对地址、路径穿越、编码分隔符和双重编码均被拒绝。
+保留构建产物的原始字节和相对目录。例如 `dist/latest-mac.yml` 中的 `app.zip` 指向 `dist/app.zip`，而不是根目录的 `app.zip`。文件名中的 URL 编码空格可以写为 `%20`；查询、fragment、绝对地址、路径穿越、编码分隔符和双重编码均被拒绝。
 
 Electron 元数据的 `files` 中每个文件都必须关联受管安装包，大小和 SHA512 base64 必须匹配存储的实际字节。`blockMapSize` 表示包尾嵌入 blockmap 的长度，不表示外部 `.blockmap` 文件大小。外部 blockmap 保持独立原始资产。当前不接收包含 `packages` 的 web-installer 元数据，需使用完整安装包发行方式。
 

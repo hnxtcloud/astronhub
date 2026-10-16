@@ -25,14 +25,14 @@ class SoftwareUpdateNativeManifestContractTest {
     private static final String MANIFEST = """
             {"schemaVersion":1,"version":"1.2.3","piVersion":"0.70.0","platform":"win32","arch":"x64",
              "channel":"stable","publishedAt":"2026-10-14T08:00:00Z","package":"app.zip",
-             "sha256":"%s","bytes":3,"releasesUrl":"releases"}
+             "sha256":"%s","bytes":3,"releasesUrl":"notes.txt"}
             """.formatted(SHA256);
 
     @Test
     void baizeRequiresAParseablePublicationInstantAndLocalOptionalReleaseLink() {
         assertThatCode(() -> validate("BAIZE", MANIFEST)).doesNotThrowAnyException();
         for (String invalid : List.of(MANIFEST.replace("2026-10-14T08:00:00Z", "yesterday"),
-                MANIFEST.replace("\"releases\"", "\"https://public.example/releases\""))) {
+                MANIFEST.replace("\"notes.txt\"", "\"https://public.example/releases\""))) {
             assertThatThrownBy(() -> validate("BAIZE", invalid)).isInstanceOf(DomainBadRequestException.class)
                     .hasMessageContaining("error.software.update.metadata");
         }
