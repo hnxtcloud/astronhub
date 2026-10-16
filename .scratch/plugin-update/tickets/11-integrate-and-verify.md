@@ -33,7 +33,7 @@
 ### Preserved failures and evidence boundaries
 
 - 旧基线 `322ae993` 的 `final-backend/run-d28d2d0b8e14` 经根代理要求在审查修复前安全停止：1220 项局部通过，**不是完整通过结果**。
-- `dcf8a07d` 的完整 `final-backend/run-e3eca879bffd`：2402 tests / 380 suites，**3 failures、0 errors、2 skips**，exit 1。失败为迁移编号连续性、白泽可选 releasesUrl 正例缺资产及超时清理 fixture 时钟漂移；最小修复 `b9cb83b4` 后重跑，不改变历史结果。
+- `dcf8a07d` 的完整 `final-backend/run-e3eca879bffd`：2402 tests / 380 suites，**3 failures、0 errors、2 skips**，exit 1。失败为迁移编号连续性、白泽可选 releasesUrl 正例缺资产及超时清理 fixture 恰好等于到期时刻的边界样本；最小修复 `b9cb83b4` 后重跑，不改变历史结果。
 - `5c31c266` 的完整 `final-backend/run-84ada98530c8`：2402 tests / 380 suites，**0 failures、1 error、2 skips**，exit 1。Git 并发发布测试暴露 scratch 遍历中的瞬时对象文件消失，修复 `6c2e6936` 并增加 6 个预算边界用例后，才启动最终新完整 run。两轮失败未拼接成全绿。
 - 所有外部路径以 `C:/Users/adolbook/.codex/worktrees/plugin-update-notes/` 为根。两轮失败各保存 761 份当轮 report/OpenAPI，最终成功轮保存 763 份；分别附 SHA256 manifest、精确失败/跳过 JSON 和原始 reactor 日志。最终还保存 44 份原生 update-contract 产物、前端原始报告/构建日志/实际生成 SDK、配置与真实代理日志；外部交接为 `ticket11-final-handoff.md`。
 - 仍需部署环境独立验收：真实企业 Git/npm 服务及认证、生产 PostgreSQL 16、Docker staging、S3/MinIO、Helm 渲染、签名 NSIS/macOS 安装与更新应用、现有客户端首次更新源迁移、完整差分和全量回退、真实大文件传输。现有白泽/Intelli 源码只读合同验证与合成下载字节检查不替代这些验收。
