@@ -215,7 +215,14 @@ class SoftwareTransferIntegrationTest {
         // emulate the admission-time reservation the app flow performs
         quotaService.reserve(CHUNK, Long.MAX_VALUE);
 
-        cleanupTask.reclaimIdleSession(session.getId(), Instant.parse("2026-01-02T00:00:00Z"));
+        Instant deadline = Instant.parse("2026-01-02T00:00:00Z");
+        cleanupTask.reclaimIdleSession(session.getId(), deadline);
+        assertThat(uploadSessionRepository.findById(session.getId()).orElseThrow().getStatus())
+                .isEqualTo(com.iflytek.skillhub.domain.software.SoftwareUploadSessionStatus.ACTIVE);
+        assertThat(accountRepository.findSingleton().orElseThrow().getReservedBytes()).isEqualTo(CHUNK);
+
+        // Expiry is strictly past the snapshot deadline; reaching it keeps the reservation.
+        cleanupTask.reclaimIdleSession(session.getId(), deadline.plusSeconds(1));
 
         SoftwareUploadSession reclaimed = uploadSessionRepository.findById(session.getId())
                 .orElseThrow();
