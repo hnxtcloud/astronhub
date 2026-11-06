@@ -40,7 +40,42 @@ class SkillSuiteDraftServiceTest {
     void setUp() {
         service = new SkillSuiteDraftService(
                 suiteRepository, versionRepository, memberRepository, namespaceRepository,
-                publicationValidator, auditLogService);
+                publicationValidator, auditLogService, new SkillSuiteRetirementPolicy(false));
+    }
+
+    @Test
+    void onlyAConfirmedLegacyBundleCanIntroduceItsFixedDraftAfterRetirement() throws Exception {
+        service = new SkillSuiteDraftService(suiteRepository, versionRepository, memberRepository,
+                namespaceRepository, publicationValidator, auditLogService, new SkillSuiteRetirementPolicy(true));
+        var operation = new com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleExecutionOperation(
+                "legacy-operation", "preview", "request", "author",
+                com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleMode.CREATE,
+                1L, "writers", null, null, "1.0.0", "archive", "a".repeat(64), Map.of(), "digest",
+                java.time.Instant.parse("2026-10-01T00:00:00Z"));
+        var eligibility = operation.getClass().getDeclaredField("retirementCompletionAllowed");
+        eligibility.setAccessible(true);
+        eligibility.set(operation, true);
+        var member = new SkillSuiteMemberSelection(30L, 40L, "global", "writer", "1.0.0", "sha256:abc");
+        var command = new CreateSkillSuiteDraftCommand(1L, "writers", "Writers", "Writing tools",
+                "Start here", "1.0.0", SkillVisibility.PUBLIC, null, 40L, List.of(member));
+        var context = new SkillSuiteActionContext("author", Map.of(1L, NamespaceRole.MEMBER), Set.of(), null, null, null);
+        when(namespaceRepository.findById(1L)).thenReturn(Optional.of(new Namespace("team", "Team", "author")));
+        when(suiteRepository.save(any())).thenAnswer(call -> {
+            SkillSuite saved = call.getArgument(0);
+            setId(saved, 10L);
+            return saved;
+        });
+        when(versionRepository.save(any())).thenAnswer(call -> {
+            SkillSuiteVersion saved = call.getArgument(0);
+            setId(saved, 20L);
+            return saved;
+        });
+        when(memberRepository.saveAll(any())).thenAnswer(call -> call.getArgument(0));
+        var created = service.createFromConfirmedBundle(operation, command, context);
+        assertThat(created.version().isRetirementCompletionAllowed()).isTrue();
+        assertThat(created.members()).singleElement().satisfies(saved ->
+                assertThat(saved.getSkillVersionId()).isEqualTo(40L));
+        assertThatThrownBy(() -> service.create(command, context)).hasMessage("error.suite.retired");
     }
 
     @Test

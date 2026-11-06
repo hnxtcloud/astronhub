@@ -1,5 +1,9 @@
 # Suite Bundle Import
 
+## Suite retirement
+
+Suite creation, editing, and new Bundle previews and confirmations are disabled by default. Previously confirmed operations may finish their original workflow. Existing Suite reads, installation, checks, upgrades, local inventory, and removal remain supported. Publish new bundles as native plugins, including plugins containing only Skills. The original format documentation below is retained for legacy operations.
+
 A Suite Bundle uploads one ZIP or folder to create a Suite or create a new version from a published base. SkillHub first shows the member diff. Member publication and review start only after explicit confirmation.
 
 ## Archive format

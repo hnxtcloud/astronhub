@@ -102,7 +102,7 @@ class SkillSuiteAppServiceTest {
                 queryService, installMetricsService, installOperationRepository, auditLogService,
                 requestIdAccessor,
                 candidateQueryRepository, mySkillSuiteQueryRepository, referenceQueryRepository,
-                userAccountRepository);
+                userAccountRepository, new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
         namespace = new Namespace("global", "Global", "admin");
         setField(namespace, "id", 1L);
         suite = new SkillSuite(1L, "starter", "Starter", "user-1");

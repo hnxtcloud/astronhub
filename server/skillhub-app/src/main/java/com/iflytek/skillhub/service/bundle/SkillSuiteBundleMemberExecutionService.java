@@ -2,6 +2,7 @@ package com.iflytek.skillhub.service.bundle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.skillhub.domain.namespace.Namespace;
+import com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy;
 import com.iflytek.skillhub.domain.namespace.NamespaceRepository;
 import com.iflytek.skillhub.domain.namespace.NamespaceStatus;
 import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
@@ -58,6 +59,7 @@ public class SkillSuiteBundleMemberExecutionService {
     private final ObjectStorageService objectStorageService;
     private final ObjectMapper objectMapper;
     private final Clock clock;
+    private final SkillSuiteRetirementPolicy retirementPolicy;
 
     public SkillSuiteBundleMemberExecutionService(
             SkillSuiteBundleExecutionOperationRepository operationRepository,
@@ -71,7 +73,8 @@ public class SkillSuiteBundleMemberExecutionService {
             SkillReviewSubmitService skillReviewSubmitService,
             ObjectStorageService objectStorageService,
             ObjectMapper objectMapper,
-            Clock clock
+            Clock clock,
+            SkillSuiteRetirementPolicy retirementPolicy
     ) {
         this.operationRepository = operationRepository;
         this.memberRepository = memberRepository;
@@ -85,6 +88,7 @@ public class SkillSuiteBundleMemberExecutionService {
         this.objectStorageService = objectStorageService;
         this.objectMapper = objectMapper;
         this.clock = clock;
+        this.retirementPolicy = retirementPolicy;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -94,6 +98,7 @@ public class SkillSuiteBundleMemberExecutionService {
         if (operation == null || operation.getStatus() != SkillSuiteBundleOperationStatus.RUNNING) {
             return ExecutionOutcome.NONE;
         }
+        retirementPolicy.requireBundleCompletion(operation);
         List<SkillSuiteBundleMemberResult> members =
                 memberRepository.findByOperationIdOrderByPositionForUpdate(operationId);
         SkillSuiteBundleMemberResult member = members.stream()

@@ -1,5 +1,6 @@
+import { SuiteRetirementNotice } from '@/features/suite/suite-retirement-notice'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ArrowDown, ArrowUp, CircleDot, Plus, Search, Trash2, X } from 'lucide-react'
 import type { SkillSuiteDraftInput, SkillSuiteMemberCandidate, SkillSuiteMemberInput } from '@/api/types'
@@ -714,17 +715,13 @@ export function SuiteEditor({ namespace: routeNamespace, slug: routeSlug, versio
 }
 
 export function SuiteCreatePage() {
-  return <SuiteEditor />
+  return <SuiteRetirementNotice />
 }
 
 export function SuiteEditPage() {
-  const { namespace, slug } = useParams({ from: '/dashboard/suites/$namespace/$slug/edit' })
-  const { version } = useSearch({ from: '/dashboard/suites/$namespace/$slug/edit' })
-  return <SuiteEditor namespace={namespace} slug={slug} version={version} mode="edit" />
+  return <SuiteRetirementNotice />
 }
 
 export function SuiteVersionCreatePage() {
-  const { namespace, slug } = useParams({ from: '/dashboard/suites/$namespace/$slug/new-version' })
-  const { sourceVersion } = useSearch({ from: '/dashboard/suites/$namespace/$slug/new-version' })
-  return <SuiteEditor namespace={namespace} slug={slug} version={sourceVersion} mode="new-version" />
+  return <SuiteRetirementNotice />
 }

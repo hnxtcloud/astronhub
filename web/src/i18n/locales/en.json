@@ -2286,6 +2286,9 @@
     }
   },
   "suite": {
+    "retirementTitle": "Skill Suites are being retired",
+    "retirementNotice": "Suite creation and editing have ended. Existing content and in-progress releases remain available. Publish new bundles as plugins.",
+    "browsePlugins": "Browse plugins",
     "workspace": {
       "description": "Manage suites, versions and creation progress.",
       "searchLabel": "Search my suites",

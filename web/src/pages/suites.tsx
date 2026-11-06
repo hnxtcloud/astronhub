@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Boxes } from 'lucide-react'
 import { ResourceCard } from '@/features/suite/resource-card'
+import { SuiteRetirementNotice } from '@/features/suite/suite-retirement-notice'
 import { useResourceSearch } from '@/shared/hooks/use-suite-queries'
 import { useVisibleLabels } from '@/shared/hooks/use-label-queries'
 import { EmptyState } from '@/shared/components/empty-state'
@@ -33,6 +34,7 @@ export function SuitesPage() {
 
   return (
     <div className={APP_SHELL_PAGE_CLASS_NAME}>
+      <SuiteRetirementNotice />
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <div className="mb-2 inline-flex items-center gap-2 text-sm font-medium text-primary">
@@ -41,7 +43,6 @@ export function SuitesPage() {
           <h1 className="text-4xl font-bold">{t('suite.listTitle')}</h1>
           <p className="mt-2 text-muted-foreground">{t('suite.listDescription')}</p>
         </div>
-        <Button onClick={() => navigate({ to: '/dashboard/suites/new' })}>{t('suite.create')}</Button>
       </div>
 
       <form className="flex max-w-xl gap-2" onSubmit={event => { event.preventDefault(); setQuery(queryInput.trim()); setPage(0) }}>

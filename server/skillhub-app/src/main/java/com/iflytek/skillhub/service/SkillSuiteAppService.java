@@ -13,6 +13,7 @@ import com.iflytek.skillhub.domain.skill.service.SkillQueryService;
 import com.iflytek.skillhub.domain.suite.CreateSkillSuiteDraftCommand;
 import com.iflytek.skillhub.domain.suite.SkillSuiteActionContext;
 import com.iflytek.skillhub.domain.suite.SkillSuiteDraftService;
+import com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy;
 import com.iflytek.skillhub.domain.suite.SkillSuiteLifecycleService;
 import com.iflytek.skillhub.domain.suite.SkillSuiteInstallMetricsService;
 import com.iflytek.skillhub.domain.suite.SkillSuiteInstallOperation;
@@ -78,6 +79,7 @@ public class SkillSuiteAppService {
     private final MySkillSuiteQueryRepository mySkillSuiteQueryRepository;
     private final SkillSuiteReferenceQueryRepository referenceQueryRepository;
     private final UserAccountRepository userAccountRepository;
+    private final SkillSuiteRetirementPolicy retirementPolicy;
 
     public SkillSuiteAppService(
             NamespaceRepository namespaceRepository,
@@ -92,7 +94,8 @@ public class SkillSuiteAppService {
             SkillSuiteCandidateQueryRepository candidateQueryRepository,
             MySkillSuiteQueryRepository mySkillSuiteQueryRepository,
             SkillSuiteReferenceQueryRepository referenceQueryRepository,
-            UserAccountRepository userAccountRepository
+            UserAccountRepository userAccountRepository,
+            SkillSuiteRetirementPolicy retirementPolicy
     ) {
         this.namespaceRepository = namespaceRepository;
         this.skillQueryService = skillQueryService;
@@ -107,6 +110,7 @@ public class SkillSuiteAppService {
         this.mySkillSuiteQueryRepository = mySkillSuiteQueryRepository;
         this.referenceQueryRepository = referenceQueryRepository;
         this.userAccountRepository = userAccountRepository;
+        this.retirementPolicy = retirementPolicy;
     }
 
     public PageResponse<MySkillSuiteSummaryResponse> listMine(
@@ -403,6 +407,7 @@ public class SkillSuiteAppService {
             Set<String> platformRoles,
             HttpServletRequest httpRequest
     ) {
+        retirementPolicy.requireNewContentAllowed();
         Namespace namespace = namespaceRepository.findBySlug(request.namespace())
                 .orElseThrow(() -> new DomainBadRequestException(
                         "error.namespace.slug.notFound", request.namespace()));
@@ -420,6 +425,7 @@ public class SkillSuiteAppService {
             Set<String> platformRoles,
             HttpServletRequest httpRequest
     ) {
+        retirementPolicy.requireNewContentAllowed();
         Namespace namespace = namespaceRepository.findBySlug(request.namespace())
                 .orElseThrow(() -> new DomainBadRequestException(
                         "error.namespace.slug.notFound", request.namespace()));
@@ -438,6 +444,7 @@ public class SkillSuiteAppService {
             Set<String> platformRoles,
             HttpServletRequest httpRequest
     ) {
+        retirementPolicy.requireNewContentAllowed();
         Namespace namespace = namespaceRepository.findBySlug(request.namespace())
                 .orElseThrow(() -> new DomainBadRequestException(
                         "error.namespace.slug.notFound", request.namespace()));

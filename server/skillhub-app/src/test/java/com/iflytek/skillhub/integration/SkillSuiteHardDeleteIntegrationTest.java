@@ -62,7 +62,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Testcontainers
-@Import({SkillSuiteLifecycleService.class, ReviewPermissionChecker.class,
+@Import({SkillSuiteLifecycleService.class, com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy.class,
+        ReviewPermissionChecker.class,
         AuditLogService.class, SkillSuiteHardDeleteIntegrationTest.ClockConfiguration.class})
 @TestPropertySource(properties = "skillhub.suite.review-writes-enabled=true")
 class SkillSuiteHardDeleteIntegrationTest {

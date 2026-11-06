@@ -110,7 +110,7 @@ class SkillSuiteBundleMemberExecutionServiceTest {
         SkillSuiteBundleMemberExecutionService service = new SkillSuiteBundleMemberExecutionService(
                 operationRepository, memberRepository, actorContextService, namespaceRepository,
                 skillRepository, versionRepository, visibilityChecker, publishService,
-                reviewSubmitService, storage, objectMapper, Clock.fixed(now, ZoneOffset.UTC));
+                reviewSubmitService, storage, objectMapper, Clock.fixed(now, ZoneOffset.UTC), new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
 
         assertThat(service.executeNext("operation"))
                 .isEqualTo(SkillSuiteBundleMemberExecutionService.ExecutionOutcome.PROGRESSED);
@@ -192,7 +192,7 @@ class SkillSuiteBundleMemberExecutionServiceTest {
         SkillSuiteBundleMemberExecutionService service = new SkillSuiteBundleMemberExecutionService(
                 operationRepository, memberRepository, actorContextService, namespaceRepository,
                 skillRepository, versionRepository, visibilityChecker, publishService,
-                reviewSubmitService, storage, objectMapper, Clock.fixed(now, ZoneOffset.UTC));
+                reviewSubmitService, storage, objectMapper, Clock.fixed(now, ZoneOffset.UTC), new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
 
         assertThat(service.executeNext("operation"))
                 .isEqualTo(SkillSuiteBundleMemberExecutionService.ExecutionOutcome.PROGRESSED);

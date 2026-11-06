@@ -2285,6 +2285,9 @@
     }
   },
   "suite": {
+    "retirementTitle": "技能套件已停止新增",
+    "retirementNotice": "技能套件已停止新增和编辑。历史内容与已开始的发布流程继续可用，新内容请使用插件发布。",
+    "browsePlugins": "浏览插件",
     "workspace": {
       "description": "管理套件、查看版本与创建进度。",
       "searchLabel": "搜索我的套件",

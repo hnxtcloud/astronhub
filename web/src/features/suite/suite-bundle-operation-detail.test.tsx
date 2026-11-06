@@ -178,10 +178,10 @@ describe('SuiteBundleOperationDetail', () => {
     expect(screen.getByText('Disallowed file extension: tool.exe')).not.toBeNull()
     expect(screen.getByText('suite.bundle.memberSkillNotCreated')).not.toBeNull()
     expect(screen.queryByRole('button', { name: 'suite.bundle.openDraft' })).toBeNull()
-    expect(screen.getByRole('button', { name: 'suite.bundle.startAgain' })).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'suite.browsePlugins' })).not.toBeNull()
   })
 
-  it('restarts an update from the original Suite version after re-preview is required', () => {
+  it('directs a terminal legacy operation to plugins instead of creating another Suite version', () => {
     mocks.operation.data = {
       operationId: 'operation-3',
       status: 'REPREVIEW_REQUIRED',
@@ -199,10 +199,9 @@ describe('SuiteBundleOperationDetail', () => {
     expect(screen.getByText('suite.bundle.problem.planChanged.title')).not.toBeNull()
     expect(screen.getByText('suite.bundle.problem.planChanged.description')).not.toBeNull()
     expect(screen.queryByText('BUNDLE_PLAN_CHANGED')).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: 'suite.bundle.startAgain' }))
+    fireEvent.click(screen.getByRole('button', { name: 'suite.browsePlugins' }))
     expect(mocks.navigate).toHaveBeenCalledWith({
-      to: '/dashboard/suites/team-a/care-suite/new-version',
-      search: { sourceVersion: '1.1.0' },
+      to: '/plugins',
     })
   })
 
@@ -300,10 +299,9 @@ describe('SuiteBundleOperationDetail', () => {
 
     render(<SuiteBundleOperationDetail operationId="operation-4" />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'suite.bundle.startAgain' }))
+    fireEvent.click(screen.getByRole('button', { name: 'suite.browsePlugins' }))
     expect(mocks.navigate).toHaveBeenCalledWith({
-      to: '/dashboard/suites/team-a/care-suite/new-version',
-      search: { sourceVersion: undefined },
+      to: '/plugins',
     })
   })
 })

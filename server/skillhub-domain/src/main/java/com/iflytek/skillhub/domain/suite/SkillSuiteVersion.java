@@ -75,6 +75,21 @@ public class SkillSuiteVersion {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "retirement_completion_allowed", nullable = false)
+    private boolean retirementCompletionAllowed;
+
+    public boolean isRetirementCompletionAllowed() {
+        return retirementCompletionAllowed;
+    }
+
+    void allowRetirementCompletion() {
+        retirementCompletionAllowed = true;
+    }
+
+    void revokeRetirementCompletion() {
+        retirementCompletionAllowed = false;
+    }
+
     protected SkillSuiteVersion() {
     }
 

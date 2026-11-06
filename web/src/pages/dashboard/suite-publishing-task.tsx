@@ -1,3 +1,4 @@
+import { SuiteRetirementNotice } from '@/features/suite/suite-retirement-notice'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { SuiteBundleOperationDetail } from '@/features/suite/suite-bundle-operation-detail'
@@ -23,6 +24,7 @@ export function SuitePublishingTaskPage() {
 
   return (
     <div className="space-y-5 animate-fade-up">
+      <SuiteRetirementNotice />
       <SuiteWorkspaceHeader
         title={t('suite.bundle.taskDetailTitle')}
         description={t('suite.bundle.taskDetailDescription')}

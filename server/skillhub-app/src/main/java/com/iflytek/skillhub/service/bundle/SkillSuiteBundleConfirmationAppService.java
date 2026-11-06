@@ -3,6 +3,7 @@ package com.iflytek.skillhub.service.bundle;
 import com.iflytek.skillhub.config.SkillSuiteBundleProperties;
 import com.iflytek.skillhub.domain.event.SkillSuiteBundleAdvanceRequestedEvent;
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
+import com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy;
 import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
 import com.iflytek.skillhub.domain.shared.exception.DomainConflictException;
 import com.iflytek.skillhub.domain.shared.exception.DomainNotFoundException;
@@ -42,6 +43,7 @@ public class SkillSuiteBundleConfirmationAppService {
     private final SkillSuiteBundleProperties properties;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
+    private final SkillSuiteRetirementPolicy retirementPolicy;
 
     public SkillSuiteBundleConfirmationAppService(
             SkillSuiteBundlePreviewSessionRepository previewRepository,
@@ -50,7 +52,8 @@ public class SkillSuiteBundleConfirmationAppService {
             SkillSuiteBundlePreviewRevalidationService revalidationService,
             SkillSuiteBundleProperties properties,
             ApplicationEventPublisher eventPublisher,
-            Clock clock
+            Clock clock,
+            SkillSuiteRetirementPolicy retirementPolicy
     ) {
         this.previewRepository = previewRepository;
         this.operationRepository = operationRepository;
@@ -59,6 +62,7 @@ public class SkillSuiteBundleConfirmationAppService {
         this.properties = properties;
         this.eventPublisher = eventPublisher;
         this.clock = clock;
+        this.retirementPolicy = retirementPolicy;
     }
 
     @Transactional
@@ -70,12 +74,14 @@ public class SkillSuiteBundleConfirmationAppService {
             Map<Long, NamespaceRole> namespaceRoles,
             Set<String> platformRoles
     ) {
-        requireEnabled();
         String normalizedRequestId = normalizeRequestId(clientRequestId);
         ConfirmationOutcome existing = findIdempotent(actorId, normalizedRequestId, previewToken);
         if (existing != null) {
             return existing;
         }
+
+        retirementPolicy.requireNewContentAllowed();
+        requireEnabled();
 
         SkillSuiteBundlePreviewSession preview = previewRepository.findByIdForUpdate(previewToken)
                 .orElseThrow(() -> new DomainNotFoundException("error.suite.bundle.preview.notFound"));
@@ -130,6 +136,7 @@ public class SkillSuiteBundleConfirmationAppService {
         if (!existing.getPreviewToken().equals(previewToken)) {
             throw new DomainConflictException("error.suite.bundle.confirmation.operationConflict");
         }
+        retirementPolicy.requireBundleCompletion(existing);
         return new ConfirmationOutcome(existing.getOperationId(), existing.getStatus().name(), true);
     }
 

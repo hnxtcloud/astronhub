@@ -1,6 +1,7 @@
 package com.iflytek.skillhub.service.bundle;
 
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
+import com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy;
 import com.iflytek.skillhub.domain.event.SkillSuiteBundleAdvanceRequestedEvent;
 import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
 import com.iflytek.skillhub.domain.shared.exception.DomainNotFoundException;
@@ -35,6 +36,7 @@ public class SkillSuiteBundleOperationCommandService {
     private final SecurityScanRetryAppService securityScanRetryAppService;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
+    private final SkillSuiteRetirementPolicy retirementPolicy;
 
     public SkillSuiteBundleOperationCommandService(
             SkillSuiteBundleExecutionOperationRepository operationRepository,
@@ -43,7 +45,8 @@ public class SkillSuiteBundleOperationCommandService {
             SkillSuiteBundlePreviewRevalidationService revalidationService,
             SecurityScanRetryAppService securityScanRetryAppService,
             ApplicationEventPublisher eventPublisher,
-            Clock clock
+            Clock clock,
+            SkillSuiteRetirementPolicy retirementPolicy
     ) {
         this.operationRepository = operationRepository;
         this.memberRepository = memberRepository;
@@ -52,6 +55,7 @@ public class SkillSuiteBundleOperationCommandService {
         this.securityScanRetryAppService = securityScanRetryAppService;
         this.eventPublisher = eventPublisher;
         this.clock = clock;
+        this.retirementPolicy = retirementPolicy;
     }
 
     @Transactional
@@ -94,6 +98,7 @@ public class SkillSuiteBundleOperationCommandService {
                 operation, actorId, namespaceRoles, platformRoles)) {
             throw notFound();
         }
+        retirementPolicy.requireBundleCompletion(operation);
         operation.requireRetryable();
         SkillSuiteBundlePreviewSession preview = previewRepository.findById(operation.getPreviewToken())
                 .orElse(null);

@@ -225,7 +225,7 @@ class SkillSuiteBundlePersistenceTest {
         SkillSuiteBundleConfirmationAppService confirmation = new SkillSuiteBundleConfirmationAppService(
                 previewRepository, operationRepository, memberRepository, revalidation, properties,
                 mock(org.springframework.context.ApplicationEventPublisher.class),
-                java.time.Clock.fixed(now(), java.time.ZoneOffset.UTC));
+                java.time.Clock.fixed(now(), java.time.ZoneOffset.UTC), new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
 
         CountDownLatch ready = new CountDownLatch(2);
         CountDownLatch start = new CountDownLatch(1);

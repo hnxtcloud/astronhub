@@ -13,6 +13,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import static org.assertj.core.api.Assertions.*;
 
 class ClaudePluginZipValidatorTest {
+    @Test
+    void acceptsMultipleSkillsWithoutHooksAgentsOrMcp() throws Exception {
+        var archive = zip("skills/review/SKILL.md", "skills/testing/SKILL.md");
+        var validated = new ClaudePluginZipValidator(1000000, 2000000, 100).validate(archive, "1.0.0");
+        assertThat(validated.inventoryJson()).contains("skills/review/SKILL.md", "skills/testing/SKILL.md");
+    }
+
     @ParameterizedTest
     @MethodSource("ambiguousArchives")
     void rejectsAmbiguousNativeExtractionPaths(byte[] archive) {

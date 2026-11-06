@@ -10,6 +10,9 @@ import com.iflytek.skillhub.domain.namespace.SlugValidator;
 import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
 import com.iflytek.skillhub.domain.shared.exception.DomainForbiddenException;
 import com.iflytek.skillhub.domain.shared.exception.DomainNotFoundException;
+import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleExecutionOperation;
+import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleMode;
+import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleOperationStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class SkillSuiteDraftService {
     private final NamespaceRepository namespaceRepository;
     private final SkillSuitePublicationValidator publicationValidator;
     private final AuditLogService auditLogService;
+    private final SkillSuiteRetirementPolicy retirementPolicy;
 
     public SkillSuiteDraftService(
             SkillSuiteRepository suiteRepository,
@@ -40,7 +44,8 @@ public class SkillSuiteDraftService {
             SkillSuiteVersionMemberRepository memberRepository,
             NamespaceRepository namespaceRepository,
             SkillSuitePublicationValidator publicationValidator,
-            AuditLogService auditLogService
+            AuditLogService auditLogService,
+            SkillSuiteRetirementPolicy retirementPolicy
     ) {
         this.suiteRepository = suiteRepository;
         this.versionRepository = versionRepository;
@@ -48,12 +53,20 @@ public class SkillSuiteDraftService {
         this.namespaceRepository = namespaceRepository;
         this.publicationValidator = publicationValidator;
         this.auditLogService = auditLogService;
+        this.retirementPolicy = retirementPolicy;
     }
 
     @Transactional
     public CreatedDraft create(
             CreateSkillSuiteDraftCommand command,
             SkillSuiteActionContext context
+    ) {
+        retirementPolicy.requireNewContentAllowed();
+        return createDraft(command, context, false);
+    }
+
+    private CreatedDraft createDraft(
+            CreateSkillSuiteDraftCommand command, SkillSuiteActionContext context, boolean legacyCompletion
     ) {
         requireWritableNamespace(command.namespaceId());
         assertCanCreate(command.namespaceId(), context);
@@ -74,6 +87,9 @@ public class SkillSuiteDraftService {
                 command.visibility(), context.actorUserId());
         version.setOverview(command.overview());
         version.setChangelog(command.changelog());
+        if (legacyCompletion) {
+            version.allowRetirementCompletion();
+        }
         version = versionRepository.save(version);
 
         List<SkillSuiteVersionMember> members = saveMembers(
@@ -101,6 +117,35 @@ public class SkillSuiteDraftService {
             CreateSkillSuiteDraftCommand command,
             SkillSuiteActionContext context
     ) {
+        retirementPolicy.requireNewContentAllowed();
+        return createVersionDraft(suiteId, command, context, false);
+    }
+
+    /** Only an already confirmed, persisted operation can introduce its fixed legacy draft. */
+    @Transactional
+    public CreatedDraft createFromConfirmedBundle(
+            SkillSuiteBundleExecutionOperation operation,
+            CreateSkillSuiteDraftCommand command,
+            SkillSuiteActionContext context
+    ) {
+        retirementPolicy.requireBundleCompletion(operation);
+        if (operation.getStatus() != SkillSuiteBundleOperationStatus.RUNNING
+                || !operation.getActorId().equals(context.actorUserId())
+                || !operation.getNamespaceId().equals(command.namespaceId())
+                || !operation.getTargetSuiteSlug().equals(command.slug())
+                || !operation.getTargetVersion().equals(command.version())) {
+            throw new DomainBadRequestException("error.suite.bundle.preview.stateChanged");
+        }
+        boolean legacyCompletion = operation.isRetirementCompletionAllowed();
+        return operation.getMode() == SkillSuiteBundleMode.CREATE
+                ? createDraft(command, context, legacyCompletion)
+                : createVersionDraft(operation.getTargetSuiteId(), command, context, legacyCompletion);
+    }
+
+    private CreatedDraft createVersionDraft(
+            Long suiteId, CreateSkillSuiteDraftCommand command,
+            SkillSuiteActionContext context, boolean legacyCompletion
+    ) {
         SkillSuite suite = suiteRepository.findById(suiteId)
                 .orElseThrow(() -> new DomainNotFoundException("error.suite.notFound", suiteId));
         Namespace namespace = requireWritableNamespace(suite.getNamespaceId());
@@ -114,7 +159,7 @@ public class SkillSuiteDraftService {
         }
         validateDefinition(command);
 
-        CreatedDraft created = persistVersion(suite, command, context);
+        CreatedDraft created = persistVersion(suite, command, context, legacyCompletion);
         log.info("Suite version draft created [suiteId={}, versionId={}, namespaceId={}, actorId={}, memberCount={}, requestId={}]",
                 suiteId, created.version().getId(), namespace.getId(), context.actorUserId(),
                 created.members().size(), context.requestId());
@@ -128,6 +173,7 @@ public class SkillSuiteDraftService {
             CreateSkillSuiteDraftCommand command,
             SkillSuiteActionContext context
     ) {
+        retirementPolicy.requireNewContentAllowed();
         SkillSuite suite = suiteRepository.findById(suiteId)
                 .orElseThrow(() -> new DomainNotFoundException("error.suite.notFound", suiteId));
         requireWritableNamespace(suite.getNamespaceId());
@@ -214,13 +260,17 @@ public class SkillSuiteDraftService {
     private CreatedDraft persistVersion(
             SkillSuite suite,
             CreateSkillSuiteDraftCommand command,
-            SkillSuiteActionContext context
+            SkillSuiteActionContext context,
+            boolean legacyCompletion
     ) {
         SkillSuiteVersion version = new SkillSuiteVersion(
                 suite.getId(), command.version(), command.displayName(), command.summary(),
                 command.visibility(), context.actorUserId());
         version.setOverview(command.overview());
         version.setChangelog(command.changelog());
+        if (legacyCompletion) {
+            version.allowRetirementCompletion();
+        }
         version = versionRepository.save(version);
         List<SkillSuiteVersionMember> members = saveMembers(
                 version, command.members(), command.entrySkillVersionId());

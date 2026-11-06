@@ -66,7 +66,7 @@ class SkillSuiteBundleConfirmationAppServiceTest {
         service = new SkillSuiteBundleConfirmationAppService(
                 previewRepository, operationRepository, memberRepository, revalidationService, properties,
                 mock(org.springframework.context.ApplicationEventPublisher.class),
-                Clock.fixed(NOW, ZoneOffset.UTC));
+                Clock.fixed(NOW, ZoneOffset.UTC), new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
     }
 
     @Test

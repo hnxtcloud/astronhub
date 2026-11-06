@@ -77,7 +77,7 @@ class SkillSuiteBundleMemberProgressServiceTest {
         service = new SkillSuiteBundleMemberProgressService(
                 operationRepository, memberRepository, actorContextService, namespaceRepository,
                 skillRepository, versionRepository, reviewSubmitService,
-                Clock.fixed(NOW, ZoneOffset.UTC));
+                Clock.fixed(NOW, ZoneOffset.UTC), new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
     }
 
     @Test

@@ -41,6 +41,11 @@ spring:
             user-info-uri: https://api.github.com/user
 
 skillhub:
+  suite:
+    retirement:
+      # Existing lifecycle regression fixtures exercise pre-cutover operation.
+      # Retirement integration tests explicitly enable the production policy.
+      enabled: false
   auth:
     enforce-active-user-check: false
   access-policy:

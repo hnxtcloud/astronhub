@@ -50,7 +50,7 @@ class SkillSuiteBundlePreviewAppServiceTest {
         properties.setPreviewTtl(Duration.ofMinutes(30));
         service = new SkillSuiteBundlePreviewAppService(
                 archiveService, planner, persistenceService, properties,
-                new ObjectMapper(), Clock.fixed(NOW, ZoneOffset.UTC));
+                new ObjectMapper(), Clock.fixed(NOW, ZoneOffset.UTC), new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
     }
 
     @Test

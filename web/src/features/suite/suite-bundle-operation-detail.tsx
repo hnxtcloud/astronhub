@@ -46,16 +46,7 @@ export function SuiteBundleOperationDetail({ operationId }: { operationId: strin
   const draftCoordinate = splitCoordinate(operation?.targetCoordinate)
   const draftMissing = status === 'SUITE_DRAFT_CREATED'
     && (!operation?.resultSuiteId || !operation.resultSuiteVersionId)
-  const restartOperation = () => {
-    if (operation?.mode === 'UPDATE' && draftCoordinate) {
-      void navigate({
-        to: `/dashboard/suites/${draftCoordinate.namespace}/${encodeURIComponent(draftCoordinate.slug)}/new-version`,
-        search: { sourceVersion: operation.baseVersion ?? undefined },
-      })
-      return
-    }
-    void navigate({ to: '/dashboard/suites/new' })
-  }
+  const browsePlugins = () => { void navigate({ to: '/plugins' }) }
   const canCancel = Boolean(status && !TERMINAL_STATUSES.has(status))
   const memberStageComplete = status === 'SUITE_DRAFT_CREATED'
   const memberStageActive = status === 'RUNNING' || status === 'WAITING_FOR_MEMBERS'
@@ -125,7 +116,7 @@ export function SuiteBundleOperationDetail({ operationId }: { operationId: strin
                 </Button>
               ) : null}
               {status === 'REPREVIEW_REQUIRED' || status === 'CANCELLED' ? (
-                <Button size="sm" onClick={restartOperation}>{t('suite.bundle.startAgain')}</Button>
+                <Button size="sm" onClick={browsePlugins}>{t('suite.browsePlugins')}</Button>
               ) : null}
               {status === 'SUITE_DRAFT_CREATED' && !draftMissing && draftCoordinate && operation?.targetVersion ? (
                 <Button size="sm" onClick={() => navigate({
@@ -134,7 +125,7 @@ export function SuiteBundleOperationDetail({ operationId }: { operationId: strin
                 })}>{t('suite.bundle.openDraft')}</Button>
               ) : null}
               {draftMissing ? (
-                <Button size="sm" onClick={restartOperation}>{t('suite.bundle.startAgain')}</Button>
+                <Button size="sm" onClick={browsePlugins}>{t('suite.browsePlugins')}</Button>
               ) : null}
             </div>
           ) : null}

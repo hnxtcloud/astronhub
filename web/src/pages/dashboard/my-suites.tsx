@@ -1,3 +1,4 @@
+import { SuiteRetirementNotice } from '@/features/suite/suite-retirement-notice'
 import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -51,8 +52,8 @@ export function MySuitesPage() {
 
   return (
     <div className="space-y-4 animate-fade-up">
-      <SuiteWorkspaceHeader title={t('suite.myTitle')} description={t('suite.workspace.description')}
-        actions={<Button size="sm" onClick={() => navigate({ to: '/dashboard/suites/new' })}>{t('suite.create')}</Button>} />
+      <SuiteRetirementNotice />
+      <SuiteWorkspaceHeader title={t('suite.myTitle')} description={t('suite.workspace.description')} />
       <div className="flex flex-wrap items-center gap-2">
         <form className="flex w-full items-center gap-2 sm:w-auto" onSubmit={event => { event.preventDefault(); update({ query: queryInput.trim() }) }}>
         <div className="relative min-w-0 flex-1 sm:w-72">

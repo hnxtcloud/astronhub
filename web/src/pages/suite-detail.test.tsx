@@ -190,7 +190,7 @@ describe('SuiteDetailPage', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'suite.membersTabShort' }))
 
     expect(screen.getByText(`suite.blockingReasons.${blockingReason}`)).not.toBeNull()
-    expect(screen.queryByRole('link')).toBeNull()
+    expect(screen.getAllByRole('link').map(link => link.getAttribute('href'))).toEqual(['/plugins'])
   })
 
   it('shows release metadata and the member snapshot in version history', () => {

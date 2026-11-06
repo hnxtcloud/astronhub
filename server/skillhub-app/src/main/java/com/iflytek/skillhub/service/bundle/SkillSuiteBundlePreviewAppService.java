@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.skillhub.config.SkillSuiteBundleProperties;
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
+import com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy;
 import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundlePreviewSession;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +29,7 @@ public class SkillSuiteBundlePreviewAppService {
     private final SkillSuiteBundleProperties properties;
     private final ObjectMapper objectMapper;
     private final Clock clock;
+    private final SkillSuiteRetirementPolicy retirementPolicy;
 
     public SkillSuiteBundlePreviewAppService(
             SkillSuiteBundleArchiveService archiveService,
@@ -35,7 +37,8 @@ public class SkillSuiteBundlePreviewAppService {
             SkillSuiteBundlePreviewPersistenceService persistenceService,
             SkillSuiteBundleProperties properties,
             ObjectMapper objectMapper,
-            Clock clock
+            Clock clock,
+            SkillSuiteRetirementPolicy retirementPolicy
     ) {
         this.archiveService = archiveService;
         this.planner = planner;
@@ -43,6 +46,7 @@ public class SkillSuiteBundlePreviewAppService {
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.clock = clock;
+        this.retirementPolicy = retirementPolicy;
     }
 
     public PreviewOutcome preview(
@@ -51,6 +55,7 @@ public class SkillSuiteBundlePreviewAppService {
             Map<Long, NamespaceRole> namespaceRoles,
             Set<String> platformRoles
     ) throws IOException {
+        retirementPolicy.requireNewContentAllowed();
         SkillSuiteBundleArchiveService.StagedBundleAnalysis staged = archiveService.stageAndAnalyze(upload);
         if (!staged.analysis().confirmable()) {
             return new PreviewOutcome(null, null, staged.analysis(), null);

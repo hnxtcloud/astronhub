@@ -22,6 +22,13 @@ vi.mock('@/shared/hooks/use-label-queries', () => ({
 vi.mock('@/features/suite/resource-card', () => ({ ResourceCard: () => null }))
 
 describe('SuitesPage', () => {
+  it('keeps the legacy catalog readable while directing new publishing to plugins', () => {
+    render(<SuitesPage />)
+    expect(screen.queryByRole('button', { name: 'suite.create' })).toBeNull()
+    expect(screen.getByText('suite.retirementNotice')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'suite.browsePlugins' }).getAttribute('href')).toBe('/plugins')
+  })
+
   afterEach(() => {
     cleanup()
     vi.clearAllMocks()

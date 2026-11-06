@@ -92,7 +92,7 @@ class SkillSuiteBundleDraftCreationServiceTest {
         SkillSuiteVersion version = mock(SkillSuiteVersion.class);
         when(suite.getId()).thenReturn(21L);
         when(version.getId()).thenReturn(22L);
-        when(draftService.create(any(), any())).thenReturn(
+        when(draftService.createFromConfirmedBundle(any(), any(), any())).thenReturn(
                 new SkillSuiteDraftService.CreatedDraft(suite, version, List.of()));
 
         assertThat(service.create("operation")).isTrue();

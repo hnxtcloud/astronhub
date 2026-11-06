@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { MarkdownRenderer } from '@/features/skill/markdown-renderer'
 import { getBaseUrl, isPortableSkillVersion } from '@/features/skill/install-command'
 import { SuiteMemberTable } from '@/features/suite/suite-member-table'
+import { SuiteRetirementNotice } from '@/features/suite/suite-retirement-notice'
 import { SuiteVersionLedger } from '@/features/suite/suite-version-ledger'
 import { withoutDuplicateSuiteTitle } from '@/features/suite/suite-overview'
 import { suiteStatusLabel, suiteVisibilityLabel } from '@/features/suite/suite-labels'
@@ -62,6 +63,7 @@ export function SuiteDetailPage() {
 
   return (
     <div className={cn(APP_SHELL_PAGE_CLASS_NAME, 'mx-auto max-w-7xl space-y-5')}>
+      <SuiteRetirementNotice />
       <header className="space-y-4">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 max-w-3xl space-y-3">

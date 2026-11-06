@@ -43,6 +43,7 @@ public class SkillSuiteLifecycleService {
     private final AuditLogService auditLogService;
     private final Clock clock;
     private final boolean reviewWritesEnabled;
+    private final SkillSuiteRetirementPolicy retirementPolicy;
 
     public SkillSuiteLifecycleService(
             SkillSuiteRepository suiteRepository,
@@ -53,7 +54,8 @@ public class SkillSuiteLifecycleService {
             SkillSuitePublicationValidator publicationValidator,
             AuditLogService auditLogService,
             Clock clock,
-            @Value("${skillhub.suite.review-writes-enabled}") boolean reviewWritesEnabled
+            @Value("${skillhub.suite.review-writes-enabled}") boolean reviewWritesEnabled,
+            SkillSuiteRetirementPolicy retirementPolicy
     ) {
         this.suiteRepository = suiteRepository;
         this.versionRepository = versionRepository;
@@ -64,6 +66,7 @@ public class SkillSuiteLifecycleService {
         this.auditLogService = auditLogService;
         this.clock = clock;
         this.reviewWritesEnabled = reviewWritesEnabled;
+        this.retirementPolicy = retirementPolicy;
         if (!reviewWritesEnabled) {
             log.warn("Suite review writes are disabled for a mixed-version rolling upgrade");
         }
@@ -75,6 +78,7 @@ public class SkillSuiteLifecycleService {
             throw new DomainBadRequestException("error.suite.review.rolloutDisabled");
         }
         Loaded loaded = load(suiteId, versionId);
+        retirementPolicy.requireVersionCompletion(loaded.version());
         assertNamespaceWritable(loaded.namespace());
         assertCanManageDraft(loaded.suite(), loaded.version(), context);
         if (loaded.version().getVisibility() == SkillVisibility.PRIVATE) {
@@ -103,6 +107,7 @@ public class SkillSuiteLifecycleService {
             SkillSuiteActionContext context
     ) {
         Loaded loaded = load(suiteId, versionId);
+        retirementPolicy.requireVersionCompletion(loaded.version());
         assertNamespaceWritable(loaded.namespace());
         assertCanManageDraft(loaded.suite(), loaded.version(), context);
         if (loaded.version().getVisibility() != SkillVisibility.PRIVATE) {
@@ -123,6 +128,7 @@ public class SkillSuiteLifecycleService {
     public ReviewTask approveReview(Long reviewTaskId, String comment, SkillSuiteActionContext context) {
         ReviewTask task = loadPendingSuiteReview(reviewTaskId);
         Loaded loaded = load(task.getSubjectId(), task.getSubjectVersionId());
+        retirementPolicy.requireVersionCompletion(loaded.version());
         assertNamespaceWritable(loaded.namespace());
         assertCanReview(task, loaded.namespace(), context);
         if (loaded.version().getStatus() != SkillSuiteVersionStatus.PENDING_REVIEW) {
@@ -150,6 +156,7 @@ public class SkillSuiteLifecycleService {
         }
         completeTask(task, ReviewTaskStatus.REJECTED, context.actorUserId(), comment);
         loaded.version().setStatus(SkillSuiteVersionStatus.REJECTED);
+        loaded.version().revokeRetirementCompletion();
         versionRepository.save(loaded.version());
         audit(context, "REJECT_SKILL_SUITE_REVIEW", "REVIEW_TASK", reviewTaskId,
                 AuditDetail.of("suiteVersionId", loaded.version().getId()));
@@ -167,6 +174,7 @@ public class SkillSuiteLifecycleService {
         if (loaded.version().getStatus() != SkillSuiteVersionStatus.PENDING_REVIEW) {
             throw new DomainBadRequestException("error.suite.review.notPending", loaded.version().getVersion());
         }
+        loaded.version().revokeRetirementCompletion();
         loaded.version().setStatus(SkillSuiteVersionStatus.DRAFT);
         versionRepository.save(loaded.version());
         reviewTaskRepository.delete(task);
@@ -179,6 +187,7 @@ public class SkillSuiteLifecycleService {
 
     @Transactional
     public SkillSuiteVersion reopenRejected(Long suiteId, Long versionId, SkillSuiteActionContext context) {
+        retirementPolicy.requireNewContentAllowed();
         Loaded loaded = load(suiteId, versionId);
         assertNamespaceWritable(loaded.namespace());
         assertCanManageDraft(loaded.suite(), loaded.version(), context);
@@ -266,6 +275,7 @@ public class SkillSuiteLifecycleService {
 
     @Transactional
     public void delete(Long suiteId, SkillSuiteActionContext context) {
+        retirementPolicy.requireNewContentAllowed();
         SkillSuite suite = loadSuite(suiteId);
         assertCanAdminister(suite, context);
         boolean pendingReview = versionRepository.findBySuiteId(suiteId).stream()
@@ -333,6 +343,14 @@ public class SkillSuiteLifecycleService {
                     suite.getId(), SkillSuiteVersionStatus.PENDING_REVIEW).stream().findAny().isPresent();
             if (!pendingReview) {
                 actions.add(SkillSuiteAllowedAction.DELETE);
+            }
+        }
+        if (retirementPolicy.isEnabled()) {
+            actions.removeAll(EnumSet.of(SkillSuiteAllowedAction.EDIT, SkillSuiteAllowedAction.REOPEN,
+                    SkillSuiteAllowedAction.CREATE_VERSION, SkillSuiteAllowedAction.DELETE));
+            if (!retirementPolicy.canComplete(version)) {
+                actions.remove(SkillSuiteAllowedAction.SUBMIT);
+                actions.remove(SkillSuiteAllowedAction.PUBLISH_PRIVATE);
             }
         }
         return Set.copyOf(actions);

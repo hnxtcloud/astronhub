@@ -1,6 +1,7 @@
 package com.iflytek.skillhub.service.bundle;
 
 import com.iflytek.skillhub.domain.namespace.Namespace;
+import com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy;
 import com.iflytek.skillhub.domain.namespace.NamespaceRepository;
 import com.iflytek.skillhub.domain.namespace.NamespaceRole;
 import com.iflytek.skillhub.domain.namespace.NamespaceStatus;
@@ -42,6 +43,7 @@ public class SkillSuiteBundleMemberProgressService {
     private final SkillVersionRepository skillVersionRepository;
     private final SkillReviewSubmitService skillReviewSubmitService;
     private final Clock clock;
+    private final SkillSuiteRetirementPolicy retirementPolicy;
 
     public SkillSuiteBundleMemberProgressService(
             SkillSuiteBundleExecutionOperationRepository operationRepository,
@@ -51,7 +53,8 @@ public class SkillSuiteBundleMemberProgressService {
             SkillRepository skillRepository,
             SkillVersionRepository skillVersionRepository,
             SkillReviewSubmitService skillReviewSubmitService,
-            Clock clock
+            Clock clock,
+            SkillSuiteRetirementPolicy retirementPolicy
     ) {
         this.operationRepository = operationRepository;
         this.memberRepository = memberRepository;
@@ -61,6 +64,7 @@ public class SkillSuiteBundleMemberProgressService {
         this.skillVersionRepository = skillVersionRepository;
         this.skillReviewSubmitService = skillReviewSubmitService;
         this.clock = clock;
+        this.retirementPolicy = retirementPolicy;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -70,6 +74,7 @@ public class SkillSuiteBundleMemberProgressService {
         if (operation == null || terminal(operation.getStatus())) {
             return ProgressOutcome.TERMINAL;
         }
+        retirementPolicy.requireBundleCompletion(operation);
         SkillSuiteBundleActorContextService.ActorContext actor =
                 actorContextService.requireCurrent(operation.getActorId());
         List<SkillSuiteBundleMemberResult> members =

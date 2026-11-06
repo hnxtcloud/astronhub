@@ -46,7 +46,6 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       { key: 'skills', icon: Package, label: 'sidebar.mySkills', to: '/dashboard/skills' },
       { key: 'plugins', icon: Boxes, label: 'pluginManagement.title', to: '/dashboard/plugins' },
-      { key: 'suites', icon: Boxes, label: 'sidebar.mySuites', to: '/dashboard/suites' },
       { key: 'namespaces', icon: Globe, label: 'sidebar.namespaces', to: '/dashboard/namespaces' },
       { key: 'stars', icon: Star, label: 'sidebar.stars', to: '/dashboard/stars' },
       { key: 'subscriptions', icon: Heart, label: 'sidebar.subscriptions', to: '/dashboard/subscriptions' },
@@ -82,7 +81,6 @@ export const SIDEBAR_NAV = SIDEBAR_NAV_ITEMS.map(({ key, icon, label, to, admin,
  */
 const OVERVIEW_CARDS = [
   { key: 'skills', icon: Package, label: 'overview.mySkills', to: '/dashboard/skills', desc: 'overview.mySkillsDesc' },
-  { key: 'suites', icon: Boxes, label: 'overview.mySuites', to: '/dashboard/suites', desc: 'overview.mySuitesDesc' },
   { key: 'tokens', icon: Key, label: 'overview.tokens', to: '/dashboard/tokens', desc: 'overview.tokensDesc' },
   { key: 'stars', icon: Star, label: 'overview.stars', to: '/dashboard/stars', desc: 'overview.starsDesc' },
   { key: 'profile', icon: UserCog, label: 'overview.profile', to: '/settings/profile', desc: 'overview.profileDesc' },

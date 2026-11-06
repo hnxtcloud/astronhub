@@ -1,3 +1,4 @@
+import { SuiteRetirementNotice } from '@/features/suite/suite-retirement-notice'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { AlertTriangle, CheckCircle2, ChevronRight, Clock3, Eye, Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -96,6 +97,7 @@ export function SuiteManagementPage() {
 
   return (
     <div className="space-y-4 animate-fade-up">
+      <SuiteRetirementNotice />
       <SuiteWorkspaceHeader
         title={suite.displayName}
         eyebrow={coordinate}

@@ -135,6 +135,8 @@ spring:
 
 skillhub:
   suite:
+    retirement:
+      enabled: ${SKILLHUB_SUITE_RETIREMENT_ENABLED:true}
     # Fail closed for deployment modes whose upgrade topology is unknown. Single-instance
     # distributions explicitly enable this after ruling out mixed application versions.
     review-writes-enabled: ${SKILLHUB_SUITE_REVIEW_WRITES_ENABLED:false}

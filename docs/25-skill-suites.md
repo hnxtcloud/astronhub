@@ -1,5 +1,7 @@
 # Skill Suite 设计与使用
 
+> Suite 已进入分阶段退出：新建与编辑默认关闭，历史读取、安装和合格存量任务继续兼容。新的技能组合使用 Plugin，Plugin 可以仅包含 Skill。部署切换和例外收尾见 [退出实施说明](suite-retirement-plan.md)。下文保留为历史协议和兼容行为参考。
+
 ## 定位
 
 Skill Suite 是一个有独立身份和版本的 Skill 集合。它只引用当前 SkillHub 中已经发布的精确

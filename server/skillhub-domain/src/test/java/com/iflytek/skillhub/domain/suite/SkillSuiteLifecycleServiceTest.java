@@ -46,16 +46,17 @@ class SkillSuiteLifecycleServiceTest {
     @Mock private SkillSuitePublicationValidator publicationValidator;
     @Mock private AuditLogService auditLogService;
 
+    private Clock clock;
     private SkillSuiteLifecycleService service;
     private SkillSuite suite;
     private SkillSuiteVersion version;
 
     @BeforeEach
     void setUp() throws Exception {
-        Clock clock = Clock.fixed(Instant.parse("2026-09-07T08:00:00Z"), ZoneOffset.UTC);
+        clock = Clock.fixed(Instant.parse("2026-09-07T08:00:00Z"), ZoneOffset.UTC);
         service = new SkillSuiteLifecycleService(
                 suiteRepository, versionRepository, reviewTaskRepository, new ReviewPermissionChecker(), namespaceRepository,
-                publicationValidator, auditLogService, clock, true);
+                publicationValidator, auditLogService, clock, true, new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
         suite = new SkillSuite(1L, "writers", "Writers", "author");
         version = new SkillSuiteVersion(10L, "1.0.0", SkillVisibility.PRIVATE, "author");
         setId(suite, 10L);
@@ -126,7 +127,12 @@ class SkillSuiteLifecycleServiceTest {
     }
 
     @Test
-    void teamNamespaceOwnerCanApproveAndPublishSubmittedSuite() throws Exception {
+    void teamNamespaceOwnerCanCompleteLegacyReviewAfterRetirement() throws Exception {
+        service = new SkillSuiteLifecycleService(
+                suiteRepository, versionRepository, reviewTaskRepository, new ReviewPermissionChecker(),
+                namespaceRepository, publicationValidator, auditLogService, clock, true,
+                new SkillSuiteRetirementPolicy(true));
+        version.allowRetirementCompletion();
         version.setVisibility(SkillVisibility.PUBLIC);
         version.setStatus(SkillSuiteVersionStatus.PENDING_REVIEW);
         ReviewTask task = pendingReview("author");
@@ -145,6 +151,11 @@ class SkillSuiteLifecycleServiceTest {
 
     @Test
     void approvalFailureKeepsTheReviewAndSuiteVersionPending() throws Exception {
+        service = new SkillSuiteLifecycleService(
+                suiteRepository, versionRepository, reviewTaskRepository, new ReviewPermissionChecker(),
+                namespaceRepository, publicationValidator, auditLogService, clock, true,
+                new SkillSuiteRetirementPolicy(true));
+        version.allowRetirementCompletion();
         version.setVisibility(SkillVisibility.PUBLIC);
         version.setStatus(SkillSuiteVersionStatus.PENDING_REVIEW);
         ReviewTask task = pendingReview("author");
@@ -211,7 +222,7 @@ class SkillSuiteLifecycleServiceTest {
         SkillSuiteLifecycleService disabled = new SkillSuiteLifecycleService(
                 suiteRepository, versionRepository, reviewTaskRepository, new ReviewPermissionChecker(),
                 namespaceRepository, publicationValidator, auditLogService,
-                Clock.systemUTC(), false);
+                Clock.systemUTC(), false, new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
 
         assertThatThrownBy(() -> disabled.submitForReview(10L, 20L, context()))
                 .isInstanceOf(DomainBadRequestException.class);
@@ -225,7 +236,7 @@ class SkillSuiteLifecycleServiceTest {
         SkillSuiteLifecycleService disabled = new SkillSuiteLifecycleService(
                 suiteRepository, versionRepository, reviewTaskRepository, new ReviewPermissionChecker(),
                 namespaceRepository, publicationValidator, auditLogService,
-                Clock.systemUTC(), false);
+                Clock.systemUTC(), false, new com.iflytek.skillhub.domain.suite.SkillSuiteRetirementPolicy(false));
 
         Set<SkillSuiteAllowedAction> actions = disabled.allowedActions(
                 suite, version, namespace(NamespaceType.TEAM, NamespaceStatus.ACTIVE), context());

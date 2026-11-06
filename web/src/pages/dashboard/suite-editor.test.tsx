@@ -4,7 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SkillSuite, SkillSuiteMemberCandidate } from '@/api/types'
-import { SuiteEditor } from './suite-editor'
+import { SuiteEditor, SuiteCreatePage, SuiteEditPage, SuiteVersionCreatePage } from './suite-editor'
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -339,5 +339,15 @@ describe('SuiteEditor', () => {
 
     await waitFor(() => expect(screen.getByText('bundle-import:UPDATE:@global/starter')).not.toBeNull())
     expect(screen.getByRole('tab', { name: 'suite.localImport' }).getAttribute('aria-selected')).toBe('true')
+  })
+})
+
+describe("retired Suite authoring routes", () => {
+  afterEach(cleanup)
+  it.each([SuiteCreatePage, SuiteEditPage, SuiteVersionCreatePage])("renders a notice instead of an authoring form", Page => {
+    render(<Page />)
+    expect(screen.getByText("suite.retirementNotice")).toBeTruthy()
+    expect(screen.queryByRole("form")).toBeNull()
+    expect(screen.queryByRole("textbox")).toBeNull()
   })
 })

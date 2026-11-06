@@ -12,7 +12,6 @@ import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleManifest;
 import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleMemberResult;
 import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleMemberResultRepository;
 import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleMemberResultStatus;
-import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleMode;
 import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundleOperationStatus;
 import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundlePreviewSession;
 import com.iflytek.skillhub.domain.suite.bundle.SkillSuiteBundlePreviewSessionRepository;
@@ -108,9 +107,7 @@ public class SkillSuiteBundleDraftCreationService {
         SkillSuiteActionContext context = new SkillSuiteActionContext(
                 operation.getActorId(), actor.namespaceRoles(), actor.platformRoles(),
                 operationId, null, null);
-        SkillSuiteDraftService.CreatedDraft created = operation.getMode() == SkillSuiteBundleMode.CREATE
-                ? draftService.create(command, context)
-                : draftService.createVersion(operation.getTargetSuiteId(), command, context);
+        SkillSuiteDraftService.CreatedDraft created = draftService.createFromConfirmedBundle(operation, command, context);
         operation.markSuiteDraftCreated(
                 created.suite().getId(), created.version().getId(), clock.instant());
         operationRepository.save(operation);

@@ -83,6 +83,13 @@ public class SkillSuiteBundleExecutionOperation {
     @Column(name = "lock_version", nullable = false)
     private long lockVersion;
 
+    @Column(name = "retirement_completion_allowed", nullable = false)
+    private boolean retirementCompletionAllowed;
+
+    public boolean isRetirementCompletionAllowed() {
+        return retirementCompletionAllowed;
+    }
+
     protected SkillSuiteBundleExecutionOperation() {
     }
 
