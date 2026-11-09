@@ -6,7 +6,7 @@ import { canViewGovernanceCenter } from '@/shared/lib/governance-access'
 import { APP_SHELL_PAGE_CLASS_NAME } from '@/app/page-shell-style'
 import { DashboardPageHeader } from '@/shared/components/dashboard-page-header'
 import {
-  Star, Heart, Package, Boxes, Key, Shield, Flag, Globe,
+  Star, Heart, Package, Key, Shield, Flag, Globe,
   UserCog, Lock, Bell, Clock, ChevronDown, ChevronRight,
 } from 'lucide-react'
 
@@ -44,8 +44,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     label: 'sidebar.skillsAndData',
     items: [
-      { key: 'skills', icon: Package, label: 'sidebar.mySkills', to: '/dashboard/skills' },
-      { key: 'plugins', icon: Boxes, label: 'pluginManagement.title', to: '/dashboard/plugins' },
+      { key: 'publications', icon: Package, label: 'publication.mine', to: '/dashboard/publications' },
       { key: 'namespaces', icon: Globe, label: 'sidebar.namespaces', to: '/dashboard/namespaces' },
       { key: 'stars', icon: Star, label: 'sidebar.stars', to: '/dashboard/stars' },
       { key: 'subscriptions', icon: Heart, label: 'sidebar.subscriptions', to: '/dashboard/subscriptions' },
@@ -80,7 +79,7 @@ export const SIDEBAR_NAV = SIDEBAR_NAV_ITEMS.map(({ key, icon, label, to, admin,
  * Shown as a grid of quick-access cards linking to main sections.
  */
 const OVERVIEW_CARDS = [
-  { key: 'skills', icon: Package, label: 'overview.mySkills', to: '/dashboard/skills', desc: 'overview.mySkillsDesc' },
+  { key: 'publications', icon: Package, label: 'publication.mine', to: '/dashboard/publications', desc: 'publication.manageDescription' },
   { key: 'tokens', icon: Key, label: 'overview.tokens', to: '/dashboard/tokens', desc: 'overview.tokensDesc' },
   { key: 'stars', icon: Star, label: 'overview.stars', to: '/dashboard/stars', desc: 'overview.starsDesc' },
   { key: 'profile', icon: UserCog, label: 'overview.profile', to: '/settings/profile', desc: 'overview.profileDesc' },

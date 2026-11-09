@@ -1,15 +1,28 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { McpServerCard } from '@/entities/mcp-server/mcp-server-card'
 import { PluginCard } from '@/entities/plugin/plugin-card'
 import { useCapabilityCatalog, type CapabilityType } from '@/features/catalog-search/use-capability-catalog'
+import { Pagination } from '@/shared/components/pagination'
+import { withBasePath } from '@/shared/lib/base-path'
 
 function CapabilityCatalogPage({ initialType = 'ALL' }: { initialType?: CapabilityType }) {
   const { t } = useTranslation()
-  const [type, setType] = useState<CapabilityType>(initialType)
-  const [query, setQuery] = useState('')
-  const { data, isLoading, isError } = useCapabilityCatalog(type, query)
+  const search = useSearch({ strict: false })
+  const navigate = useNavigate()
+  const validTypes: CapabilityType[] = ['ALL', 'SKILL', 'PLUGIN', 'MCP', 'SOFTWARE']
+  const searchType = validTypes.includes(search.type as CapabilityType) ? search.type as CapabilityType : initialType
+  const [type, setType] = useState<CapabilityType>(searchType)
+  const [query, setQuery] = useState(search.q ?? '')
+  const [page, setPage] = useState(Number(search.page) || 0)
+  const { data, isLoading, isError } = useCapabilityCatalog(type, query, page)
+  useEffect(() => { setType(searchType); setQuery(search.q ?? ''); setPage(Number(search.page) || 0) }, [searchType, search.q, search.page])
+  function update(nextType: CapabilityType, nextQuery: string, nextPage = 0) {
+    setType(nextType); setQuery(nextQuery); setPage(nextPage)
+    void navigate({ to: '/catalog', search: { type: nextType, q: nextQuery || undefined, page: nextPage } })
+  }
 
   return (
     <div className="mx-auto w-full max-w-6xl py-8 md:py-12">
@@ -24,18 +37,21 @@ function CapabilityCatalogPage({ initialType = 'ALL' }: { initialType?: Capabili
         <label className="flex flex-1 items-center gap-3 rounded-md border bg-white px-3.5 py-2.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
+            type="search"
+            aria-label={t('catalog.searchPlaceholder')}
             className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => update(type, event.target.value)}
             placeholder={t('catalog.searchPlaceholder')}
           />
         </label>
         <div className="flex flex-wrap gap-1" aria-label={t('catalog.typeLabel')}>
-          {(['ALL', 'SKILL', 'PLUGIN', 'MCP'] as CapabilityType[]).map((candidate) => (
+          {validTypes.map((candidate) => (
             <button
               key={candidate}
               type="button"
-              onClick={() => setType(candidate)}
+              aria-pressed={type === candidate}
+              onClick={() => update(candidate, query)}
               className={type === candidate
                 ? 'rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground'
                 : 'rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary/70 hover:text-foreground'}
@@ -57,17 +73,20 @@ function CapabilityCatalogPage({ initialType = 'ALL' }: { initialType?: Capabili
         {data?.items.map((item) => {
           if (item.type === 'PLUGIN') return <PluginCard key={item.coordinate} item={item} />
           if (item.type === 'MCP') return <McpServerCard key={item.coordinate} item={item} />
+          const detail = item.type === 'SOFTWARE' ? `/software/apps/${encodeURIComponent(item.slug)}`
+            : `/space/${encodeURIComponent(item.namespace)}/${encodeURIComponent(item.slug)}`
           return (
             <article key={item.coordinate} className="grid gap-3 py-5 transition-colors hover:bg-secondary/25 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] sm:px-3">
               <div>
-                <p className="font-mono text-xs text-muted-foreground">{item.coordinate}</p>
-                <h2 className="mt-1 text-base font-semibold text-foreground">{item.displayName}</h2>
+                <h2 className="text-base font-semibold text-foreground"><a href={withBasePath(detail)} className="rounded-sm hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{item.displayName}</a></h2>
+                <p className="mt-1 truncate font-mono text-xs text-muted-foreground" title={item.coordinate}>{item.coordinate}</p>
               </div>
               <p className="text-sm leading-6 text-muted-foreground">{item.summary || '—'}</p>
             </article>
           )
         })}
       </div>
+      {(data?.total ?? 0) > 40 && <Pagination page={page} totalPages={Math.ceil((data?.total ?? 0) / 40)} onPageChange={value => update(type, query, value)} />}
     </div>
   )
 }

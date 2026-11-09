@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface CapabilityCatalogQueryRepository {
+    PageResponse<CapabilityCatalogItem> findSoftware(String keyword, int page, int size, String userId);
     PageResponse<CapabilityCatalogItem> findPlugins(
             String keyword, int page, int size, String userId,
             Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles);
@@ -27,4 +28,7 @@ public interface CapabilityCatalogQueryRepository {
     PageResponse<CapabilityCatalogItem> findAll(
             String keyword, int page, int size, String userId,
             Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles);
+    PageResponse<CapabilityCatalogItem> findAll(
+            String keyword, int page, int size, String userId,
+            Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles, boolean includeSoftware);
 }

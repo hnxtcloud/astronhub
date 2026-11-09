@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '@/shared/ui/table'
 import { useAppDetail, useCreateDownloadSession } from '@/features/software/use-software-queries'
+import { ContentUseAction } from '@/shared/components/content-use-action'
 
 /**
  * Portal app detail: releases with their published packages. Downloading
@@ -46,16 +47,19 @@ export function SoftwareAppDetailPage() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6 p-4">
       <div>
-        <Link to="/software" className="text-sm text-muted-foreground hover:underline">
+        <Link to="/catalog" search={{ type: 'SOFTWARE' }} className="text-sm text-muted-foreground hover:underline">
           {t('softwareAppDetail.backToCatalog')}
         </Link>
-        <h1 className="text-2xl font-semibold">{app.name}</h1>
+        <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+          <h1 className="text-2xl font-semibold">{app.name}</h1>
+          {app.releases.some(release => release.packages.some(pkg => pkg.status === 'PUBLISHED')) && <ContentUseAction targetId="software-use" label={t('publication.actions.SOFTWARE')} />}
+        </div>
         <p className="text-muted-foreground">{app.description ?? ''}</p>
       </div>
 
       {downloadError ? <p className="text-sm text-destructive">{downloadError}</p> : null}
 
-      {app.releases.length === 0 ? (
+      <section id="software-use" className="scroll-mt-24 space-y-4">{app.releases.length === 0 ? (
         <Card className="p-8 text-center text-muted-foreground">
           {t('softwareAppDetail.noReleases')}
         </Card>
@@ -115,7 +119,7 @@ export function SoftwareAppDetailPage() {
             </Table>
           </Card>
         ))
-      )}
+      )}</section>
     </div>
   )
 }

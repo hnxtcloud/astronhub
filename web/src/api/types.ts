@@ -141,7 +141,7 @@ export type CapabilityCatalogItem = Omit<
   components['schemas']['CapabilityCatalogItem'],
   'type' | 'id' | 'coordinate' | 'namespace' | 'slug' | 'displayName' | 'visibility' | 'status' | 'targets' | 'primaryMetric'
 > & {
-  type: 'SKILL' | 'PLUGIN' | 'MCP'
+  type: NonNullable<components['schemas']['CapabilityCatalogItem']['type']>
   id: number
   coordinate: string
   namespace: string

@@ -60,8 +60,9 @@ const TARGET_ARCHES = ['x86_64', 'arm64', 'x86', 'universal']
  */
 export function AdminSoftwarePage() {
   const { t, i18n } = useTranslation()
-  const [search, setSearch] = useState('')
-  const [searchInput, setSearchInput] = useState('')
+  const initial = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search)
+  const [search, setSearch] = useState(initial.get('slug') ?? '')
+  const [searchInput, setSearchInput] = useState(initial.get('slug') ?? '')
   const [statusFilter, setStatusFilter] = useState('')
   const [page, setPage] = useState(0)
   const [createAppOpen, setCreateAppOpen] = useState(false)
@@ -78,6 +79,7 @@ export function AdminSoftwarePage() {
   const setAppStatus = useSetSoftwareAppStatus()
 
   const apps = data?.items ?? []
+  const activeApp = selectedApp ?? apps.find(app => app.id === Number(initial.get('appId')))
   const totalElements = data?.total ?? 0
   const totalPages = Math.max(1, Math.ceil(totalElements / 20))
 
@@ -196,8 +198,8 @@ export function AdminSoftwarePage() {
         ) : null}
       </Card>
 
-      {selectedApp ? (
-        <AppReleaseManager key={selectedApp.id} appId={selectedApp.id} appSlug={selectedApp.slug} appName={selectedApp.name} formatDate={formatDate} />
+      {activeApp ? (
+        <AppReleaseManager key={activeApp.id} appId={activeApp.id} appSlug={activeApp.slug} appName={activeApp.name} formatDate={formatDate} />
       ) : null}
 
       <CreateAppDialog

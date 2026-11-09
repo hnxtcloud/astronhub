@@ -87,10 +87,10 @@ describe('UserMenu navigation', () => {
       />,
     )
 
-    expect(html).toContain('user.menu.mySkills')
+    expect(html).toContain('publication.mine')
     expect(html).not.toContain('user.menu.mySuites')
     expect(html).toContain('user.menu.dashboard')
-    expect(html.indexOf('user.menu.mySkills')).toBeLessThan(html.indexOf('user.menu.dashboard'))
+    expect(html.indexOf('publication.mine')).toBeLessThan(html.indexOf('user.menu.dashboard'))
   })
 
   it('keeps dashboard-only personal links out of the compact avatar menu', () => {

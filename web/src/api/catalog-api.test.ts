@@ -17,6 +17,15 @@ vi.mock('@/i18n/config', () => ({
 import { catalogApi } from './client'
 
 describe('catalogApi', () => {
+  it('keeps software entries without inventing a namespace', async () => {
+    mocks.get.mockResolvedValue({ response: { ok: true, status: 200 }, data: { code: 0, data: {
+      items: [{ type: 'SOFTWARE', id: 9, coordinate: 'software:editor', namespace: null, slug: 'editor',
+        displayName: 'Editor', visibility: 'AUTHENTICATED', status: 'PUBLISHED' }], total: 1,
+    } } })
+    const page = await catalogApi.search({ type: 'ALL' })
+    expect(page.items).toHaveLength(1)
+    expect(page.items[0]).toMatchObject({ type: 'SOFTWARE', slug: 'editor', namespace: '' })
+  })
   beforeEach(() => {
     vi.clearAllMocks()
   })

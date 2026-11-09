@@ -10,6 +10,7 @@ import com.iflytek.skillhub.domain.plugin.PluginDistribution;
 import com.iflytek.skillhub.domain.plugin.PluginDistributionRepository;
 import com.iflytek.skillhub.domain.plugin.PluginProject;
 import com.iflytek.skillhub.domain.plugin.PluginRelease;
+import com.iflytek.skillhub.domain.software.SoftwareApplication;
 import com.iflytek.skillhub.dto.PageResponse;
 import com.iflytek.skillhub.dto.catalog.CapabilityCatalogItem;
 import com.iflytek.skillhub.dto.catalog.CapabilityType;
@@ -137,9 +138,34 @@ public class JpaCapabilityCatalogQueryRepository implements CapabilityCatalogQue
     }
 
     @Override
+    public PageResponse<CapabilityCatalogItem> findSoftware(String keyword, int page, int size, String userId) {
+        // The software portal is session-only; unified anonymous search must preserve this boundary.
+        if (userId == null || userId.isBlank()) return new PageResponse<>(List.of(), 0, page, size);
+        String query = keyword == null ? "" : keyword.trim().toLowerCase(java.util.Locale.ROOT);
+        String from = " from SoftwareApplication a where a.status = com.iflytek.skillhub.domain.software.SoftwareApplicationStatus.PUBLISHED"
+                + " and (:keyword = '' or lower(a.name) like :pattern or lower(a.slug) like :pattern or lower(coalesce(a.description, '')) like :pattern)";
+        var rows = entityManager.createQuery("select a" + from + " order by a.updatedAt desc, a.id desc", SoftwareApplication.class)
+                .setParameter("keyword", query).setParameter("pattern", "%" + query + "%")
+                .setFirstResult(page * size).setMaxResults(size).getResultList();
+        long total = entityManager.createQuery("select count(a)" + from, Long.class)
+                .setParameter("keyword", query).setParameter("pattern", "%" + query + "%").getSingleResult();
+        var items = rows.stream().map(app -> new CapabilityCatalogItem(CapabilityType.SOFTWARE, app.getId(),
+                "software:" + app.getSlug(), null, app.getSlug(), app.getName(), app.getDescription(),
+                "AUTHENTICATED", app.getStatus().name(), null, List.of(), app.getDownloadCount(), app.getUpdatedAt())).toList();
+        return new PageResponse<>(items, total, page, size);
+    }
+
+    @Override
     public PageResponse<CapabilityCatalogItem> findAll(
             String keyword, int page, int size, String userId,
             Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles) {
+        return findAll(keyword, page, size, userId, namespaceRoles, platformRoles, true);
+    }
+
+    @Override
+    public PageResponse<CapabilityCatalogItem> findAll(
+            String keyword, int page, int size, String userId,
+            Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles, boolean includeSoftware) {
         int candidateSize = (page + 1) * size;
         PageResponse<CapabilityCatalogItem> skills = skillCatalogQuerySource.findSkillsForCatalog(
                 keyword, 0, candidateSize, userId, namespaceRoles);
@@ -147,18 +173,20 @@ public class JpaCapabilityCatalogQueryRepository implements CapabilityCatalogQue
                 keyword, 0, candidateSize, userId, namespaceRoles, platformRoles);
         PageResponse<CapabilityCatalogItem> mcpServers = findMcpServers(
                 keyword, 0, candidateSize, userId, namespaceRoles, platformRoles);
+        PageResponse<CapabilityCatalogItem> software = findSoftware(keyword, 0, candidateSize, includeSoftware ? userId : null);
 
         List<CapabilityCatalogItem> merged = new ArrayList<>();
         merged.addAll(skills.items());
         merged.addAll(plugins.items());
         merged.addAll(mcpServers.items());
+        merged.addAll(software.items());
         merged.sort(Comparator.comparing(
                 CapabilityCatalogItem::updatedAt,
-                Comparator.nullsLast(Comparator.reverseOrder())));
+                Comparator.nullsLast(Comparator.reverseOrder())).thenComparing(CapabilityCatalogItem::coordinate));
         int from = Math.min(page * size, merged.size());
         int to = Math.min(from + size, merged.size());
         return new PageResponse<>(merged.subList(from, to),
-                skills.total() + plugins.total() + mcpServers.total(), page, size);
+                skills.total() + plugins.total() + mcpServers.total() + software.total(), page, size);
     }
 
     private void bind(TypedQuery<?> query, String keyword, String userId,

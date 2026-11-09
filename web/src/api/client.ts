@@ -304,15 +304,15 @@ export async function fetchJson<T>(input: RequestInfo | URL, init?: RequestWithT
 function normalizeCapabilityCatalogItem(
   item: components['schemas']['CapabilityCatalogItem'],
 ): CapabilityCatalogItem | null {
-  if (!item || (item.type !== 'SKILL' && item.type !== 'PLUGIN' && item.type !== 'MCP')) return null
-  if (item.id === undefined || !item.coordinate || !item.namespace || !item.slug || !item.displayName) return null
+  if (!item || (item.type !== 'SKILL' && item.type !== 'PLUGIN' && item.type !== 'MCP' && item.type !== 'SOFTWARE')) return null
+  if (item.id === undefined || !item.coordinate || (!item.namespace && item.type !== 'SOFTWARE') || !item.slug || !item.displayName) return null
   if (!item.visibility || !item.status) return null
   return {
     ...item,
     type: item.type,
     id: item.id,
     coordinate: item.coordinate,
-    namespace: item.namespace,
+    namespace: item.namespace ?? '',
     slug: item.slug,
     displayName: item.displayName,
     visibility: item.visibility,
@@ -323,7 +323,7 @@ function normalizeCapabilityCatalogItem(
 }
 
 export const catalogApi = {
-  async search(params: { type: 'ALL' | 'SKILL' | 'PLUGIN' | 'MCP'; q?: string; page?: number; size?: number }): Promise<CapabilityCatalogPage> {
+  async search(params: { type: 'ALL' | NonNullable<components['schemas']['CapabilityCatalogItem']['type']>; q?: string; page?: number; size?: number }): Promise<CapabilityCatalogPage> {
     const { data, error, response } = await client.GET('/api/v1/catalog/search', {
       params: {
         query: {

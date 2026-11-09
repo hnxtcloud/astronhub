@@ -8,6 +8,8 @@ import com.iflytek.skillhub.dto.PageResponse;
 import com.iflytek.skillhub.dto.catalog.CapabilityCatalogItem;
 import com.iflytek.skillhub.dto.catalog.CapabilityTypeFilter;
 import com.iflytek.skillhub.service.CapabilityCatalogAppService;
+import com.iflytek.skillhub.auth.rbac.PlatformPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.Map;
 import java.util.Set;
@@ -39,8 +41,10 @@ public class CapabilityCatalogSearchController extends BaseApiController {
             @RequestParam(defaultValue = "20") int size,
             @RequestAttribute(value = "userId", required = false) String userId,
             @RequestAttribute(value = "userNsRoles", required = false) Map<Long, NamespaceRole> namespaceRoles,
-            @RequestAttribute(value = "platformRoles", required = false) Set<String> platformRoles) {
+            @RequestAttribute(value = "platformRoles", required = false) Set<String> platformRoles,
+            @AuthenticationPrincipal PlatformPrincipal principal) {
         return ok("response.success.read",
-                catalogAppService.search(q, type, page, size, userId, namespaceRoles, platformRoles));
+                catalogAppService.search(q, type, page, size, userId, namespaceRoles, platformRoles,
+                        principal != null && !"api_token".equals(principal.oauthProvider())));
     }
 }

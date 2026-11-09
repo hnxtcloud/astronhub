@@ -66,7 +66,7 @@ describe('DashboardPage', () => {
     const html = renderToStaticMarkup(<DashboardPage />)
 
     expect(html).toContain('sidebar.skillsAndData')
-    expect(html).toContain('overview.mySkills')
+    expect(html).toContain('publication.mine')
     expect(html).not.toContain('sidebar.mySuites')
     expect(html).not.toContain('overview.mySuites')
     expect(html).not.toContain('overview.publish')

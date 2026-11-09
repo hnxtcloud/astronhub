@@ -17,6 +17,7 @@ import org.springframework.util.AntPathMatcher;
 public class RouteSecurityPolicyRegistry {
 
     private static final List<RouteAuthorizationPolicy> AUTHORIZATION_POLICIES = List.of(
+            RouteAuthorizationPolicy.authenticated(null, "/api/web/publications/**"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/updates/**"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.HEAD, "/updates/**"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v4/projects/**"),
@@ -326,6 +327,7 @@ public class RouteSecurityPolicyRegistry {
      * reachable with a token holding the required scope.</p>
      */
     private static final Set<String> SESSION_ONLY_ROUTES = Set.of(
+            "ANY /api/web/publications/**",
             "ANY /api/v1/auth/session/bootstrap",
             "ANY /api/v1/auth/direct/login",
             "ANY /api/v1/auth/local/**",

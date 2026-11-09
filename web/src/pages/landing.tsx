@@ -30,16 +30,10 @@ export function LandingPage() {
 
   const handleSearch = (query: string) => {
     navigate({
-      to: '/search',
-      search: { q: normalizeSearchQuery(query), sort: 'relevance', page: 0, starredOnly: false },
+      to: '/catalog',
+      search: { q: normalizeSearchQuery(query), page: 0 },
     })
   }
-
-  const capabilityTypes = [
-    { label: t('catalog.types.skill'), description: t('landing.scope.skill.description'), to: '/catalog' as const },
-    { label: t('catalog.types.plugin'), description: t('landing.scope.plugin.description'), to: '/plugins' as const },
-    { label: t('catalog.types.mcp'), description: t('landing.scope.mcp.description'), to: '/mcp-servers' as const },
-  ]
 
   const features = [
     { icon: Shield, title: t('landing.features.secure.title'), description: t('landing.features.secure.description') },
@@ -88,7 +82,7 @@ export function LandingPage() {
   return (
     <>
       <main className="w-full px-6 py-14 md:py-20">
-        <div className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)] lg:items-center">
+        <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
             <div className="mb-6 flex items-baseline gap-3">
               <span className="text-xl font-semibold text-primary">星枢</span>
@@ -121,34 +115,14 @@ export function LandingPage() {
                 {t('landing.hero.exploreSkills')}
               </Link>
               <Link
-                to="/dashboard"
+                to="/dashboard/publish"
                 className="rounded-md border border-border bg-white px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
               >
-                {t('landing.hero.publishSkill')}
+                {t('publication.new')}
               </Link>
             </div>
           </div>
 
-          <aside className="border-y border-border" aria-labelledby="capability-scope-title">
-            <div className="py-4">
-              <h2 id="capability-scope-title" className="text-sm font-semibold text-foreground">
-                {t('landing.scope.title')}
-              </h2>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">{t('landing.scope.description')}</p>
-            </div>
-            {capabilityTypes.map((capability) => (
-              <Link
-                key={capability.label}
-                to={capability.to}
-                className="group grid grid-cols-[6rem_1fr] gap-4 border-t border-border py-4 transition-colors hover:bg-secondary/60"
-              >
-                <span className="font-mono text-sm font-medium text-primary">{capability.label}</span>
-                <span className="text-sm leading-6 text-muted-foreground group-hover:text-foreground">
-                  {capability.description}
-                </span>
-              </Link>
-            ))}
-          </aside>
         </div>
       </main>
 

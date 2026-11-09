@@ -33,7 +33,7 @@ describe('useCapabilityCatalog', () => {
       queryKey: unknown
       queryFn: () => Promise<typeof page>
     }
-    expect(options.queryKey).toEqual(['capability-catalog', 'PLUGIN', 'review'])
+    expect(options.queryKey).toEqual(['capability-catalog', 'PLUGIN', 'review', 0])
     await expect(options.queryFn()).resolves.toEqual(page)
     expect(mocks.search).toHaveBeenCalledWith({
       type: 'PLUGIN',

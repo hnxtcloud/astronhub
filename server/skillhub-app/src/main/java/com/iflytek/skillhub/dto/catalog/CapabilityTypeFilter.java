@@ -4,5 +4,6 @@ public enum CapabilityTypeFilter {
     ALL,
     SKILL,
     PLUGIN,
-    MCP
+    MCP,
+    SOFTWARE
 }

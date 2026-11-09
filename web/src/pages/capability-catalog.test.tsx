@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   useCatalog: vi.fn(),
   queries: [] as Array<{ type: string; query: string }>,
 }))
+vi.mock('@tanstack/react-router', () => ({ useSearch: () => ({}), useNavigate: () => vi.fn() }))
 
 vi.mock('react-i18next', async () => {
   const actual = await vi.importActual<typeof import('react-i18next')>('react-i18next')
@@ -46,6 +47,13 @@ const baseItem = {
 }
 
 describe('CapabilityCatalogPage', () => {
+  it('offers software in the same catalog and opens its actual detail page', () => {
+    mocks.useCatalog.mockReturnValue({ data: { items: [{ ...baseItem, type: 'SOFTWARE', coordinate: 'software:editor', slug: 'editor', displayName: 'Desktop Editor' }] }, isLoading: false, isError: false })
+    const view = render(<CatalogPage />)
+    fireEvent.click(view.getByRole('button', { name: 'catalog.types.software' }))
+    expect(mocks.queries.at(-1)?.type).toBe('SOFTWARE')
+    expect(view.getByRole('link', { name: 'Desktop Editor' }).getAttribute('href')).toBe('/software/apps/editor')
+  })
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.queries.length = 0

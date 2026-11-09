@@ -107,6 +107,7 @@ const dashboardRouteOptions = { silentFallback: true } satisfies LazyRouteOption
 const DashboardPage = createLazyRouteComponent(() => import('@/pages/dashboard'), 'DashboardPage', dashboardRouteOptions)
 const MySkillsPage = createLazyRouteComponent(() => import('@/pages/dashboard/my-skills'), 'MySkillsPage', dashboardRouteOptions)
 const PublishPage = createLazyRouteComponent(() => import('@/pages/dashboard/publish'), 'PublishPage', dashboardRouteOptions)
+const PublicationsPage = createLazyRouteComponent(() => import('@/pages/dashboard/publications'), 'PublicationsPage', dashboardRouteOptions)
 const SuiteCreatePage = createLazyRouteComponent(
   () => import('@/pages/dashboard/suite-editor'),
   'SuiteCreatePage',
@@ -347,6 +348,11 @@ const termsRoute = createRoute({
 const catalogRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'catalog',
+  validateSearch: (search: Record<string, unknown>): { q?: string; type?: string; page?: number } => ({
+    q: typeof search.q === 'string' ? search.q : undefined,
+    type: typeof search.type === 'string' && ['ALL', 'SKILL', 'PLUGIN', 'MCP', 'SOFTWARE'].includes(search.type) ? search.type : undefined,
+    page: Number.isSafeInteger(Number(search.page)) && Number(search.page) >= 0 ? Number(search.page) : 0,
+  }),
   component: CatalogPage,
 })
 
@@ -424,8 +430,18 @@ const dashboardPublishRoute = createRoute({
     visibility?: string
     resubmitSkill?: string
     resubmitVersion?: string
+    task?: string
+    appId?: number
+    projectId?: number
+    slug?: string
+    name?: string
   } => ({
     namespace: typeof search.namespace === 'string' && search.namespace ? search.namespace : undefined,
+    task: typeof search.task === 'string' && search.task ? search.task : undefined,
+    appId: Number.isSafeInteger(Number(search.appId)) && Number(search.appId) > 0 ? Number(search.appId) : undefined,
+    projectId: Number.isSafeInteger(Number(search.projectId)) && Number(search.projectId) > 0 ? Number(search.projectId) : undefined,
+    slug: typeof search.slug === 'string' ? search.slug : undefined,
+    name: typeof search.name === 'string' ? search.name.slice(0, 200) : undefined,
     visibility: typeof search.visibility === 'string' && search.visibility ? search.visibility : undefined,
     resubmitSkill: typeof search.resubmitSkill === 'string' && search.resubmitSkill
       ? search.resubmitSkill
@@ -738,6 +754,8 @@ const softwareAppDetailRoute = createRoute({
 const adminSoftwareRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'admin/software',
+  validateSearch: (search: Record<string, unknown>): { appId?: number; slug?: string } => ({ appId: Number(search.appId) || undefined,
+    slug: typeof search.slug === 'string' ? search.slug : undefined }),
   beforeLoad: requireAuth,
   component: AdminSoftwarePage,
 })
@@ -759,11 +777,20 @@ const adminSoftwareSettingsRoute = createRoute({
 const pluginManagementRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'dashboard/plugins',
+  validateSearch: (search: Record<string, unknown>): { projectId?: number } => ({ projectId: Number(search.projectId) || undefined }),
   beforeLoad: requireAuth,
   component: PluginManagementPage,
 })
 
+const publicationsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'dashboard/publications',
+  beforeLoad: requireAuth,
+  component: PublicationsPage,
+})
+
 const routeTree = rootRoute.addChildren([
+  publicationsRoute,
   pluginManagementRoute,
   landingRoute,
   skillsRoute,

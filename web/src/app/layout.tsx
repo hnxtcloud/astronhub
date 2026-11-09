@@ -83,15 +83,17 @@ export function Layout() {
   }> = [
     { label: t('nav.landing'), to: '/', exact: true },
     { label: t('nav.catalog'), to: '/catalog' },
-    { label: t('nav.plugins'), to: '/plugins' },
-    { label: t('nav.mcp'), to: '/mcp-servers' },
-    { label: t('nav.software'), to: '/software' },
     { label: t('nav.publish'), to: '/dashboard/publish', auth: true },
     { label: t('nav.dashboard'), to: '/dashboard', auth: true },
   ]
 
   const isActive = (to: string, exact?: boolean) => {
     if (exact) return pathname === to
+    if (to === '/catalog') {
+      return ['/catalog', '/plugins', '/mcp-servers', '/software'].some(
+        (path) => pathname === path || pathname.startsWith(`${path}/`),
+      )
+    }
     // 「控制台」按钮：仅在 /dashboard 主页或 /settings/* 时高亮
     if (to === '/dashboard') {
       return pathname === '/dashboard' || pathname.startsWith('/settings/')
@@ -252,8 +254,8 @@ export function Layout() {
                     </li>
                     <li>
                       <Link
-                        to="/search"
-                        search={{ q: '', sort: 'relevance', page: 0, starredOnly: false }}
+                        to="/catalog"
+                        search={{ q: '', page: 0 }}
                         className="hover:opacity-80 transition-opacity"
                         style={{ color: 'hsl(var(--text-secondary))' }}
                       >

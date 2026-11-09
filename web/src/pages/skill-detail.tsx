@@ -10,6 +10,7 @@ import { FilePreviewDialog } from '@/features/skill/file-preview-dialog'
 import type { FileTreeNode } from '@/features/skill/file-tree-builder'
 import type { SkillFile } from '@/api/types'
 import { InstallCommand } from '@/features/skill/install-command'
+import { ContentUseAction } from '@/shared/components/content-use-action'
 import { ShareButton } from '@/features/skill/share-button'
 import { InstallForAgentButton } from '@/features/skill/install-for-agent-button'
 import { SkillLabelPanel } from '@/features/skill/skill-label-panel'
@@ -895,7 +896,8 @@ export function SkillDetailPage() {
               </span>
             )}
           </div>
-          <h1 className="text-balance break-words text-4xl font-bold font-heading text-foreground [overflow-wrap:anywhere]">{skill.displayName}</h1>
+          <div className="flex flex-wrap items-start justify-between gap-4"><h1 className="text-balance break-words text-4xl font-bold font-heading text-foreground [overflow-wrap:anywhere]">{skill.displayName}</h1>
+            {isVersionDownloadable && skill.status !== 'ARCHIVED' && <ContentUseAction targetId="skill-use" label={t('publication.actions.SKILL')} />}</div>
           {skill.ownerDisplayName && (
             <div className="flex min-w-0">
               <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-border/60 bg-background/85 px-3 py-1.5 text-sm text-muted-foreground shadow-sm backdrop-blur-sm">
@@ -1295,6 +1297,7 @@ export function SkillDetailPage() {
         )}
 
         <Button
+          id="skill-use"
           className="w-full"
           variant="outline"
           size="lg"

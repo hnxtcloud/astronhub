@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Textarea } from '@/shared/ui/textarea'
 import { withBasePath } from '@/shared/lib/base-path'
+import { ContentUseAction } from '@/shared/components/content-use-action'
 import type { PluginProject, PluginRelease } from './plugin-api'
 import {
   publishedPath,
@@ -47,9 +48,9 @@ export function PluginPublishedDetail({
             <p className="font-mono text-sm text-muted-foreground">
               @{namespace}/{slug}
             </p>
-            <h1 className="text-2xl font-semibold">
+            <div className="mt-3 flex flex-wrap items-start justify-between gap-4"><h1 className="text-2xl font-semibold">
               {plugin.data.displayName}
-            </h1>
+            </h1>{!!release.data?.distributions.length && <ContentUseAction targetId="plugin-use" label={t('publication.actions.PLUGIN')} />}</div>
             <p className="mt-2 text-muted-foreground">{plugin.data.summary}</p>
           </header>
           <label className="flex flex-wrap items-center gap-3 text-sm">
@@ -68,7 +69,7 @@ export function PluginPublishedDetail({
           </label>
           {release.error && <p role="alert">{release.error.message}</p>}
           {release.data && (
-            <section className="space-y-5">
+            <section id="plugin-use" className="scroll-mt-24 space-y-5">
               <p className="whitespace-pre-wrap text-sm">
                 {release.data.changelog}
               </p>

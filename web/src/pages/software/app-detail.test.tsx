@@ -29,7 +29,8 @@ vi.mock('@/shared/ui/card', () => ({
   Card: ({ children }: { children: ReactNode }) => children,
 }))
 
-vi.mock('@/shared/ui/button', () => ({
+vi.mock('@/shared/ui/button', async () => ({
+  ...await vi.importActual<typeof import('@/shared/ui/button')>('@/shared/ui/button'),
   Button: ({ children, onClick, disabled }: {
     children: ReactNode
     onClick?: () => void

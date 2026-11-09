@@ -24,8 +24,8 @@ type PluginProjectPage = Omit<RequiredGenerated<components['schemas']['PageRespo
   'items'> & { items: PluginProject[] }
 const base = '/api/v1/plugin-management'
 
-export function usePluginProjects(page: number, pendingReview: boolean) {
-  return useQuery({ queryKey: ['plugin-management', 'projects', page, pendingReview], queryFn: () =>
+export function usePluginProjects(page: number, pendingReview: boolean, enabled = true) {
+  return useQuery({ queryKey: ['plugin-management', 'projects', page, pendingReview], enabled, queryFn: () =>
     fetchJson<PluginProjectPage>(`${base}/projects?page=${page}&size=20&pendingReview=${pendingReview}`) })
 }
 export function usePluginProject(id: number | null) {

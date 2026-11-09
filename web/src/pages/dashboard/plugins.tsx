@@ -20,7 +20,10 @@ export function PluginManagementPage() {
   const { t } = useTranslation()
   const { hasRole } = useAuth()
   const reviewer = hasRole('PLUGIN_ADMIN') || hasRole('SUPER_ADMIN')
-  const [selected, setSelected] = useState<number | null>(null)
+  const [selected, setSelected] = useState<number | null>(() => {
+    const value = typeof window === 'undefined' ? 0 : Number(new URLSearchParams(window.location.search).get('projectId'))
+    return Number.isSafeInteger(value) && value > 0 ? value : null
+  })
   const [page, setPage] = useState(0)
   const [pending, setPending] = useState(false)
   const [namespaceId, setNamespaceId] = useState('')
@@ -38,7 +41,7 @@ export function PluginManagementPage() {
   }
   return <div className="mx-auto max-w-7xl space-y-7 p-4 sm:p-6">
     <header><h1 className="text-2xl font-semibold">{t('pluginManagement.title')}</h1>
-      <p className="mt-2 max-w-prose text-sm text-muted-foreground">{t('pluginManagement.description')}</p></header>
+      <p className="mt-2 text-sm text-muted-foreground">{t('publication.legacy')} <a className="text-primary hover:underline" href={withBasePath('/dashboard/publications')}>{t('publication.mine')}</a></p></header>
     {reviewer && <PluginNpmAdminPanel />}
     {reviewer && <PluginGitAdminPanel />}
     <PluginOfflineImportPanel reviewer={reviewer} namespaces={namespaces.data ?? []} projects={projects.data?.items ?? []} />

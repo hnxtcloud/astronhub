@@ -378,6 +378,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/web/publications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["get"];
+        put: operations["save"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/publications/{id}/material-upload/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["uploadChunk"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications/{id}/read": {
         parameters: {
             query?: never;
@@ -1871,6 +1903,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/web/publications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["list_2"];
+        put?: never;
+        post: operations["create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/publications/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/publications/{id}/material": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["material"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/publications/{id}/material-upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["beginUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/publications/{id}/material-upload/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["completeUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/publications/{id}/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["execute"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/publications/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/promotions/{id}/reject": {
         parameters: {
             query?: never;
@@ -2390,9 +2534,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_4"];
+        get: operations["list_5"];
         put?: never;
-        post: operations["create"];
+        post: operations["create_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2472,7 +2616,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["cancel"];
+        post: operations["cancel_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2799,7 +2943,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Preview an explicit replacement target for a blocked or definitively failed channel */
-        post: operations["preview"];
+        post: operations["preview_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2934,10 +3078,10 @@ export interface paths {
             cookie?: never;
         };
         /** List manageable plugin projects or the platform review queue */
-        get: operations["list_6"];
+        get: operations["list_7"];
         put?: never;
         /** Create a namespace plugin project */
-        post: operations["create_1"];
+        post: operations["create_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3059,7 +3203,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Upload ZIP or TGZ for bounded offline candidate preview without running scripts */
-        post: operations["preview_1"];
+        post: operations["preview_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3429,7 +3573,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["cancel_1"];
+        post: operations["cancel_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3443,9 +3587,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_8"];
+        get: operations["list_9"];
         put?: never;
-        post: operations["create_2"];
+        post: operations["create_3"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3764,9 +3908,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_10"];
+        get: operations["list_11"];
         put?: never;
-        post: operations["create_3"];
+        post: operations["create_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4151,7 +4295,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["cancel_2"];
+        post: operations["cancel_3"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5330,6 +5474,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/web/publications/skill-target": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["skillTarget"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/web/publications/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["content"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/web/promotions/{id}": {
         parameters: {
             query?: never;
@@ -5433,7 +5609,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get"];
+        get: operations["get_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5449,7 +5625,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_1"];
+        get: operations["get_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5593,7 +5769,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_2"];
+        get: operations["list_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5609,7 +5785,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_3"];
+        get: operations["list_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6273,7 +6449,7 @@ export interface paths {
             cookie?: never;
         };
         /** List visible published plugins */
-        get: operations["list_5"];
+        get: operations["list_6"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6545,7 +6721,7 @@ export interface paths {
             cookie?: never;
         };
         /** Read an owned offline import preview */
-        get: operations["get_2"];
+        get: operations["get_3"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6627,7 +6803,7 @@ export interface paths {
             cookie?: never;
         };
         /** List visible published MCP servers */
-        get: operations["list_7"];
+        get: operations["list_8"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6853,7 +7029,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["get_3"];
+        get: operations["get_4"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6901,7 +7077,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_9"];
+        get: operations["list_10"];
         put?: never;
         post?: never;
         delete?: never;
@@ -6965,7 +7141,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_11"];
+        get: operations["list_12"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7592,6 +7768,129 @@ export interface components {
             versionId?: number;
             /** Format: date-time */
             createdAt?: string;
+        };
+        ImportSelection: {
+            candidateId: string;
+            /** Format: int64 */
+            projectId?: number;
+            slug?: string;
+            /** @enum {string} */
+            visibility?: "PUBLIC" | "NAMESPACE_ONLY" | "PRIVATE";
+        };
+        PublicationDraft: {
+            type?: string;
+            namespace?: string;
+            visibility?: string;
+            slug?: string;
+            name?: string;
+            version?: string;
+            description?: string;
+            /** Format: int64 */
+            appId?: number;
+            /** Format: int64 */
+            projectId?: number;
+            targetOs?: string;
+            targetArch?: string;
+            targetDistro?: string;
+            format?: string;
+            confirmWarnings?: boolean;
+            repository?: boolean;
+            selections?: components["schemas"]["ImportSelection"][];
+            rawVersionFields?: string;
+            /** Format: int64 */
+            targetSkillId?: number;
+            /** Format: int64 */
+            npmRegistryId?: number;
+        };
+        PublicationSaveRequest: {
+            /** Format: int64 */
+            revision?: number;
+            draft: components["schemas"]["PublicationDraft"];
+        };
+        ApiResponsePublicationTaskView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PublicationTaskView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        ImportCandidateView: {
+            id: string;
+            directory: string;
+            runtime: string;
+            nativeName?: string;
+            version?: string;
+            suggestedSlug?: string;
+            sha256?: string;
+            format?: string;
+            inventoryJson?: string;
+            manifestJson?: string;
+            status: string;
+            error?: string;
+        };
+        ImportPreviewView: {
+            id: string;
+            /** Format: int64 */
+            namespaceId: number;
+            repository: boolean;
+            /** Format: date-time */
+            expiresAt: string;
+            candidates: components["schemas"]["ImportCandidateView"][];
+        };
+        PublicationProgressView: {
+            phase?: string;
+            error?: string;
+            results?: components["schemas"]["PublicationResultView"][];
+            preview?: components["schemas"]["ImportPreviewView"];
+            warnings?: string[];
+            detectedType?: string;
+            materialUpload?: components["schemas"]["PublicationUploadView"];
+        };
+        PublicationResultView: {
+            candidateId?: string;
+            type?: string;
+            status?: string;
+            namespace?: string;
+            slug?: string;
+            version?: string;
+            /** Format: int64 */
+            resourceId?: number;
+            /** Format: int64 */
+            releaseId?: number;
+            error?: string;
+            /** Format: int64 */
+            packageRevisionId?: number;
+        };
+        PublicationTaskView: {
+            id?: string;
+            status?: string;
+            /** Format: int64 */
+            revision?: number;
+            draft?: components["schemas"]["PublicationDraft"];
+            progress?: components["schemas"]["PublicationProgressView"];
+            fileName?: string;
+            /** Format: int64 */
+            byteSize?: number;
+            materialReady?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        PublicationUploadView: {
+            /** Format: int64 */
+            totalBytes?: number;
+            /** Format: int64 */
+            uploadedBytes?: number;
+            /** Format: int32 */
+            chunkSizeBytes?: number;
+            /** Format: int32 */
+            receivedChunks?: number;
+            /** Format: int32 */
+            totalChunks?: number;
+            chunkDigests?: string[];
         };
         ApiResponseMapStringInteger: {
             /** Format: int32 */
@@ -8396,6 +8695,12 @@ export interface components {
             /** Format: int64 */
             skillVersionId?: number;
         };
+        PublicationUploadRequest: {
+            fileName: string;
+            /** Format: int64 */
+            byteSize?: number;
+            replace?: boolean;
+        };
         PromotionActionRequest: {
             comment?: string;
         };
@@ -9174,37 +9479,6 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
             requestId?: string;
-        };
-        ImportCandidateView: {
-            id: string;
-            directory: string;
-            runtime: string;
-            nativeName?: string;
-            version?: string;
-            suggestedSlug?: string;
-            sha256?: string;
-            format?: string;
-            inventoryJson?: string;
-            manifestJson?: string;
-            status: string;
-            error?: string;
-        };
-        ImportPreviewView: {
-            id: string;
-            /** Format: int64 */
-            namespaceId: number;
-            repository: boolean;
-            /** Format: date-time */
-            expiresAt: string;
-            candidates: components["schemas"]["ImportCandidateView"][];
-        };
-        ImportSelection: {
-            candidateId: string;
-            /** Format: int64 */
-            projectId?: number;
-            slug?: string;
-            /** @enum {string} */
-            visibility?: "PUBLIC" | "NAMESPACE_ONLY" | "PRIVATE";
         };
         ImportSelectionRequest: {
             selections: components["schemas"]["ImportSelection"][];
@@ -10393,6 +10667,64 @@ export interface components {
             updatedAt?: string;
             labels?: components["schemas"]["SkillLabelDto"][];
         };
+        ApiResponsePageResponsePublicationTaskView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PageResponsePublicationTaskView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PageResponsePublicationTaskView: {
+            items?: components["schemas"]["PublicationTaskView"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        ApiResponsePublicationContentView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PublicationContentView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PublicationContentView: {
+            type?: string;
+            /** Format: int64 */
+            resourceId?: number;
+            namespace?: string;
+            slug?: string;
+            name?: string;
+            visibility?: string;
+            status?: string;
+            version?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
+        ApiResponsePageResponsePublicationContentView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PageResponsePublicationContentView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PageResponsePublicationContentView: {
+            items?: components["schemas"]["PublicationContentView"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
         ApiResponsePromotionState: {
             /** Format: int32 */
             code?: number;
@@ -11111,7 +11443,7 @@ export interface components {
         };
         CapabilityCatalogItem: {
             /** @enum {string} */
-            type?: "SKILL" | "PLUGIN" | "MCP";
+            type?: "SKILL" | "PLUGIN" | "MCP" | "SOFTWARE";
             /** Format: int64 */
             id?: number;
             coordinate?: string;
@@ -13029,6 +13361,79 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponseMessageResponse"];
+                };
+            };
+        };
+    };
+    get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
+    save: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicationSaveRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
+    uploadChunk: {
+        parameters: {
+            query: {
+                revision: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+                number: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
                 };
             };
         };
@@ -15672,6 +16077,203 @@ export interface operations {
             };
         };
     };
+    list_2: {
+        parameters: {
+            query?: {
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
+    create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
+    preview: {
+        parameters: {
+            query: {
+                revision: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
+    material: {
+        parameters: {
+            query: {
+                revision: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
+    beginUpload: {
+        parameters: {
+            query: {
+                revision: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicationUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
+    completeUpload: {
+        parameters: {
+            query: {
+                revision: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
+    execute: {
+        parameters: {
+            query: {
+                revision: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
+    cancel: {
+        parameters: {
+            query: {
+                revision: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationTaskView"];
+                };
+            };
+        };
+    };
     rejectPromotion: {
         parameters: {
             query?: never;
@@ -16612,7 +17214,7 @@ export interface operations {
             };
         };
     };
-    list_4: {
+    list_5: {
         parameters: {
             query?: {
                 page?: number;
@@ -16635,7 +17237,7 @@ export interface operations {
             };
         };
     };
-    create: {
+    create_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -16774,7 +17376,7 @@ export interface operations {
             };
         };
     };
-    cancel: {
+    cancel_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -17316,7 +17918,7 @@ export interface operations {
             };
         };
     };
-    preview: {
+    preview_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -17541,7 +18143,7 @@ export interface operations {
             };
         };
     };
-    list_6: {
+    list_7: {
         parameters: {
             query?: {
                 page?: number;
@@ -17565,7 +18167,7 @@ export interface operations {
             };
         };
     };
-    create_1: {
+    create_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -17802,7 +18404,7 @@ export interface operations {
             };
         };
     };
-    preview_1: {
+    preview_2: {
         parameters: {
             query: {
                 namespaceId: number;
@@ -18376,7 +18978,7 @@ export interface operations {
             };
         };
     };
-    cancel_1: {
+    cancel_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -18398,7 +19000,7 @@ export interface operations {
             };
         };
     };
-    list_8: {
+    list_9: {
         parameters: {
             query?: {
                 catalogReleaseId?: number;
@@ -18421,7 +19023,7 @@ export interface operations {
             };
         };
     };
-    create_2: {
+    create_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -18958,7 +19560,7 @@ export interface operations {
             };
         };
     };
-    list_10: {
+    list_11: {
         parameters: {
             query?: never;
             header?: never;
@@ -18980,7 +19582,7 @@ export interface operations {
             };
         };
     };
-    create_3: {
+    create_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -19631,7 +20233,7 @@ export interface operations {
             };
         };
     };
-    cancel_2: {
+    cancel_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -21568,6 +22170,52 @@ export interface operations {
             };
         };
     };
+    skillTarget: {
+        parameters: {
+            query: {
+                namespace: string;
+                slug: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePublicationContentView"];
+                };
+            };
+        };
+    };
+    content: {
+        parameters: {
+            query?: {
+                type?: string;
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponsePublicationContentView"];
+                };
+            };
+        };
+    };
     getPromotionDetail: {
         parameters: {
             query?: never;
@@ -21702,7 +22350,7 @@ export interface operations {
             };
         };
     };
-    get: {
+    get_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -21724,7 +22372,7 @@ export interface operations {
             };
         };
     };
-    get_1: {
+    get_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -21916,7 +22564,7 @@ export interface operations {
             };
         };
     };
-    list_2: {
+    list_3: {
         parameters: {
             query?: {
                 category?: string;
@@ -21940,7 +22588,7 @@ export interface operations {
             };
         };
     };
-    list_3: {
+    list_4: {
         parameters: {
             query?: {
                 category?: string;
@@ -22905,7 +23553,7 @@ export interface operations {
             };
         };
     };
-    list_5: {
+    list_6: {
         parameters: {
             query?: {
                 q?: string;
@@ -23288,7 +23936,7 @@ export interface operations {
             };
         };
     };
-    get_2: {
+    get_3: {
         parameters: {
             query?: never;
             header?: never;
@@ -23400,7 +24048,7 @@ export interface operations {
             };
         };
     };
-    list_7: {
+    list_8: {
         parameters: {
             query?: {
                 q?: string;
@@ -23534,7 +24182,7 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string;
-                type?: "ALL" | "SKILL" | "PLUGIN" | "MCP";
+                type?: "ALL" | "SKILL" | "PLUGIN" | "MCP" | "SOFTWARE";
                 page?: number;
                 size?: number;
             };
@@ -23706,7 +24354,7 @@ export interface operations {
             };
         };
     };
-    get_3: {
+    get_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -23772,7 +24420,7 @@ export interface operations {
             };
         };
     };
-    list_9: {
+    list_10: {
         parameters: {
             query?: {
                 status?: string;
@@ -23864,7 +24512,7 @@ export interface operations {
             };
         };
     };
-    list_11: {
+    list_12: {
         parameters: {
             query?: {
                 status?: string;

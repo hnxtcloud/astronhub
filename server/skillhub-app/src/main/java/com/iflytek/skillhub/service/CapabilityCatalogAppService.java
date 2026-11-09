@@ -57,9 +57,18 @@ public class CapabilityCatalogAppService {
     public PageResponse<CapabilityCatalogItem> search(
             String keyword, CapabilityTypeFilter type, int page, int size, String userId,
             Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles) {
+        return search(keyword, type, page, size, userId, namespaceRoles, platformRoles, userId != null);
+    }
+
+    public PageResponse<CapabilityCatalogItem> search(
+            String keyword, CapabilityTypeFilter type, int page, int size, String userId,
+            Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles, boolean softwareVisible) {
         int safePage = boundedPage(page);
         int safeSize = boundedSize(size);
         CapabilityTypeFilter normalizedType = type == null ? CapabilityTypeFilter.ALL : type;
+        if (normalizedType == CapabilityTypeFilter.SOFTWARE) {
+            return catalogQueryRepository.findSoftware(keyword, safePage, safeSize, softwareVisible ? userId : null);
+        }
         if (normalizedType == CapabilityTypeFilter.PLUGIN) {
             return listPlugins(keyword, safePage, safeSize, userId, namespaceRoles, platformRoles);
         }
@@ -71,7 +80,7 @@ public class CapabilityCatalogAppService {
         }
         return catalogQueryRepository.findAll(
                 keyword, safePage, safeSize, userId,
-                safeNamespaceRoles(namespaceRoles), safeRoles(platformRoles));
+                safeNamespaceRoles(namespaceRoles), safeRoles(platformRoles), softwareVisible);
     }
 
     private PageResponse<CapabilityCatalogItem> skillPage(

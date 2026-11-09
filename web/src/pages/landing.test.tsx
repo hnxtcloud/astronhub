@@ -64,10 +64,13 @@ describe('LandingPage', () => {
     expect(typeof LandingPage).toBe('function')
   })
 
-  it('renders the brand name in the hero section', () => {
+  it('offers shared discovery and publishing entrypoints', () => {
     const html = renderToStaticMarkup(<LandingPage />)
 
     expect(html).toContain('星枢')
     expect(html).toContain('landing.hero.title')
+    expect(html).toContain('landing.hero.exploreSkills')
+    expect(html).toContain('publication.new')
+    expect(html).not.toContain('catalog.types.plugin')
   })
 })
