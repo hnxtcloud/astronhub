@@ -95,6 +95,21 @@ spring:
             client-authentication-method: client_secret_post
             redirect-uri: "${OAUTH2_DINGTALK_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}"
             client-name: ${OAUTH2_DINGTALK_DISPLAY_NAME:钉钉}
+          xtauth:
+            # Standard OIDC login against a self-hosted xt-auth (统一认证) deployment. The openid
+            # scope makes Spring run the OIDC flow (nonce + id_token validation). xt-auth requires
+            # PKCE S256 from every registered client, but Spring only applies PKCE to public
+            # clients; XtAuthAuthorizationRequestCustomizer adds it to this confidential one.
+            client-id: ${OAUTH2_XTAUTH_CLIENT_ID:placeholder}
+            client-secret: ${OAUTH2_XTAUTH_CLIENT_SECRET:placeholder}
+            scope:
+              - openid
+              - profile
+              - email
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_basic
+            redirect-uri: "${OAUTH2_XTAUTH_REDIRECT_URI:{baseUrl}/login/oauth2/code/{registrationId}}"
+            client-name: ${OAUTH2_XTAUTH_DISPLAY_NAME:统一认证}
         provider:
           github:
             api-base-url: ${OAUTH2_GITHUB_API_BASE_URL:https://api.github.com}
@@ -117,6 +132,17 @@ spring:
             token-uri: ${OAUTH2_DINGTALK_BASE_URI:https://api.dingtalk.com}/v1.0/oauth2/userAccessToken
             user-info-uri: ${OAUTH2_DINGTALK_BASE_URI:https://api.dingtalk.com}/v1.0/contact/users/me
             user-name-attribute: unionId
+          xtauth:
+            # xt-auth is self-hosted, so no public default exists; the paths follow its Better Auth
+            # OAuth provider surface at <origin>/api/auth. Manual endpoints keep startup free of
+            # discovery network calls. The registration stays hidden from the login page until a
+            # real client id is configured.
+            authorization-uri: ${OAUTH2_XTAUTH_BASE_URI:https://auth.example.com/api/auth}/oauth2/authorize
+            token-uri: ${OAUTH2_XTAUTH_BASE_URI:https://auth.example.com/api/auth}/oauth2/token
+            user-info-uri: ${OAUTH2_XTAUTH_BASE_URI:https://auth.example.com/api/auth}/oauth2/userinfo
+            # OIDC login needs the JWKS to verify the RS256 id_token signature.
+            jwk-set-uri: ${OAUTH2_XTAUTH_JWKS_URI:${OAUTH2_XTAUTH_BASE_URI:https://auth.example.com/api/auth}/jwks}
+            user-name-attribute: sub
   servlet:
     multipart:
       max-file-size: 100MB

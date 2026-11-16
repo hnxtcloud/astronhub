@@ -326,6 +326,15 @@ services:
     `{baseUrl}`。国际版或网关场景可覆盖 `OAUTH2_DINGTALK_AUTHORIZE_URI` 与
     `OAUTH2_DINGTALK_BASE_URI`。
 
+  - xt-auth（自建统一认证）：`OAUTH2_XTAUTH_CLIENT_ID` / `OAUTH2_XTAUTH_CLIENT_SECRET`，
+    并设置 `OAUTH2_XTAUTH_BASE_URI=https://<xt-auth 域名>/api/auth`。先在 xt-auth
+    管理端（`/api/admin/applications`）为本系统注册一个 web 客户端：回调地址填
+    `https://<本系统公网域名>/login/oauth2/code/xtauth`，scope 勾选
+    `openid profile email`。xt-auth 对注册客户端强制 PKCE S256，后端已内置支持，
+    无需额外配置。Endpoint 均派生自 `OAUTH2_XTAUTH_BASE_URI`；JWKS 地址可经
+    `OAUTH2_XTAUTH_JWKS_URI` 覆盖（默认 `<BASE_URI>/jwks`），
+    `OAUTH2_XTAUTH_REDIRECT_URI` 的覆盖规则与飞书/钉钉相同。
+
   留空即不展示该入口，无需改配置文件。注意：飞书和钉钉的邮箱都由企业管理员导入、
   未经用户确认，因此 `emailVerified` 恒为 false；若在 `application.yml` 中把
   `skillhub.access-policy.mode` 设为 `EMAIL_DOMAIN`，该策略会拒绝所有未验证邮箱，

@@ -421,6 +421,34 @@ spec:
             - name: OAUTH2_DINGTALK_DISPLAY_NAME
               value: {{ .Values.oauth2.dingtalk.displayName | quote }}
 
+            # OAuth2 xt-auth unified OIDC login (optional; set baseUri plus the client id secret)
+            - name: OAUTH2_XTAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "skillhub.secretName" . }}
+                  key: oauth2-xtauth-client-id
+                  optional: true
+            - name: OAUTH2_XTAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "skillhub.secretName" . }}
+                  key: oauth2-xtauth-client-secret
+                  optional: true
+            {{- with .Values.oauth2.xtauth.baseUri }}
+            - name: OAUTH2_XTAUTH_BASE_URI
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.oauth2.xtauth.jwksUri }}
+            - name: OAUTH2_XTAUTH_JWKS_URI
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.oauth2.xtauth.redirectUri }}
+            - name: OAUTH2_XTAUTH_REDIRECT_URI
+              value: {{ . | quote }}
+            {{- end }}
+            - name: OAUTH2_XTAUTH_DISPLAY_NAME
+              value: {{ .Values.oauth2.xtauth.displayName | quote }}
+
             {{- if .Values.server.javaOpts }}
             - name: JAVA_OPTS
               value: {{ .Values.server.javaOpts }}

@@ -37,6 +37,12 @@ oauth2:
     apiBaseUri: https://api.dingtalk.com
     redirectUri: ""
     displayName: 钉钉
+  xtauth:
+    # Self-hosted unified auth (xt-auth); no public default, set baseUri to enable endpoints.
+    baseUri: ""
+    jwksUri: ""
+    redirectUri: ""
+    displayName: 统一认证
 
 builtinSkills:
   enabled: true

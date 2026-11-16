@@ -300,7 +300,25 @@ spring:
             # OAUTH2_FEISHU_PROTOCOL_VERSION supports v2 and v3; default is v3.
             token-uri: ${OAUTH2_FEISHU_TOKEN_URI:https://accounts.feishu.cn/oauth/v3/token}
             user-info-uri: ${OAUTH2_FEISHU_USER_INFO_URI:${OAUTH2_FEISHU_BASE_URI:https://open.feishu.cn}/open-apis/authen/v1/user_info}
+          xtauth:
+            # 自建统一认证 (xt-auth)：标准 OIDC Provider，endpoint 位于 <origin>/api/auth。
+            # 手动端点配置避免 issuer-uri 在启动期触发 discovery 网络请求；配置 issuer-uri
+            # 可额外启用 id_token 的 iss 校验，但代价是启动依赖 xt-auth 可达。
+            authorization-uri: ${OAUTH2_XTAUTH_BASE_URI:https://auth.example.com/api/auth}/oauth2/authorize
+            token-uri: ${OAUTH2_XTAUTH_BASE_URI:https://auth.example.com/api/auth}/oauth2/token
+            user-info-uri: ${OAUTH2_XTAUTH_BASE_URI:https://auth.example.com/api/auth}/oauth2/userinfo
+            jwk-set-uri: ${OAUTH2_XTAUTH_JWKS_URI:${OAUTH2_XTAUTH_BASE_URI:https://auth.example.com/api/auth}/jwks}
+            user-name-attribute: sub
 ```
+
+xt-auth (统一认证) 是标准 OIDC Provider，登录走 `CustomOidcUserService` 的通用 OIDC
+分支，不需要 claims 提取代码。它是唯一要求为 confidential client 提供 PKCE S256 的
+Provider：Spring Security 仅对 `client-authentication-method: none` 的注册自动应用
+PKCE，因此 `XtAuthAuthorizationRequestCustomizer` 复用 Spring 的 PKCE applier 生成
+`code_challenge` 并以 `code_verifier` attribute 传递，token 交换由标准 converter 原样
+回传。subject 取 OIDC `sub`，要求 xt-auth 侧保证用户标识跨登录稳定；xt-auth 只对
+用户确认过的 contact email 导出 `email_verified=true`，占位邮箱恒为未验证，
+因此与 `EMAIL_DOMAIN` 准入策略兼容（占位邮箱登录会被拒）。
 
 Spring Security OAuth2 Client 原生支持多 Provider 并存，新增 Provider 只需：
 1. `application.yml` 添加 registration 与 provider 配置
@@ -316,7 +334,7 @@ Spring Security OAuth2 Client 原生支持多 Provider 并存，新增 Provider 
 
 | 偏离环节 | 策略接口 | 现有实现 |
 |---|---|---|
-| 授权请求参数 | `ProviderAuthorizationRequestCustomizer` | 钉钉补 `scope=openid` 与 `prompt=consent` |
+| 授权请求参数 | `ProviderAuthorizationRequestCustomizer` | 钉钉补 `scope=openid` 与 `prompt=consent`；xt-auth 为 confidential client 补 PKCE S256 |
 | token 交换 | `ProviderTokenResponseClient` | 钉钉用 JSON body 而非表单 |
 | userinfo 加载 | `ProviderOAuth2UserService` | 飞书拆信封；钉钉用自定义 token header |
 

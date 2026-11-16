@@ -64,7 +64,7 @@ class ProviderStrategyWiringTest {
                 .contains(DingTalkOAuth2Constants.REGISTRATION_ID, "feishu");
         assertThat(authorizationCustomizers)
                 .extracting(ProviderAuthorizationRequestCustomizer::getProvider)
-                .contains(DingTalkOAuth2Constants.REGISTRATION_ID);
+                .contains(DingTalkOAuth2Constants.REGISTRATION_ID, "xtauth");
         assertThat(userServices)
                 .extracting(ProviderOAuth2UserService::getProvider)
                 .contains(DingTalkOAuth2Constants.REGISTRATION_ID, "feishu");
