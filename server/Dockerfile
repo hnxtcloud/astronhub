@@ -14,10 +14,13 @@ COPY skillhub-notification/pom.xml skillhub-notification/
 COPY skillhub-app/pom.xml skillhub-app/
 COPY mvnw .
 COPY .mvn .mvn
-RUN ./mvnw dependency:go-offline -B
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw && ./mvnw dependency:go-offline -B
 
 COPY . .
-RUN ./mvnw package -DskipTests -B
+# The build context may contain host target/ directories (also used by
+# Dockerfile.dev). Clean them so the image always contains the current sources
+# and migration resources rather than stale compiled artifacts.
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw && ./mvnw clean package -DskipTests -B
 
 # ---- Runtime Stage ----
 # The Noble variant publishes a linux/riscv64 image; the Alpine JRE currently

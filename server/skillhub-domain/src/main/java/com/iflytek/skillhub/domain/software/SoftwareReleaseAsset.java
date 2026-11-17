@@ -15,7 +15,9 @@ public class SoftwareReleaseAsset {
     @Column(nullable = false, length = 512) private String objectKey;
     @Column(nullable = false) private long byteSize;
     @Column(nullable = false, length = 64) private String sha256;
-    @Column(nullable = false, length = 88) private String sha512Base64;
+    // Explicit name required: the default camel-case strategy maps `sha512Base64`
+    // to `sha512base64` (no underscore before a digit), while V75 created `sha512_base64`.
+    @Column(name = "sha512_base64", nullable = false, length = 88) private String sha512Base64;
     @Column(length = 20, updatable = false) private String confirmedInstallerFamily;
     @Column(length = 128, updatable = false) private String installerFamilyConfirmedBy;
     @Column(updatable = false) private Instant installerFamilyConfirmedAt;

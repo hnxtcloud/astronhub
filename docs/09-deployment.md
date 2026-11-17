@@ -172,6 +172,44 @@ Sentinel 配置优先于 Cluster 和单机 `host`/`port`。在 Kubernetes 等 Se
   - 在启动前校验 `.env.release`
   - 可提前拦截占位值、URL 格式错误、缺失的 OSS 凭据、危险的明文默认值
 
+#### 内网离线交付与数据库迁移
+
+发布镜像的构建使用 `server/Dockerfile`，构建阶段需要 Maven 依赖和基础镜像，
+因此应在能访问依赖源的构建机完成。Flyway 迁移文件随应用 JAR 打包；Compose
+等待 PostgreSQL 健康后启动 server，server 启动时执行迁移，随后 Hibernate 校验表结构。
+构建必须包含待交付的源码修复，单独重启旧镜像不会更新代码。
+
+离线交付时，在构建机按目标服务器的 CPU 架构构建或拉取完整镜像，并使用固定版本标签。
+例如将修复后的 server 构建为 `registry.example/skillhub-server:v1`：
+
+```bash
+docker build --platform linux/amd64 -t registry.example/skillhub-server:v1 -f server/Dockerfile server
+docker save -o server-v1.tar registry.example/skillhub-server:v1
+```
+
+`linux/amd64` 应替换为目标架构；其他服务镜像也需预先准备：web、scanner、
+PostgreSQL 和 Redis。将镜像包及对应版本的 Compose 文件和配置传到内网，执行
+`docker load -i server-v1.tar`（其他镜像包同样加载）。设置 `.env.release` 的
+`SKILLHUB_SERVER_IMAGE=registry.example/skillhub-server`、`SKILLHUB_VERSION=v1`，
+并确保 web、scanner 的镜像名和同一版本标签，以及 `POSTGRES_IMAGE`、`REDIS_IMAGE`
+与已加载镜像完全一致。不要把包含密码的 `.env.release` 打进镜像包。
+
+升级已有环境前，按部署的备份流程备份 PostgreSQL 和存储数据，并确认备份可恢复。
+保留现有数据库卷，执行：
+
+```bash
+docker compose --env-file .env.release -f compose.release.yml up -d --pull never
+docker compose --env-file .env.release -f compose.release.yml ps
+docker compose --env-file .env.release -f compose.release.yml logs --tail=200 server
+docker compose --env-file .env.release -f compose.release.yml exec -T postgres \
+  sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT installed_rank, version, description, success FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 10"'
+```
+
+确认 server 健康、Flyway 记录成功且日志没有迁移或 schema 校验错误。若使用外部
+PostgreSQL，在实际连接的数据库执行同一查询。迁移失败时保留日志和数据库现场排查；
+不要通过删除数据库卷、手改 Flyway 历史或关闭 Hibernate 校验来绕过错误。升级和
+回滚必须考虑已执行的数据库迁移，不能假设旧镜像兼容新 schema。
+
 阿里云 OSS 等不支持 AWS chunked encoding 的对象存储，需要在 `.env.release` 中设置：
 
 ```dotenv
