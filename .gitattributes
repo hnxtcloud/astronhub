@@ -1,0 +1,3 @@
+# Scripts baked into Linux images must keep LF even on Windows checkouts
+# (CRLF shebangs break exec inside containers, e.g. web entrypoint scripts).
+web/docker-entrypoint.d/*.sh text eol=lf
