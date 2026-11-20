@@ -201,7 +201,7 @@ export function ReportsPage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <DashboardPageHeader title={t('reports.title')} subtitle={t('reports.subtitle')} />
+      <DashboardPageHeader title={t('reports.title')} />
 
       <Tabs defaultValue="PENDING">
         <TabsList>

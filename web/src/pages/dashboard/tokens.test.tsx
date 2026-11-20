@@ -35,7 +35,7 @@ describe('TokensPage', () => {
     const html = renderToStaticMarkup(<TokensPage />)
 
     expect(html).toContain('tokens.pageTitle')
-    expect(html).toContain('tokens.pageSubtitle')
+    expect(html).not.toContain('tokens.pageSubtitle')
     expect(html).toContain('token-list')
   })
 })

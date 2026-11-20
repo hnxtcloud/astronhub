@@ -4,14 +4,31 @@ Labels: wayfinder:map
 Status: open
 Tracker: local-markdown
 Planning: ready
-Acceptance: not-run
+Acceptance: partial（L1 基础业务通过；L2/L3 缺环境 blocked，见 09 报告）
+
+## 清单复验（2026-10-20）
+
+- [本轮验收报告](manual-acceptance-results.md)：runId `manual-20261020-110313`，7组真实浏览器场景通过，127/127编号步骤通过，0失败、0跳过；另通过BAIZE渠道从1.0.0显式切换到1.1.0的扩展验证。
+- 本轮覆盖中文UI、插件审核/驳回后新版本发布、下载SHA256、固定安装指引、私有访问隔离、隐藏/归档/下架、软件手工ZIP和BAIZE匿名更新源。修复了发布任务成功但版本状态尚未提交时页面停止轮询的问题，保留红绿单测和真实E2E证据。
+- 测试数据保留，6个本轮及调试轮应用的匿名更新源均已关闭并核对；服务保持运行。
+- 本次清单通过不关闭原全量地图。原生Git/npm、GitLab/Electron真实客户端、签名/安装/差分、扫描器、Inspector、Nginx/S3/子路径及PG16仍需对应验收。
+
+## Run status（2026-10-19，runId `e2e-20261019-100450`）
+
+- 01 passed（盘点完成，L1 最小环境可用）；02/04/05 partial（各自 L1 子范围通过，深度子项 blocked）；09 基础报告已写（结论 partial）。
+- 缺陷：DEF-01（实体列映射，已修复复验）、DEF-03（包列表恒空，已修复复验）、DEF-04（既有 smoke 文案漂移，已对齐）、DEF-05（落地页 390px 溢出，已修复复验）；DEF-02（扫描器缺失）为环境阻塞非代码缺陷。
+- 最终回归：22 passed / 1 skipped（既有条件跳过）/ 0 failed —— 证据 `.dev/e2e/e2e-20261019-100450/evidence/final-regression-output.txt`。
+- 下一执行入口：补齐环境后重领 03（内网 Git/npm）、04 深度（Inspector/Nginx/S3/真实安装包）、06（故障注入）、08（原生终端）；PG16 兼容性另列。
 
 ## Destination
 
-由接手的 coding agent 对当前项目执行真实服务 E2E，验证插件管理、软件中心及多应用更新源，交付可复现用例、证据、缺陷和环境阻塞清单。本文建立地图，不表示测试已经执行；原实现票 01–11 保持 done，不与本轮测试票混淆。
+由接手的 coding agent 对当前项目执行真实服务 E2E，验证插件管理、软件中心及多应用更新源，交付可复现用例、证据、缺陷和环境阻塞清单。实际已执行范围以本页运行记录及对应报告为准；原实现票01–11保持done，不与本轮测试票混淆。
 
 ## Context pointers
 
+- [手动验收步骤（2026-10-20，ASD-STE100风格）](manual-acceptance.md)：本地启动入口、测试账号引用、专用样本及逐步预期结果。
+- [清单验收结果（2026-10-20）](manual-acceptance-results.md)：7组/127步、版本切换、轮询缺陷修复及原始证据入口。
+- **先读：[当前环境与执行入口](start-here.md)**。已提供根目录 `.env`；PG17.9 和 Redis7.2.11 连接已验证，先验收基础业务，再按资源推进扩展层。
 - [执行计划、环境清单和可复制交接指令](../../docs/plugin-updates-e2e-plan.md)
 - [环境盘点表](environment.example.yaml)（手工交接格式，尚无读取它的 runner）
 - [执行报告模板](report-template.md)
@@ -47,7 +64,7 @@ Acceptance: not-run
 
 ## Environment to provide
 
-完整清单见执行计划。优先提供：真实测试实例/PG16/Redis、测试管理员、专用存储、匹配 Chromium；然后提供内网 Git/npm 及 CA/发布凭据引用、Inspector 与样本；最后提供 Windows/macOS 可重置终端、已装旧版和真实签名新旧发行物。Docker、Helm、故障控制、大文件容量按相应票补齐。缺什么写到环境表和09，不默认从公网补齐。
+当前已提供 PG17.9（库 `astronhub`）及 Redis7.2.11 的 `.env`，连接验证通过；实际迁移、服务启动、真实账号和浏览器仍由01检查。PG16兼容性另列待验，不能阻断当前PG17环境的基础验收。按 [start-here](start-here.md) 先做01→02/04基础子项→05权限子项→09基础报告；混合票按子项保留partial。其余环境需求见执行计划：内网Git/npm、CA/凭据引用、Inspector、扫描器、Nginx/S3、原生终端和发行物。缺资源只阻塞相应case，不默认从公网补齐。
 
 ## Completion
 

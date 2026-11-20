@@ -85,9 +85,10 @@ export function PluginPublishedDetail({
                     {t(`pluginManagement.evidence.${d.compatibilityEvidence}`)}{' '}
                     · {t(`pluginManagement.evidence.${d.securityAssessment}`)}
                   </p>
-                  <p className="break-all font-mono text-xs">
-                    SHA256 {d.sha256}
-                  </p>
+                  <details>
+                    <summary className="cursor-pointer text-sm">{t('pluginManagement.inspectEvidence')}</summary>
+                    <p className="mt-2 break-all font-mono text-xs">SHA256 {d.sha256}</p>
+                  </details>
                   <PluginInstallPanel
                     path={`${base}/${encodeURIComponent(version)}`}
                     runtime={d.runtimeKey ?? ''}
@@ -98,12 +99,86 @@ export function PluginPublishedDetail({
                   />
                 </article>
               ))}
+              <PluginMcpInventory distributions={release.data.distributions} />
             </section>
           )}
           <PluginComponentList components={plugin.data.components} />
         </>
       )}
     </div>
+  )
+}
+
+/**
+ * Surfaces the MCP component inventory declared in distribution evidence: resolved
+ * mcpServers references, inline manifest declarations, and .mcp.json / mcp.json files.
+ * Renders nothing when the package declares no MCP components.
+ */
+export function PluginMcpInventory({
+  distributions,
+}: {
+  distributions: PluginRelease['distributions']
+}) {
+  const { t } = useTranslation()
+  const sections: { runtime: string; inline: boolean; paths: string[] }[] = []
+  for (const distribution of distributions) {
+    const paths = new Set<string>()
+    let inline = false
+    try {
+      const evidence: unknown = JSON.parse(distribution.inventoryJson)
+      if (evidence && typeof evidence === 'object' && !Array.isArray(evidence)) {
+        const resources = (evidence as { resources?: unknown }).resources
+        if (resources && typeof resources === 'object' && !Array.isArray(resources)) {
+          const mcpServers = (resources as Record<string, unknown>).mcpServers
+          if (typeof mcpServers === 'string') {
+            paths.add(mcpServers)
+          } else if (Array.isArray(mcpServers)) {
+            for (const entry of mcpServers) {
+              if (typeof entry === 'string') paths.add(entry)
+            }
+          } else if (mcpServers && typeof mcpServers === 'object') {
+            inline = true
+          }
+        }
+        const files = (evidence as { files?: unknown }).files
+        if (Array.isArray(files)) {
+          for (const file of files) {
+            if (
+              typeof file === 'string'
+              && (file === 'mcp.json' || file.endsWith('/mcp.json') || file.endsWith('.mcp.json'))
+            ) {
+              paths.add(file)
+            }
+          }
+        }
+      }
+    } catch {
+      // Malformed inventory stays silent; the package itself remains installable.
+    }
+    if (inline || paths.size > 0) {
+      sections.push({ runtime: distribution.runtimeKey ?? '', inline, paths: [...paths] })
+    }
+  }
+  if (sections.length === 0) return null
+  return (
+    <section className="space-y-3 rounded-lg border p-4">
+      <h2 className="font-semibold">{t('pluginAccess.mcpInventory.title')}</h2>
+      {sections.map((section) => (
+        <div key={section.runtime} className="space-y-2 text-sm">
+          <p className="font-medium">{section.runtime}</p>
+          {section.inline && (
+            <p className="text-muted-foreground">{t('pluginAccess.mcpInventory.inline')}</p>
+          )}
+          {section.paths.length > 0 && (
+            <ul className="list-disc space-y-1 pl-5 font-mono text-xs">
+              {section.paths.map((path) => (
+                <li key={path}>{path}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ))}
+    </section>
   )
 }
 function PluginInstallPanel({
@@ -115,6 +190,7 @@ function PluginInstallPanel({
 }) {
   const { t } = useTranslation()
   const [requested, setRequested] = useState(false)
+  const [shell, setShell] = useState('posix')
   const instructions = usePluginInstructions(path, runtime, requested)
   return (
     <div className="space-y-3">
@@ -142,23 +218,23 @@ function PluginInstallPanel({
             {t(`pluginAccess.preparation.${instructions.data.preparation}`)}
           </p>
           {instructions.data.powershellCommand && (
-            <p className="text-xs">{t('pluginAccess.posixShell')}</p>
+            <label className="flex items-center gap-3 text-sm">
+              {t('pluginAccess.shell')}
+              <select className={selectClass} value={shell} onChange={event => setShell(event.target.value)}>
+                <option value="posix">{t('pluginAccess.posixShell')}</option>
+                <option value="powershell">PowerShell</option>
+              </select>
+            </label>
           )}
           <pre className="overflow-auto whitespace-pre-wrap rounded bg-muted p-3 text-sm">
-            {instructions.data.command}
+            {shell === 'powershell' && instructions.data.powershellCommand ? instructions.data.powershellCommand : instructions.data.command}
           </pre>
-          {instructions.data.powershellCommand && (
-            <>
-              <p className="text-xs">PowerShell</p>
-              <pre className="overflow-auto whitespace-pre-wrap rounded bg-muted p-3 text-sm">
-                {instructions.data.powershellCommand}
-              </pre>
-            </>
-          )}
           {instructions.data.marketplaceJson && (
+            <details><summary className="cursor-pointer text-sm">{t('common.expand')}</summary>
             <pre className="overflow-auto whitespace-pre-wrap rounded bg-muted p-3 text-xs">
               {instructions.data.marketplaceJson}
             </pre>
+            </details>
           )}
           <p className="text-xs text-muted-foreground">
             {t('pluginAccess.notRuntimeVerified')}
@@ -230,9 +306,12 @@ function PluginComponentList({
   return (
     <section className="space-y-3 border-t pt-4">
       <h2 className="font-medium">{t('pluginAccess.components')}</h2>
-      <p className="max-w-prose text-xs text-muted-foreground">
-        {t('pluginAccess.componentIndependence')}
-      </p>
+      <details>
+        <summary className="cursor-pointer text-xs text-muted-foreground">{t('common.help')}</summary>
+        <p className="mt-2 max-w-prose text-xs text-muted-foreground">
+          {t('pluginAccess.componentIndependence')}
+        </p>
+      </details>
       <ul className="space-y-2">
         {components.map((component) => (
           <li
@@ -427,6 +506,7 @@ export function PluginComponentEditor({ project }: { project: PluginProject }) {
         }
       />
       {project.canManage && (
+        <details><summary className="cursor-pointer text-sm font-medium">{t('pluginAccess.link')}</summary>
         <form className="grid gap-3 sm:grid-cols-2" onSubmit={link}>
           <label className="space-y-1 text-sm">
             {t('pluginAccess.componentKind')}
@@ -467,6 +547,7 @@ export function PluginComponentEditor({ project }: { project: PluginProject }) {
             {t('pluginAccess.link')}
           </Button>
         </form>
+        </details>
       )}
       {components.error && <p role="alert">{components.error.message}</p>}
       {change.error && (

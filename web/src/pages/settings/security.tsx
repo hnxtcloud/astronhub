@@ -89,7 +89,7 @@ export function SecuritySettingsPage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <DashboardPageHeader title={t('security.title')} subtitle={t('security.subtitle')} />
+      <DashboardPageHeader title={t('security.title')} />
       <Card className="glass-strong">
         <CardContent>
           {canChangePassword ? (

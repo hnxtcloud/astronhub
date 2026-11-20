@@ -31,16 +31,19 @@ export function PluginOfflineImportPanel({ reviewer, namespaces, projects }: {
   const next={...current};if(checked)next[candidate.id]={candidateId:candidate.id,slug:candidate.suggestedSlug??'',visibility:'PRIVATE'};else delete next[candidate.id];return next
  })
  const change=(id:string,patch:Partial<Selection>)=>setSelected(current=>({...current,[id]:{...current[id],...patch}}))
- return <section className="space-y-4 rounded-lg border p-4">
-  <h2 className="font-semibold">{t('pluginImport.title')}</h2><p className="max-w-prose text-sm text-muted-foreground">{t('pluginImport.help')}</p>
+ return <details className="space-y-4 rounded-lg border p-4">
+  <summary className="cursor-pointer font-semibold">{t('pluginImport.title')}</summary>
   <form className="grid gap-4 sm:grid-cols-2" onSubmit={(event:FormEvent)=>{event.preventDefault();upload.mutate()}}>
    <label className="space-y-1 text-sm">{t('pluginImport.namespace')}<select required className={selectClass} value={namespace} onChange={e=>{setNamespace(e.target.value);setPreview(null)}}><option value="">{t('pluginManagement.selectNamespace')}</option>{namespaces.filter(n=>n.status==='ACTIVE').map(n=><option key={n.id} value={n.id}>{n.displayName}</option>)}</select></label>
    <label className="space-y-1 text-sm">{t('pluginImport.archive')}<Input required type="file" accept=".zip,.tgz,.tar.gz" onChange={e=>{setFile(e.target.files?.[0]??null);setPreview(null)}} /></label>
    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={repository} onChange={e=>setRepository(e.target.checked)} />{t('pluginImport.repository')}</label>
-   <p className="text-xs text-muted-foreground">{t('pluginImport.repositoryPermission')}</p>
+   {repository && <p className="text-xs text-muted-foreground">{t('pluginImport.repositoryPermission')}</p>}
    <Button type="submit" disabled={!namespace||!file||upload.isPending}>{t('pluginImport.preview')}</Button>
   </form>
-  {limits.data&&<p className="text-xs text-muted-foreground">{t('pluginImport.budgets',{package:limits.data.packageBytes,repository:limits.data.repositoryBytes,expanded:limits.data.expandedBytes,files:limits.data.files,candidates:limits.data.candidates})}</p>}
+  <details className="text-sm"><summary className="cursor-pointer text-muted-foreground">{t('common.help')}</summary>
+   <p className="mt-2 max-w-prose text-muted-foreground">{t('pluginImport.help')}</p>
+   {limits.data&&<p className="mt-2 text-xs text-muted-foreground">{t('pluginImport.budgets',{package:limits.data.packageBytes,repository:limits.data.repositoryBytes,expanded:limits.data.expandedBytes,files:limits.data.files,candidates:limits.data.candidates})}</p>}
+  </details>
   {upload.isPending&&<p role="status">{t('common.loading')}</p>}{upload.error&&<p role="alert" className="text-sm text-destructive">{upload.error.message}</p>}
   {preview&&<div className="space-y-4 border-t pt-4"><p className="text-sm text-muted-foreground">{t('pluginImport.expires',{at:preview.expiresAt})}</p>
    {preview.candidates.length===0&&<p>{t('pluginImport.unrecognized')}</p>}
@@ -57,7 +60,7 @@ export function PluginOfflineImportPanel({ reviewer, namespaces, projects }: {
    {apply.error&&<p role="alert" className="text-destructive">{apply.error.message}</p>}{apply.data&&<ul aria-live="polite" className="space-y-2 text-sm">{apply.data.results.map(result=><li key={result.candidateId}>{result.candidateId}: {t(`pluginImport.status.${result.status}`)}{result.error?` (${result.error})`:''}</li>)}</ul>}
   </div>}
   {reviewer&&limits.data&&<ImportBudgetEditor limits={limits.data} />}
- </section>
+ </details>
 }
 function ImportBudgetEditor({limits}:{limits:ImportLimits}) {
  const {t}=useTranslation();const queries=useQueryClient();const [values,setValues]=useState(limits)

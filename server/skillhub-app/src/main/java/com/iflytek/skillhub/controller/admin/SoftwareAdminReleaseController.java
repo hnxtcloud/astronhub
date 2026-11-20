@@ -64,7 +64,7 @@ public class SoftwareAdminReleaseController extends BaseApiController {
     @PreAuthorize("hasAnyRole('SOFTWARE_ADMIN', 'SUPER_ADMIN')")
     public ApiResponse<List<SoftwareReleaseResponse>> listReleases(@PathVariable Long appId) {
         return ok("response.success.read", adminAppService.listReleases(appId).stream()
-                .map(this::toRelease)
+                .map(release -> toRelease(release, adminAppService.listPackages(release.getId())))
                 .toList());
     }
 
@@ -171,8 +171,15 @@ public class SoftwareAdminReleaseController extends BaseApiController {
     }
 
     private SoftwareReleaseResponse toRelease(SoftwareRelease release) {
+        // Single-release paths (create/update) return before the UI refetches the
+        // list; the list endpoint assembles packages via toRelease(release, packages).
+        return toRelease(release, List.of());
+    }
+
+    private SoftwareReleaseResponse toRelease(SoftwareRelease release, List<SoftwarePackageRevision> packages) {
         return new SoftwareReleaseResponse(release.getId(), release.getDisplayVersion(),
-                release.getReleaseNotes(), null, 0, List.of(), List.of());
+                release.getReleaseNotes(), null, packages.size(),
+                packages.stream().map(this::toPackage).toList(), List.of());
     }
 
     private SoftwarePackageResponse toPackage(SoftwarePackageRevision revision) {

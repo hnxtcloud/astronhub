@@ -35,7 +35,6 @@ export function SoftwareCatalogPage() {
     <div className="mx-auto w-full max-w-5xl space-y-6 p-4">
       <div>
         <h1 className="text-2xl font-semibold">{t('softwareCatalog.title')}</h1>
-        <p className="text-muted-foreground">{t('softwareCatalog.subtitle')}</p>
         <Link className="mt-2 inline-block text-sm text-primary hover:underline" to="/catalog" search={{ type: 'SOFTWARE' }}>{t('nav.catalog')}</Link>
       </div>
 

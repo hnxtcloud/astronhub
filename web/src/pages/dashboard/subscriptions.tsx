@@ -31,7 +31,7 @@ export function MySubscriptionsPage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <DashboardPageHeader title={t('subscriptions.title')} subtitle={t('subscriptions.subtitle')} />
+      <DashboardPageHeader title={t('subscriptions.title')} />
 
       {!skills || skills.length === 0 ? (
         <Card className="p-12 text-center text-muted-foreground">{t('subscriptions.empty')}</Card>

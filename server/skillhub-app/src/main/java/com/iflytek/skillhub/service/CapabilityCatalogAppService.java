@@ -5,6 +5,7 @@ import com.iflytek.skillhub.domain.shared.exception.DomainNotFoundException;
 import com.iflytek.skillhub.dto.PageResponse;
 import com.iflytek.skillhub.dto.catalog.CapabilityCatalogItem;
 import com.iflytek.skillhub.dto.catalog.CapabilityTypeFilter;
+import com.iflytek.skillhub.dto.catalog.McpConnectionProfilesResponse;
 import com.iflytek.skillhub.repository.CapabilityCatalogQueryRepository;
 import com.iflytek.skillhub.repository.SkillCatalogQuerySource;
 import java.util.Map;
@@ -50,6 +51,14 @@ public class CapabilityCatalogAppService {
             String namespace, String slug, String userId,
             Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles) {
         return catalogQueryRepository.findMcpServer(
+                        namespace, slug, userId, safeNamespaceRoles(namespaceRoles), safeRoles(platformRoles))
+                .orElseThrow(() -> new DomainNotFoundException("mcp.not_found", namespace, slug));
+    }
+
+    public McpConnectionProfilesResponse getMcpConnectionProfiles(
+            String namespace, String slug, String userId,
+            Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles) {
+        return catalogQueryRepository.findMcpConnectionProfiles(
                         namespace, slug, userId, safeNamespaceRoles(namespaceRoles), safeRoles(platformRoles))
                 .orElseThrow(() -> new DomainNotFoundException("mcp.not_found", namespace, slug));
     }

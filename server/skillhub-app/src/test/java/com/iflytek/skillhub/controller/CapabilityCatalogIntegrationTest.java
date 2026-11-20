@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import com.iflytek.skillhub.auth.oauth.GitHubClaimsExtractor;
 import com.iflytek.skillhub.auth.oauth.GitLabClaimsExtractor;
@@ -139,6 +140,61 @@ class CapabilityCatalogIntegrationTest {
                 "private-mcp", "public-mcp", "team-mcp");
         assertMcpSlugs("other", Map.of(), Set.of("MCP_ADMIN"),
                 "private-mcp", "public-mcp", "team-mcp");
+    }
+
+    @Test
+    void shouldExposeOnlyPublishedVisibleMcpConnectionProfiles() throws Exception {
+        CatalogFixture fixture = createFixture("mcp-config-team");
+        McpServerEntry entry = publishMcp(fixture, "knowledge", "owner", McpVisibility.PUBLIC, false, false);
+        entityManager.flush();
+        entityManager.createNativeQuery("insert into mcp_connection_profile (revision_id, profile_key, display_name, transport_type, endpoint_template, variables_json, created_at) values (:revision, 'http', '中文知识库', 'STREAMABLE_HTTP', 'https://example.test/mcp', :variables, current_timestamp)")
+                .setParameter("revision", entry.getLatestRevisionId())
+                .setParameter("variables", "[{\"name\":\"API_KEY\",\"secret\":true,\"default\":\"must-not-leak\",\"required\":true}]")
+                .executeUpdate();
+        publishMcp(fixture, "private", "owner", McpVisibility.PRIVATE, false, false);
+        publishMcp(fixture, "hidden", "owner", McpVisibility.PUBLIC, true, false);
+        publishMcp(fixture, "archived", "owner", McpVisibility.PUBLIC, false, true);
+        createDraftLatestMcp(fixture, "draft", "owner");
+        entityManager.flush();
+        entityManager.clear();
+
+        mockMvc.perform(get("/api/v1/mcp-servers/mcp-config-team/knowledge/connection-profiles"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.revision").value(1))
+                .andExpect(jsonPath("$.data.profiles[0].transportType").value("STREAMABLE_HTTP"))
+                .andExpect(jsonPath("$.data.profiles[0].endpointTemplate").value("https://example.test/mcp"))
+                .andExpect(jsonPath("$.data.profiles[0].variables[0].name").value("API_KEY"))
+                .andExpect(jsonPath("$.data.profiles[0].variables[0].defaultValue").isEmpty())
+                .andExpect(result -> assertThat(result.getResponse().getContentAsString()).doesNotContain("must-not-leak"));
+        for (String slug : List.of("private", "hidden", "archived", "draft")) {
+            mockMvc.perform(get("/api/v1/mcp-servers/mcp-config-team/" + slug + "/connection-profiles"))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Test
+    void shouldKeepDraftProfilesPrivateAndDisableMalformedPublishedTemplates() throws Exception {
+        CatalogFixture fixture = createFixture("mcp-profile-state-team");
+        McpServerEntry entry = publishMcp(fixture, "knowledge", "owner", McpVisibility.PUBLIC, false, false);
+        entityManager.flush();
+        entityManager.createNativeQuery("insert into mcp_connection_profile (revision_id, profile_key, display_name, transport_type, command_template, arguments_json, created_at) values (:revision, 'broken', 'Malformed template', 'STDIO', 'npx', :arguments, current_timestamp)")
+                .setParameter("revision", entry.getLatestRevisionId())
+                .setParameter("arguments", "[not valid json")
+                .executeUpdate();
+        McpEntryRevision draft = new McpEntryRevision(entry.getId(), 2, "MANUAL", "owner");
+        entityManager.persist(draft);
+        entityManager.flush();
+        entityManager.createNativeQuery("insert into mcp_connection_profile (revision_id, profile_key, display_name, transport_type, endpoint_template, created_at) values (:revision, 'draft', 'Unpublished draft', 'STREAMABLE_HTTP', 'https://draft.example.test/mcp', current_timestamp)")
+                .setParameter("revision", draft.getId())
+                .executeUpdate();
+        entityManager.clear();
+
+        mockMvc.perform(get("/api/v1/mcp-servers/mcp-profile-state-team/knowledge/connection-profiles"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.revision").value(1))
+                .andExpect(jsonPath("$.data.profiles.length()").value(1))
+                .andExpect(jsonPath("$.data.profiles[0].configurationAvailable").value(false))
+                .andExpect(result -> assertThat(result.getResponse().getContentAsString()).doesNotContain("draft.example.test"));
     }
 
     @Test

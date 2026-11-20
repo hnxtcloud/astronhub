@@ -65,7 +65,57 @@ _Avoid_: Remote Installation、Installed Plugin
 由能力类型与现有 Namespace 坐标共同确定的标识，统一场景写作 `skill:@namespace/slug`、`plugin:@namespace/slug` 或 `mcp:@namespace/slug`；不同能力类型可以使用相同 slug。
 _Avoid_: 跨类型全局唯一 slug
 
+### Software Center
+
+**Software Center（软件中心）**:
+星枢中供管理员分发、组织用户在内网查找并下载常用 Windows 与 Linux 软件的独立业务领域。
+_Avoid_: Skill 市场、Plugin Catalog、终端管理平台
+
+**Software Application（软件应用）**:
+软件中心中供用户识别与查找的一款软件；不是 Agent Runtime 的 Plugin Project，也不是某一个安装包文件。
+_Avoid_: Skill、Plugin Project、安装包
+
+**Software Package（软件安装包）**:
+软件中心托管、供用户下载用于安装或使用软件的文件，例如 MSI、EXE、DEB、RPM 或便携压缩包；格式本身不保证目标系统兼容性。
+_Avoid_: Skill Package、Plugin Distribution
+
+**Software Admin（软件管理员）**:
+负责软件中心应用与安装包管理的独立平台角色，不因持有 Skill Admin、Plugin Admin 或 MCP Admin 而自动获得。
+_Avoid_: Skill Admin、Namespace Admin
+
+**Software Release（软件版本）**:
+同一软件应用中由管理员确认的一个发布版本，可包含面向不同操作系统、架构和发行版的多个安装包；其展示版本不取代每个包的完整原始版本。
+_Avoid_: Plugin Release、安装包版本
+
+**Software Package Revision（安装包修订）**:
+同一软件版本中，安装包目标条件与原始版本相同但文件内容不同的一次独立修订；新修订不覆盖旧修订记录与文件。
+_Avoid_: 覆盖上传、软件新版本
+
+**Software Runtime Policy（软件中心运行策略）**:
+由超级管理员在后台维护的软件中心容量、传输、解析与临时保留规则；策略修订独立于软件版本，既有会话保留适用的策略快照。
+_Avoid_: 软件版本、部署凭据、任意系统配置
+
+**Software Release Asset（软件发布资产）**:
+属于一个软件版本的发行文件，包括安装包引用、更新元数据、差分辅助文件、签名和校验文件；它不单独代表新的软件版本。
+_Avoid_: Plugin Distribution、将元数据称为安装包
+
+**Software Update Channel（软件更新渠道）**:
+软件应用面向特定平台、架构和发布变体提供的版本发现与文件读取约定；安装由客户端自己的更新器执行。
+_Avoid_: Plugin Marketplace、终端自动安装任务
+
+**Software Update Target（软件更新目标）**:
+软件更新渠道当前选定的完整发布快照；调整目标不会覆盖历史资产，也不保证客户端会降级。
+_Avoid_: 推荐包、展示版本排序
+
 ### Governance and Discovery
+
+**Native Plugin Marketplace（原生插件市场）**:
+按宿主原生协议组织的插件索引与发行内容，供 Claude Code 或 Codex 注册、安装和刷新；它是插件发布渠道，不代替星枢治理。
+_Avoid_: Catalog Search、应用更新源
+
+**Plugin Publication（插件渠道发布任务）**:
+将已批准的插件版本交付到所需分发渠道并记录各渠道结果的持久执行；审批通过不代表全部渠道已经发布成功。
+_Avoid_: Plugin Review、跨系统原子发布
 
 **Plugin Admin**:
 负责平台级 Plugin 治理的角色，不继承或扩大 Skill Admin 的职责。

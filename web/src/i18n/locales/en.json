@@ -6,6 +6,7 @@
     "evidence": "Evidence"
   },
   "common": {
+    "help": "Help",
     "expand": "Expand details",
     "collapse": "Collapse details",
     "loading": "Loading…",
@@ -556,6 +557,7 @@
     "mySuites": "My Suites",
     "publish": "Publish",
     "namespaces": "Namespaces",
+    "mcpServers": "MCP servers",
     "stars": "My Stars",
     "subscriptions": "Subscriptions",
     "tokens": "API Tokens",
@@ -2787,7 +2789,86 @@
       "VISIBILITY_INCOMPATIBLE": "Visibility incompatible"
     }
   },
+  "mcpManagement": {
+    "title": "MCP servers",
+    "catalog": "Open MCP catalog",
+    "createEntry": "Create MCP entry",
+    "selectNamespace": "Select a namespace",
+    "namespace": "Namespace",
+    "slug": "Slug",
+    "displayName": "Display name",
+    "visibility": "Visibility",
+    "summary": "Description",
+    "serverJson": "server.json import",
+    "serverJsonHelp": "Paste or upload a standard server.json. Its remotes and packages prefill connection templates. Credential values in the document are dropped and never stored.",
+    "uploadServerJson": "Load from a file",
+    "pendingOnly": "Pending review only",
+    "empty": "No MCP entries in this view. Create an entry with its first revision.",
+    "selectEntry": "Select an entry to manage its revisions.",
+    "hidden": "Hidden",
+    "editEntry": "Edit details",
+    "saveMetadata": "Save metadata",
+    "newDraft": "New draft revision",
+    "description": "Revision description",
+    "localCuration": "Curation notes",
+    "createDraft": "Create draft",
+    "revisions": "Revision history",
+    "noRevisions": "No revisions yet. Create a draft to publish the entry.",
+    "revisionNumber": "Revision r{{number}}",
+    "profiles": "Connection profiles",
+    "profileKey": "Profile key",
+    "profileDisplayName": "Profile name",
+    "transport": "Transport",
+    "commandTemplate": "Command",
+    "endpointTemplate": "Endpoint URL template",
+    "arguments": "Arguments, one per line",
+    "variables": "Variables",
+    "variableName": "Name",
+    "variableDescription": "Description",
+    "defaultValue": "Default value",
+    "required": "Required",
+    "secret": "Secret",
+    "addVariable": "Add variable",
+    "removeVariable": "Remove",
+    "addProfile": "Add profile",
+    "removeProfile": "Remove profile",
+    "preview": "Client configuration preview",
+    "submit": "Submit for review",
+    "withdraw": "Withdraw",
+    "approve": "Approve",
+    "reject": "Reject",
+    "reviewNotes": "Review notes",
+    "directPublish": "Publish draft directly",
+    "deleteDraft": "Delete draft",
+    "saveDraft": "Save draft",
+    "govern": "Apply governance action",
+    "governanceAction": "Action",
+    "governanceReason": "Reason",
+    "governanceValues": {
+      "HIDE": "Hide from catalog",
+      "SHOW": "Show in catalog",
+      "ARCHIVE": "Archive entry",
+      "RESTORE": "Restore entry",
+      "VISIBILITY": "Change visibility"
+    },
+    "visibilityValues": {
+      "PRIVATE": "Private",
+      "NAMESPACE_ONLY": "Namespace members",
+      "PUBLIC": "Public"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "PENDING_REVIEW": "Submitted",
+      "PUBLISHED": "Published",
+      "REJECTED": "Rejected"
+    },
+    "sourceKind": {
+      "MANUAL": "Manual entry",
+      "SERVER_JSON": "Imported server.json"
+    }
+  },
   "pluginManagement": {
+    "editProject": "Edit details",
     "title": "Plugin management",
     "description": "Manage native plugin archives, reviews, and publication by namespace.",
     "createProject": "Create project",
@@ -3010,6 +3091,7 @@
     "initial": "Initial branch"
   },
   "pluginAccess": {
+    "shell": "Shell",
     "publishedVersion": "Published version",
     "downloadArchive": "Download archive",
     "generateInstall": "Generate installation instructions",
@@ -3041,7 +3123,11 @@
       "CLAUDE_GIT": "Install from the confirmed Git publication at the fixed commit shown below. Git and your own repository read credentials are required. These instructions do not verify runtime behavior.",
       "CODEX_GIT": "Install from the confirmed Git publication at the fixed commit shown below. Git and your own repository read credentials are required. These instructions do not verify runtime behavior."
     },
-    "posixShell": "POSIX shell"
+    "posixShell": "POSIX shell",
+    "mcpInventory": {
+      "title": "MCP servers in this package",
+      "inline": "Declared inline in the plugin manifest; see package files for the manifest content."
+    }
   },
   "softwarePublishers": {
     "title": "Machine publishing credentials",
@@ -3122,6 +3208,32 @@
       "MISSING": "Missing",
       "UNRESOLVED_RANGE": "Version range unresolved",
       "UNSUPPORTED_SOURCE": "Unsupported source"
+    }
+  },
+  "mcpDetail": {
+    "back": "Back to MCP catalog",
+    "revision": "Published revision r{{revision}}",
+    "profiles": "Connection profiles",
+    "templateHint": "After copying, fill in the variables in your client. ${VARIABLE} denotes a placeholder. Configure variables not referenced in the template according to the server documentation. Keep credentials locally.",
+    "unavailable": "MCP entry unavailable or access denied",
+    "error": "Could not load MCP details. Try again later.",
+    "retry": "Reload",
+    "empty": "This revision has no connection profiles.",
+    "copy": "Copy configuration",
+    "copied": "Copied",
+    "copyError": "Copy failed. Select and copy the configuration below.",
+    "manualConfiguration": "This template cannot generate client configuration automatically. Configure it manually using the template below.",
+    "configuration": "Client configuration template",
+    "variables": "Variables",
+    "required": "Required",
+    "optional": "Optional",
+    "secret": "Secret, fill in locally",
+    "defaultValue": "Default: {{value}}",
+    "transports": {
+      "STDIO": "Local process (STDIO)",
+      "STREAMABLE_HTTP": "Streamable HTTP",
+      "LEGACY_HTTP_SSE": "HTTP SSE (legacy compatibility)",
+      "CUSTOM": "Custom transport"
     }
   },
   "publication": {

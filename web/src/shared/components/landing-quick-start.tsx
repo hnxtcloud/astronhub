@@ -82,16 +82,11 @@ export function LandingQuickStartSection() {
   const currentTab = tabs.find((tab) => tab.id === activeTab) ?? tabs[0]
 
   return (
-    <section className="w-full border-t border-border px-6 py-14 md:py-16">
-      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[minmax(220px,0.65fr)_minmax(0,1.35fr)]">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">{t('landing.quickStart.title')}</h2>
-          <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground md:text-base">
-            {t('landing.quickStart.description', { defaultValue: t('landing.quickStart.subtitle') })}
-          </p>
-        </div>
+    <section className="w-full border-t border-border px-6 py-6">
+      <details className="mx-auto max-w-6xl">
+        <summary className="cursor-pointer text-base font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{t('landing.quickStart.title')}</summary>
 
-        <div className="border-y border-border">
+        <div className="mt-4 min-w-0 border-y border-border">
           <div className="flex flex-wrap gap-1 border-b border-border py-2" role="tablist">
             {tabs.map((tab) => {
               const isActive = tab.id === currentTab.id
@@ -122,7 +117,7 @@ export function LandingQuickStartSection() {
             </div>
           </div>
         </div>
-      </div>
+      </details>
     </section>
   )
 }

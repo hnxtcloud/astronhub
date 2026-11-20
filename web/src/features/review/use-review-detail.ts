@@ -44,6 +44,11 @@ export function useReviewSkillDetail(taskId: number, enabled = true) {
     queryKey: ['reviews', taskId, 'skill-detail'],
     queryFn: () => getReviewSkillDetail(taskId),
     enabled: enabled && !!taskId,
+    refetchInterval: (query) => {
+      const detail = query.state.data
+      const activeVersion = detail?.versions.find(version => version.version === detail.activeVersion)
+      return activeVersion?.status === 'SCANNING' ? 2000 : false
+    },
   })
 }
 

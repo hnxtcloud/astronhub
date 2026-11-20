@@ -5,6 +5,23 @@ source_commit: null
 executor: null
 evidence_directory: null
 baseline: dd28864c
+handoff_commit: 704328918f5017483f055f8bfbce56ff47b62679
+priority: basic-business-first
+
+# 仅为交接时的只读连接证据；执行者重查并另记运行结果。
+connection_precheck:
+  checked_on: '2026-10-19'
+  credentials_source_ref: 'repository-root .env (gitignored; local only)'
+  postgres_database: astronhub
+  postgres_version: '17.9'
+  postgres_auth_and_read_only_select_1: passed
+  redis_version: '7.2.11'
+  redis_database: 0
+  redis_auth_select_and_ping: passed
+  application_startup: not-run
+  flyway_migration: not-run
+  browser_e2e: not-run
+  pg16_compatibility: not-run
 
 deployment:
   start_stop_owner: null
@@ -17,9 +34,14 @@ deployment:
   effective_auth_mock_disabled: null
   effective_auth_direct_disabled: null
   effective_auth_session_bootstrap_disabled: null
-  dedicated_pg16_database: null
+  dedicated_postgres_database: null
+  actual_postgres_version: null
+  pg16_compatibility_evidence: null
+  flyway_current_and_pending: null
   postgres_access_secret_ref: null
   redis_isolation: null
+  redis_session_namespace: null
+  shared_redis_business_key_scope: null
   local_storage_directory: null
   s3_endpoint: null
   s3_test_bucket_or_prefix: null
@@ -70,4 +92,6 @@ execution:
   download_concurrency: 20
   disk_and_network_budget: null
   measured_resource_capacity: null
+  basic_business_conclusion: not-run
+  full_scope_conclusion: not-run
   remaining_blockers: []

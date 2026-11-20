@@ -5,17 +5,17 @@ import type { CapabilityCatalogItem } from '@/api/types'
 export function PluginCard({ item }: { item: CapabilityCatalogItem }) {
   return (
     <article className="grid gap-4 py-5 transition-colors hover:bg-secondary/25 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto] sm:items-center sm:px-3">
-      <div className="flex items-start justify-between gap-4 sm:block">
-        <div>
-          <div className="mb-1.5 flex items-center gap-2 font-mono text-xs text-muted-foreground">
-            <Boxes className="h-4 w-4" />
-            <span>{item.coordinate}</span>
-          </div>
+      <div className="flex min-w-0 items-start justify-between gap-4 sm:block">
+        <div className="min-w-0">
           <h2 className="text-base font-semibold text-foreground"><Link to="/plugins/$namespace/$slug" params={{ namespace: item.namespace, slug: item.slug }}>{item.displayName}</Link></h2>
+          <div className="mt-1 flex items-center gap-2 font-mono text-xs text-muted-foreground">
+            <Boxes className="h-3.5 w-3.5 shrink-0" aria-hidden />
+            <span className="truncate" title={item.coordinate}>{item.coordinate}</span>
+          </div>
         </div>
         {item.version && <span className="rounded-md bg-muted px-2 py-1 font-mono text-xs sm:hidden">v{item.version}</span>}
       </div>
-      <p className="text-sm leading-6 text-muted-foreground">
+      <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">
         {item.summary || '—'}
       </p>
       <div className="flex min-w-32 flex-wrap items-center gap-2 sm:justify-end">

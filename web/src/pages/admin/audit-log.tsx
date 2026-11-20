@@ -99,7 +99,6 @@ export function AuditLogPage() {
     <div className="space-y-8 animate-fade-up">
       <div>
         <h1 className="text-4xl font-bold font-heading mb-2">{t('auditLog.title')}</h1>
-        <p className="text-muted-foreground text-lg">{t('auditLog.subtitle')}</p>
       </div>
 
       <Card className="p-5">

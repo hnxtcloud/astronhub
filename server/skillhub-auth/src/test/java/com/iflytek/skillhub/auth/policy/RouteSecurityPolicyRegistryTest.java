@@ -342,6 +342,11 @@ class RouteSecurityPolicyRegistryTest {
         assertTrue(registry.authorizeApiToken("GET", "/api/v1/plugins/global/demo", Set.of()).allowed());
         assertTrue(registry.authorizeApiToken("GET", "/api/v1/mcp-servers", Set.of()).allowed());
         assertTrue(registry.authorizeApiToken("GET", "/api/v1/mcp-servers/global/demo", Set.of()).allowed());
+        assertEquals(RouteSecurityPolicyRegistry.AccessLevel.PERMIT_ALL,
+                registry.accessLevel("GET", "/api/v1/mcp-servers/global/demo/connection-profiles"));
+        assertEquals(RouteSecurityPolicyRegistry.AccessLevel.AUTHENTICATED,
+                registry.accessLevel("POST", "/api/v1/mcp-servers/global/demo/connection-profiles"));
+        assertTrue(registry.authorizeApiToken("GET", "/api/v1/mcp-servers/global/demo/connection-profiles", Set.of()).allowed());
         assertTrue(registry.authorizeApiToken("GET", "/api/v1/catalog/search", Set.of()).allowed());
     }
 

@@ -79,6 +79,7 @@ public class RouteSecurityPolicyRegistry {
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/skills/*/*/tags/*/file"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/labels"),
             RouteAuthorizationPolicy.authenticated(null, "/api/v1/plugin-management/**"),
+            RouteAuthorizationPolicy.authenticated(null, "/api/v1/mcp-management/**"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*/versions"),
@@ -89,6 +90,7 @@ public class RouteSecurityPolicyRegistry {
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/plugins/*/*/versions/*/install"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/mcp-servers"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/mcp-servers/*/*"),
+            RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/mcp-servers/*/*/connection-profiles"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/v1/catalog/search"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/web/skills"),
             RouteAuthorizationPolicy.permitAll(HttpMethod.GET, "/api/web/skills/*/*"),
@@ -333,6 +335,7 @@ public class RouteSecurityPolicyRegistry {
             "ANY /api/v1/auth/local/**",
             "ANY /api/v1/admin/**",
             "ANY /api/v1/plugin-management/**",
+            "ANY /api/v1/mcp-management/**",
             // Software center is an intranet browser surface: session only.
             "ANY /api/v1/software/**",
             "ANY /api/v1/admin/software/**",

@@ -73,7 +73,7 @@ describe('AuditLogPage', () => {
     expect(html).toContain('auditLog.empty')
   })
 
-  it('renders the page title and subtitle', () => {
+  it('renders the page title without a redundant subtitle', () => {
     useAuditLogMock.mockReturnValue({
       data: null,
       isLoading: true,
@@ -81,6 +81,6 @@ describe('AuditLogPage', () => {
 
     const html = renderToStaticMarkup(<AuditLogPage />)
     expect(html).toContain('auditLog.title')
-    expect(html).toContain('auditLog.subtitle')
+    expect(html).not.toContain('auditLog.subtitle')
   })
 })

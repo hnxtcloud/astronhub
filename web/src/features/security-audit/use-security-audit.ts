@@ -27,6 +27,7 @@ export function useSecurityAudits(
     queryFn: () => fetchSecurityAudits(skillId!, versionId!),
     enabled: !!skillId && !!versionId,
     staleTime: 30_000,
+    refetchInterval: (query) => query.state.data?.some(audit => !audit.scannedAt && !audit.failureReason) ? 2000 : false,
     // Most versions have no audit; avoid retrying on expected empty/404.
     retry: false,
   })

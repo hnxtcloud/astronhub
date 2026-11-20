@@ -177,7 +177,7 @@ export function ProfileSettingsPage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <DashboardPageHeader title={t('profile.title')} subtitle={t('profile.subtitle')} />
+      <DashboardPageHeader title={t('profile.title')} />
       <Card className="glass-strong">
         <CardHeader className="flex flex-row items-center justify-end">
           {!isEditing ? (

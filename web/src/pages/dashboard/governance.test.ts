@@ -158,7 +158,7 @@ describe('GovernancePage', () => {
     const html = renderToStaticMarkup(createElement(GovernancePage))
 
     expect(html).toContain('governance.title')
-    expect(html).toContain('governance.subtitle')
+    expect(html).not.toContain('governance.subtitle')
     expect(html).toContain('governance.pendingReviews')
     expect(html).toContain('11')
     expect(html).toContain('governance.pendingPromotions')

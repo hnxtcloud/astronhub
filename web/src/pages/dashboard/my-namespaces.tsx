@@ -251,7 +251,6 @@ export function MyNamespacesPage() {
     <div className="space-y-8 animate-fade-up">
       <DashboardPageHeader
         title={t('myNamespaces.title')}
-        subtitle={t('myNamespaces.subtitle')}
         actions={canCreateNamespace ? (
           <CreateNamespaceDialog>
             <Button>{t('myNamespaces.create')}</Button>
@@ -284,16 +283,15 @@ export function MyNamespacesPage() {
                         {resolveStatusLabel(namespace.status)}
                       </span>
                     </div>
-                    <p className="mb-3 min-h-10 text-sm leading-relaxed text-muted-foreground">
-                      {namespace.description ?? ''}
-                    </p>
+                    {namespace.description && <p className="mb-3 text-sm leading-relaxed text-muted-foreground">{namespace.description}</p>}
                     <div className="text-sm font-mono text-muted-foreground">@{namespace.slug}</div>
-                    <div className="mt-4 rounded-lg border border-border/50 bg-secondary/40 px-3 py-2.5 text-sm leading-relaxed text-muted-foreground">
-                      {resolveHint(namespace.status, namespace.type)}
-                    </div>
-                    <div className="mt-3 border-t border-border/50 pt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground/80">
-                      {t('myNamespaces.roleLabel')}: {namespace.currentUserRole ?? t('myNamespaces.roleUnknown')}
-                    </div>
+                    {namespace.type === 'GLOBAL' ? (
+                      <details className="mt-3 text-sm text-muted-foreground">
+                        <summary className="cursor-pointer">{t('common.help')}</summary>
+                        <p className="mt-2">{resolveHint(namespace.status, namespace.type)}</p>
+                      </details>
+                    ) : namespace.status !== 'ACTIVE' && <p className="mt-3 text-sm text-muted-foreground">{resolveHint(namespace.status, namespace.type)}</p>}
+                    <span className="mt-2 text-xs text-muted-foreground" title={t('myNamespaces.roleLabel')}>{namespace.currentUserRole ?? t('myNamespaces.roleUnknown')}</span>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 border-t border-border/50 pt-4">

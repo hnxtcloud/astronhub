@@ -38,10 +38,10 @@ export function PluginGitAdminPanel() {
     </form>
     {(settings.data?.allowedRemotes?.length ?? 0) === 0 && <p className="my-3 text-sm">{t('pluginGit.operatorConfiguration')}</p>}
     {configure.isSuccess && <p role="status" className="mt-3 text-sm">{t('pluginGit.saved')}</p>}
+    {(settings.data?.targets?.length ?? 0) > 0 && <p className="mt-3 text-sm text-muted-foreground">{t('pluginGit.historyCaution')}</p>}
     <div className="mt-4 space-y-3">{settings.data?.targets?.map(value => <article key={value.id} className="rounded border p-3 text-sm">
       <p className="font-medium">@{value.namespace} · {t(value.selected ? 'pluginGit.current' : 'pluginGit.historical')} · #{value.id}</p>
       <p className="break-all">{value.remote} · {value.branch}</p><p>{value.credentialRef} · {t(value.credentialAvailable ? 'pluginGit.ready' : 'pluginGit.unavailable')}</p>
-      <p className="text-muted-foreground">{t('pluginGit.historyCaution')}</p>
     </article>)}</div>
     {[settings.error, configure.error].filter(Boolean).map((error, index) => <p key={index} role="alert" className="mt-2 text-sm text-destructive">{error instanceof Error ? error.message : t('pluginGit.failed')}</p>)}
   </details>

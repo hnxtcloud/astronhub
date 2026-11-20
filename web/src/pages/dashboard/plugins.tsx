@@ -42,10 +42,8 @@ export function PluginManagementPage() {
   return <div className="mx-auto max-w-7xl space-y-7 p-4 sm:p-6">
     <header><h1 className="text-2xl font-semibold">{t('pluginManagement.title')}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{t('publication.legacy')} <a className="text-primary hover:underline" href={withBasePath('/dashboard/publications')}>{t('publication.mine')}</a></p></header>
-    {reviewer && <PluginNpmAdminPanel />}
-    {reviewer && <PluginGitAdminPanel />}
     <PluginOfflineImportPanel reviewer={reviewer} namespaces={namespaces.data ?? []} projects={projects.data?.items ?? []} />
-    <details open={selected === null} className="rounded-lg border p-4">
+    <details className="rounded-lg border p-4">
       <summary className="cursor-pointer font-medium">{t('pluginManagement.createProject')}</summary>
       <form onSubmit={createProject} className="mt-4 grid gap-4 sm:grid-cols-2">
         <label className="space-y-1 text-sm">{t('pluginManagement.namespace')}<select required className={selectClass} value={namespaceId} onChange={e => setNamespaceId(e.target.value)}>
@@ -73,11 +71,11 @@ export function PluginManagementPage() {
         {projects.error && <p role="alert" className="text-destructive">{projects.error.message}</p>}
         <ul className="divide-y rounded-lg border">{projects.data?.items.map(item => <li key={item.id}>
           <button type="button" aria-current={selected === item.id ? 'true' : undefined} onClick={() => setSelected(item.id)}
-            className="w-full px-4 py-3 text-left hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-[current=true]:bg-accent">
+            className="w-full px-4 py-3 text-left hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-[current=true]:bg-secondary">
             <span className="block font-medium">{item.displayName}</span><span className="block break-all text-xs text-muted-foreground">@{item.namespace}/{item.slug}</span>
           </button></li>)}</ul>
         {projects.data?.items.length === 0 && <p className="text-sm text-muted-foreground">{t('pluginManagement.empty')}</p>}
-        <Pagination page={page} totalPages={Math.max(1, Math.ceil((projects.data?.total ?? 0) / 20))} onPageChange={setPage} />
+        {(projects.data?.total ?? 0) > 20 && <Pagination page={page} totalPages={Math.ceil((projects.data?.total ?? 0) / 20)} onPageChange={setPage} />}
       </aside>
       <div className="min-w-0 space-y-5">
         {project.isLoading && selected !== null && <p aria-live="polite">{t('common.loading')}</p>}
@@ -86,6 +84,8 @@ export function PluginManagementPage() {
           : selected === null && <p className="py-6 text-sm text-muted-foreground">{t('pluginManagement.selectProject')}</p>}
       </div>
     </div>
+    {reviewer && <PluginNpmAdminPanel />}
+    {reviewer && <PluginGitAdminPanel />}
   </div>
 }
 
@@ -101,17 +101,20 @@ function PluginProjectEditor({ project, direct }: { project: PluginProject; dire
     {project.canGovern && <PluginProjectGovernance project={project} />}
     <PluginComponentEditor project={project} />
     {project.canManage && <>
+      <details><summary className="cursor-pointer text-sm font-medium">{t('pluginManagement.editProject')}</summary>
       <form className="space-y-3" onSubmit={e => { e.preventDefault(); command.mutate({ path: `/projects/${project.id}`, method: 'PATCH', body: { displayName: name, summary } }) }}>
         <label className="block space-y-1 text-sm">{t('pluginManagement.editName')}<Input required maxLength={200} value={name} onChange={e => setName(e.target.value)} /></label>
         <label className="block space-y-1 text-sm">{t('pluginManagement.summary')}<Textarea maxLength={30000} value={summary} onChange={e => setSummary(e.target.value)} /></label>
         <Button type="submit" variant="outline" disabled={command.isPending}>{t('pluginManagement.saveMetadata')}</Button>
       </form>
+      </details>
+      <details><summary className="cursor-pointer text-sm font-medium">{t('pluginManagement.newVersion')}</summary>
       <form className="space-y-3 border-t pt-5" onSubmit={e => { e.preventDefault(); command.mutate({ path: `/projects/${project.id}/releases`, body: { version, changelog } }) }}>
-        <h3 className="font-medium">{t('pluginManagement.newVersion')}</h3>
         <label className="block space-y-1 text-sm">{t('pluginManagement.version')}<Input required maxLength={64} placeholder="1.0.0" value={version} onChange={e => setVersion(e.target.value)} /></label>
         <label className="block space-y-1 text-sm">{t('pluginManagement.changelog')}<Textarea maxLength={30000} value={changelog} onChange={e => setChangelog(e.target.value)} /></label>
         <Button type="submit" disabled={command.isPending}>{t('pluginManagement.createDraft')}</Button>
       </form>
+      </details>
     </>}
     {command.error && <p role="alert" className="text-sm text-destructive">{command.error.message}</p>}
     <section className="space-y-5 border-t pt-5"><h3 className="font-medium">{t('pluginManagement.versions')}</h3>
@@ -133,8 +136,9 @@ function PluginReleasePanel({ release, canManage, canReview, canGovern, direct }
   const reviewable = release.status === 'PENDING_REVIEW' && !release.publication
   const reviewBody = { notes, runtimeTestResult: testResult, testEnvironment: environment || undefined }
   const action = (name: string, body?: PluginCommandBody) => command.mutate({ path: `/releases/${release.id}/${name}`, body })
-  return <article className="space-y-4 rounded-lg border p-4">
-    <div className="flex flex-wrap items-baseline justify-between gap-2"><h4 className="font-semibold">{release.version}</h4><span className="text-sm">{t(`pluginManagement.status.${release.status}`)}</span></div>
+  return <article className="rounded-lg border p-4"><details>
+    <summary className="cursor-pointer font-semibold">{release.version}<span className="ml-3 text-sm font-normal">{t(`pluginManagement.status.${release.status}`)}{release.publication && <> · {t(`pluginManagement.publication.${release.publication.status}`)}</>}</span></summary>
+    <div className="mt-4 space-y-4">
     {release.publication && <p className="text-sm" role="status">{t(`pluginManagement.publication.${release.publication.status}`)}
       <span className="ml-2 text-muted-foreground">{release.publication.completedChannels || '0'} / {release.publication.requiredChannels}</span></p>}
     {release.publication?.lastError && <p className="text-sm text-destructive">{t('pluginManagement.hostedFailed')}</p>}
@@ -151,8 +155,8 @@ function PluginReleasePanel({ release, canManage, canReview, canGovern, direct }
     {release.distributions.map(distribution => <div key={distribution.id} className="space-y-2 text-sm">
       <p className="font-medium">{distribution.runtimeKey}: {distribution.nativeName}@{distribution.nativeVersion}</p>
       <p>{t(`pluginManagement.evidence.${distribution.compatibilityEvidence}`)} · {t(`pluginManagement.evidence.${distribution.securityAssessment}`)}</p>
-      <p className="break-all font-mono text-xs">SHA256 {distribution.sha256}</p>
       <details><summary className="cursor-pointer">{t('pluginManagement.inspectEvidence')}</summary>
+        <p className="mt-2 break-all font-mono text-xs">SHA256 {distribution.sha256}</p>
         <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all rounded bg-muted p-3 text-xs">{distribution.manifestJson}{'\n'}{distribution.inventoryJson}</pre></details>
       <a className="inline-block underline underline-offset-4" href={withBasePath(`/api/v1/plugin-management/releases/${release.id}/${release.status === 'PUBLISHED' ? 'download' : 'archive'}?runtime=${encodeURIComponent(distribution.runtimeKey)}`)}>{t('pluginManagement.download')}</a>
       <PluginFileBrowser path={`/api/v1/plugin-management/releases/${release.id}`} runtime={distribution.runtimeKey} />
@@ -175,5 +179,6 @@ function PluginReleasePanel({ release, canManage, canReview, canGovern, direct }
     {canGovern && <PluginReleaseGovernance release={release} />}
     {command.isPending && <p role="status" className="text-sm">{t('common.loading')}</p>}
     {command.error && <p role="alert" className="text-sm text-destructive">{command.error.message}</p>}
-  </article>
+    </div>
+  </details></article>
 }

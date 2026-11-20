@@ -295,7 +295,6 @@ export function MySkillsPage() {
     <div className="space-y-8 animate-fade-up">
       <DashboardPageHeader
         title={t('mySkills.title')}
-        subtitle={t('mySkills.subtitle')}
       />
 
       <div className="flex flex-col gap-3">

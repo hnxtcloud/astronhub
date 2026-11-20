@@ -381,6 +381,7 @@ Recommended resource families:
 
 /api/v1/mcp-servers
 /api/v1/mcp-servers/{namespace}/{slug}
+/api/v1/mcp-servers/{namespace}/{slug}/connection-profiles
 /api/v1/mcp-servers/{namespace}/{slug}/revisions
 /api/v1/mcp-servers/{namespace}/{slug}/revisions/{revision}
 /api/v1/mcp-servers/{namespace}/{slug}/revisions/{revision}/profiles
@@ -391,6 +392,8 @@ Recommended resource families:
 Controllers remain transport-only. Native APIs use the existing response envelope, String user identities, CSRF/session behavior, and OpenAPI generation process.
 
 Exact write, review, governance, import, and compatibility routes are defined in implementation tickets while preserving these resource names and domain boundaries.
+
+The current read-only `connection-profiles` endpoint returns the latest visible published revision number, description, and connection templates. It shares the catalog visibility checks and does not expose draft profiles, source snapshots, or credential values. The web detail page copies a common `mcpServers` JSON template for STDIO, Streamable HTTP, and legacy SSE; CUSTOM profiles require manual configuration. This does not establish a live MCP connection.
 
 ## Persistence Model
 

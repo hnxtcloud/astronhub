@@ -74,7 +74,6 @@ export function HomePage() {
             <h2 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'hsl(var(--foreground))' }}>
               {t('home.popularTitle')}
             </h2>
-            <p style={{ color: 'hsl(var(--text-secondary))' }}>{t('home.popularDescription')}</p>
           </div>
           <Button
             variant="ghost"
@@ -106,7 +105,6 @@ export function HomePage() {
             <h2 className="text-3xl font-bold tracking-tight mb-2" style={{ color: 'hsl(var(--foreground))' }}>
               {t('home.latestTitle')}
             </h2>
-            <p style={{ color: 'hsl(var(--text-secondary))' }}>{t('home.latestDescription')}</p>
           </div>
           <Button
             variant="ghost"

@@ -551,6 +551,20 @@ describe('SkillDetailPage', () => {
     expect(html).not.toContain('skillDetail.deleteSkill')
   })
 
+  it('lets an anonymous visitor download a team-namespace public skill without login', () => {
+    routeParams.namespace = 'team-ai'
+    authState = {
+      user: null,
+      hasRole: vi.fn(() => false),
+    }
+
+    render(<SkillDetailPage />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'skillDetail.download' }))
+
+    expect(navigateMock).not.toHaveBeenCalled()
+  })
+
   it('does not advertise a legacy suite even when the skill was its entry', () => {
     useSkillDetailMock.mockReturnValue({
       data: createSkill({

@@ -2,7 +2,9 @@
 
 本文档描述当前 `web/e2e` 的真实请求（non-mock）测试体系、执行方式与维护规范。
 
-2026-10-16：插件管理、软件中心及多应用更新源的真实服务验收，使用[新 E2E 执行计划](plugin-updates-e2e-plan.md)和[Wayfinder](../.scratch/plugin-update-e2e/map.md)。下文套件列表/数量为既有说明，实际覆盖以 `playwright test --list` 为准。认证助手仍允许 local mock 身份回退；严格权限场景必须按新计划关闭回退并验证后端实际配置。
+2026-10-20：[中文手动清单验收报告](../.scratch/plugin-update-e2e/manual-acceptance-results.md)记录7组场景、127步骤及BAIZE版本切换。新增用例为`web/e2e/manual-acceptance.spec.ts`，本轮真实场景不使用mock；旧`auth-entry`仍含受控界面测试，不能将整个既有套件统称为真实服务验收。本轮同时修复插件任务成功后版本状态未刷新问题。
+
+2026-10-19：插件管理、软件中心及多应用更新源的真实服务验收，从[当前环境与启动交接](../.scratch/plugin-update-e2e/start-here.md)开始，再读[E2E执行计划](plugin-updates-e2e-plan.md)和[Wayfinder](../.scratch/plugin-update-e2e/map.md)。根目录`.env`已提供可连通的PG17.9/Redis7.2.11，先验收基础业务；连接检查不计入业务通过。下文套件列表/数量为既有说明，实际覆盖以`playwright test --list`为准。认证助手仍允许local mock身份回退；严格权限场景必须按新计划关闭回退并验证后端实际配置。
 
 ## 1. 当前状态
 

@@ -95,7 +95,9 @@ const CatalogPage = createLazyRouteComponent(() => import('@/pages/capability-ca
 const PluginCatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'PluginCatalogPage')
 const PluginDetailPage = createLazyRouteComponent(() => import('@/pages/plugin-detail'), 'PluginDetailPage')
 const PluginManagementPage = createLazyRouteComponent(() => import('@/pages/dashboard/plugins'), 'PluginManagementPage')
+const McpManagementPage = createLazyRouteComponent(() => import('@/pages/dashboard/mcp-servers'), 'McpManagementPage')
 const McpCatalogPage = createLazyRouteComponent(() => import('@/pages/capability-catalog'), 'McpCatalogPage')
+const McpServerDetailPage = createLazyRouteComponent(() => import('@/pages/mcp-server-detail'), 'McpServerDetailPage')
 const SuitesPage = createLazyRouteComponent(() => import('@/pages/suites'), 'SuitesPage')
 const SuiteDetailPage = createLazyRouteComponent(() => import('@/pages/suite-detail'), 'SuiteDetailPage')
 const TermsOfServicePage = createLazyRouteComponent(() => import('@/pages/terms'), 'TermsOfServicePage')
@@ -372,6 +374,12 @@ const mcpServersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'mcp-servers',
   component: McpCatalogPage,
+})
+
+const mcpServerDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'mcp-servers/$namespace/$slug',
+  component: McpServerDetailPage,
 })
 
 const namespaceRoute = createRoute({
@@ -782,6 +790,14 @@ const pluginManagementRoute = createRoute({
   component: PluginManagementPage,
 })
 
+const mcpManagementRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'dashboard/mcp-servers',
+  validateSearch: (search: Record<string, unknown>): { entryId?: number } => ({ entryId: Number(search.entryId) || undefined }),
+  beforeLoad: requireAuth,
+  component: McpManagementPage,
+})
+
 const publicationsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'dashboard/publications',
@@ -792,6 +808,7 @@ const publicationsRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   publicationsRoute,
   pluginManagementRoute,
+  mcpManagementRoute,
   landingRoute,
   skillsRoute,
   loginRoute,
@@ -806,6 +823,7 @@ const routeTree = rootRoute.addChildren([
   pluginsRoute,
   pluginDetailRoute,
   mcpServersRoute,
+  mcpServerDetailRoute,
   namespaceRoute,
   skillDetailRoute,
   skillVersionCompareRoute,

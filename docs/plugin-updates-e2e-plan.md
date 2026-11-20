@@ -1,16 +1,23 @@
 # 插件管理与应用更新 E2E 交接计划
 
-日期：2026-10-16。范围基线：`dd28864c`，分支 `codex/plugin-update-integration`。执行者必须先记录自己实际 checkout 的完整 SHA；修改代码后重新记录被测 SHA。
+2026-10-20执行更新：[清单验收报告](../.scratch/plugin-update-e2e/manual-acceptance-results.md)已完成7组/127步及BAIZE版本切换，原全量Wayfinder仍partial。下文2026-10-19“尚未执行”是当时交接状态，不能代表当前执行结果；各次运行单独保留SHA/源码摘要和证据。
 
-本次仅创建计划，**尚未执行本计划 E2E**。此前的后端、Vitest、HTTP/原生 CLI 合同证据见[已有验收记录](plugin-updates-validation.md)，不转记为本计划通过。
+更新：2026-10-19（初建2026-10-16）。产品范围基线：`dd28864c`；本次交接 checkout：`704328918f5017483f055f8bfbce56ff47b62679`，分支 `codex/plugin-update-integration`。执行者必须先记录自己实际 checkout 的完整 SHA；修改代码后重新记录被测 SHA。
+
+**尚未执行本计划 E2E**。当前已提供根目录 `.env`，最近连接检查为 PostgreSQL17.9（数据库 `astronhub`，认证及只读SELECT1通过）和Redis7.2.11（DB0，认证及PING通过）；未运行迁移、启动服务或执行浏览器。首先阅读[当前环境与启动步骤](../.scratch/plugin-update-e2e/start-here.md)，先验收实际PG17环境下的基础业务。此前的后端、Vitest、HTTP/原生CLI合同证据见[已有验收记录](plugin-updates-validation.md)，不转记为本计划通过。
 
 执行入口：[Wayfinder](../.scratch/plugin-update-e2e/map.md)。逐票领取、环境盘点、结果登记及报告模板均在该目录。测试对象为新增插件管理和多应用更新源，并回归软件中心上传/识别/下载、登录、命名空间、Skill/MCP 既有读取和权限；不扩展新产品功能。
 
 ## 交给其他 coding agent 的启动指令
 
 ```text
-请先读取 AGENTS.md、docs/plugin-updates-e2e-plan.md 和
-.scratch/plugin-update-e2e/map.md，按 map 的执行规则领取首张可执行票。
+请先读取 AGENTS.md、.scratch/plugin-update-e2e/start-here.md、
+docs/plugin-updates-e2e-plan.md 和 .scratch/plugin-update-e2e/map.md，领取01。
+根目录.env已配置外部PG和Redis，最近连接检查通过；凭据仅本地读取，不输出或提交。
+先加载.env并启动独立后端/前端，完成真实登录、插件HOSTED闭环、手工ZIP软件管理、
+基本权限与CSRF；按01→02/04基础子项→05权限子项→09基础报告执行。
+当前PG为17.9，结论标明实际版本，PG16兼容性另列待验，不因此停住基础业务。
+Git/npm、Inspector、扫描器、Nginx/S3和原生终端缺失时仅阻塞对应子项。
 这是执行真实服务 E2E 的任务：先盘点环境、记录实际 HEAD、准备隔离账号和样本，
 再编写/执行 web/e2e 下的真实 API Playwright 场景及必要的协议/原生验收。
 已有验收记录仅作参考，不计入本轮通过。每项记录环境、步骤、断言与证据。
@@ -24,11 +31,11 @@
 
 | 层次 | 必须真实使用的边界 | 可形成的结论 |
 | --- | --- | --- |
-| L1：业务浏览器 E2E | Chromium → Web → 实际 Spring Boot → PostgreSQL 16 / Redis 7 / 对象存储；真实会话与 CSRF | 本环境业务、权限和持久化闭环；不代表真实 Git/npm 或安装成功 |
+| L1：业务浏览器 E2E | Chromium → Web → 实际 Spring Boot → PostgreSQL / Redis7 / 对象存储；本次提供PG17.9；真实会话与CSRF | 实际数据库版本环境的业务、权限和持久化闭环；不代表PG16兼容、真实Git/npm或安装成功 |
 | L2：发布与部署 E2E | 专用内网 Git/npm、实际 Nginx/网关、S3/MinIO、Inspector、重启/故障注入 | 对应内网发布、恢复、代理和存储链路；不代表终端应用安装 |
 | L3：原生客户端验收 | 隔离 Claude/Codex/Pi；可重置 Windows/macOS 测试机和真实应用发行物 | 所提供客户端版本的安装/更新；差分及回退仍须各自实测 |
 
-没有 Docker 也可以对已提供的隔离服务运行 L1/L2 浏览器测试；**Docker staging、镜像构建、Compose 配置检查和 Docker/Testcontainers 测试仍要求可用 Docker**。不得以 H2 或 PG18 替代 PG16 验收结论。L2/L3 缺条件时保留 blocked，其他独立组仍可执行。
+没有Docker也可以对已提供的隔离服务运行L1/L2浏览器测试；**Docker staging、镜像构建、Compose配置检查和Docker/Testcontainers测试仍要求可用Docker**。当前PG17.9可形成该版本下的基础验收结论，PG16兼容性需另用PG16实测；H2/其他PG版本均不能替代它。L2/L3缺条件时保留blocked，其他独立组仍可执行。
 
 ### 需要提供的资源清单
 
@@ -37,7 +44,7 @@
 | 测试实例或可启动主机 | 专用实例、源码 SHA、Web/API 地址、启动/停止方式；Java 21、Maven、Node.js、pnpm、Python、Git、Bash/make 或等价命令 | 全部流程。建议 16 GiB 起、32 GiB 更合适；先单 worker，按实际内存调整，不并行堆叠 JVM/Node |
 | 离线构建物 | Maven 依赖、pnpm store/npm 包、Python wheels（涉及 scanner 时）、容器基础镜像/服务镜像；锁文件和镜像摘要 | 内网不能依赖临时公网下载；提供内部镜像库/缓存或预装运行环境 |
 | Playwright | 与安装的 `@playwright/test` 匹配的 Chromium 和系统依赖 | 浏览器 E2E；缓存目录存在不等于版本匹配或可启动 |
-| 数据与会话服务 | PG16 独立库/账号/备份恢复方式、Redis7 独立实例或受控隔离空间 | 真正持久化、会话、锁；提供管理员可创建测试账号和授予角色的能力 |
+| 数据与会话服务 | 已提供PG17.9的`astronhub`库及Redis7.2.11 DB0；执行者复核独立库/账号/迁移权限、备份恢复及Redis共享范围；PG16另供兼容性测试 | 真正持久化、会话、锁；PING不证明全部Redis操作权限；提供管理员可创建测试账号和授予角色的能力 |
 | 存储 | 独立 LocalFile 目录用于最小层；L2 提供 S3/MinIO endpoint、专用 bucket/prefix、凭据引用、容量、清理边界 | 必须分别记录 LocalFile 与 S3 结果；不可访问时相应层 blocked |
 | HTTPS 入口 | 根路径及 `/hub/`（另测 `/hub.v1/`）入口、Nginx/Ingress 配置、DNS、服务端/浏览器/Java/Git/npm 所需 CA | 编码路径、同源更新源、Range、缓存和流式上传；不可关闭 TLS 校验代替配置 |
 | 账号和角色 | SUPER_ADMIN；可由其创建 PLUGIN_ADMIN、SOFTWARE_ADMIN、作者 MEMBER、namespace OWNER/ADMIN、无关用户；匿名浏览器独立上下文 | 不能只用超级管理员覆盖全部路径；账号可停用/撤权并恢复 |
@@ -53,15 +60,21 @@
 
 环境详细输入表为 [environment.example.yaml](../.scratch/plugin-update-e2e/environment.example.yaml)。这是**交接盘点表，不是现成应用或 Playwright 配置**；账号/密钥填引用，不填写真实秘密到仓库。机器 token 由管理员在测试应用签发，不能拿 inspector token 或任意自报 scope 代替。
 
-### 本机现状（只读盘点，2026-10-16）
+### 本机现状
+
+2026-10-19更新：PG/Redis连接结果与启动方式以[start-here](../.scratch/plugin-update-e2e/start-here.md)为准。根目录`.env`已存在且被Git忽略；执行者加载后端`SPRING_*`变量。连接通过不等于Flyway、会话读写、限流Lua、任务队列或业务E2E通过。后续账号/代理/扫描器/渠道和浏览器环境仍需01盘点。
+
+以下保留2026-10-16的历史工具盘点，执行者重新核对：
 
 已发现 Java/Maven/Git/Python/Node 可执行文件；Node 为 24.19.0，`web/node_modules/@playwright/test` 为 1.58.2，并有浏览器缓存目录。尚未验证浏览器可启动或与缓存匹配。项目 `packageManager` 声明 pnpm 10.33.0；现有 CI 模板仍有 Node20/pnpm9，执行者需记录实际版本并核对锁文件，不盲目照搬。
 
-Docker、Helm 当前未在 PATH 找到；未确认本次可用的 PG16/Redis/S3、运行中应用、测试账号、内网 Git/npm 或测试终端。此前 PG18 临时迁移/本机 Git/npm 探针不代表这些资源已经提供。本计划没有启动服务、访问真实发布目标或运行 E2E。
+当时Docker、Helm未在PATH找到；当时尚未提供PG/Redis连接，其他S3、运行中应用、测试账号、内网Git/npm和测试终端亦未确认。此前PG18临时迁移/本机Git/npm探针不代表这些资源已经提供。本计划没有启动服务、访问真实发布目标或运行E2E。
 
 ## 2. 启动和现有测试入口
 
 先阅读 [既有 E2E 说明](e2e.md)、[软件中心部署](26-software-center-deployment.md)、[Inspector](../inspector/README.md)。内网预先准备依赖，不默认执行联网安装命令。
+
+**本次外部PG/Redis优先按[start-here的Windows步骤](../.scratch/plugin-update-e2e/start-here.md)加载`.env`、启动后端和Vite**。下列Docker命令用于另有隔离Compose环境时，不能直接套到本次连接配置：release Compose的datasource URL仍指向容器内postgres，根目录`.env`不会自动使它改连外部PG；Makefile启动后端还会显式启用scanner。
 
 ```bash
 # 已准备 Docker/镜像/依赖且使用本轮隔离配置时，二选一启动方式
@@ -82,7 +95,7 @@ pnpm exec playwright test --list
 pnpm run test:e2e:smoke
 ```
 
-PowerShell 可使用 `$env:PLAYWRIGHT_BASE_URL='https://...'`、`$env:PLAYWRIGHT_WORKERS='1'` 后执行相同 pnpm 命令。地址应以实际部署为准；本计划不提供可用测试实例。
+PowerShell可使用`$env:PLAYWRIGHT_BASE_URL='https://...'`、`$env:PLAYWRIGHT_WORKERS='1'`后执行相同pnpm命令。地址以执行者实际启动的实例为准；本次只提供连接配置和启动步骤，没有已验证运行的应用实例。
 
 关键差异：
 

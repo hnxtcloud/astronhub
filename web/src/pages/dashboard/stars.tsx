@@ -31,7 +31,7 @@ export function MyStarsPage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <DashboardPageHeader title={t('stars.title')} subtitle={t('stars.subtitle')} />
+      <DashboardPageHeader title={t('stars.title')} />
 
       {!skills || skills.length === 0 ? (
         <Card className="p-12 text-center text-muted-foreground">{t('stars.empty')}</Card>

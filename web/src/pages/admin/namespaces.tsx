@@ -319,7 +319,6 @@ export function AdminNamespacesPage() {
     <div className="space-y-8 animate-fade-up">
       <div>
         <h1 className="text-4xl font-bold font-heading mb-2">{t('adminNamespaces.title')}</h1>
-        <p className="text-muted-foreground text-lg">{t('adminNamespaces.subtitle')}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

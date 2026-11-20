@@ -430,7 +430,7 @@ export function PromotionsPage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <DashboardPageHeader title={t('promotions.title')} subtitle={t('promotions.subtitle')} />
+      <DashboardPageHeader title={t('promotions.title')} />
       <Tabs defaultValue="PENDING">
         <div className="max-w-full overflow-x-auto">
           <TabsList>

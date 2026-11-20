@@ -51,4 +51,13 @@ public class McpConnectionProfile {
     public String getArgumentsJson() { return argumentsJson; }
     public String getVariablesJson() { return variablesJson; }
     public Instant getCreatedAt() { return createdAt; }
+
+    /** Only draft revisions are rebuilt, so template mutation stays behind the draft workflow. */
+    public void updateTemplates(String endpointTemplate, String commandTemplate,
+                                String argumentsJson, String variablesJson) {
+        this.endpointTemplate = endpointTemplate;
+        this.commandTemplate = commandTemplate;
+        this.argumentsJson = argumentsJson;
+        this.variablesJson = variablesJson;
+    }
 }

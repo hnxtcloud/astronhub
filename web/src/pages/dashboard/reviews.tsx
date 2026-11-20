@@ -253,7 +253,7 @@ export function ReviewsPage() {
   if (!hasGlobalReviewAccess) {
     return (
       <div className="space-y-8 animate-fade-up">
-        <DashboardPageHeader title={t('reviews.title')} subtitle={t('reviews.subtitle')} />
+        <DashboardPageHeader title={t('reviews.title')} />
         <Card className="p-8 text-center text-muted-foreground">
           Loading...
         </Card>
@@ -263,7 +263,7 @@ export function ReviewsPage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <DashboardPageHeader title={t('reviews.title')} subtitle={t('reviews.subtitle')} />
+      <DashboardPageHeader title={t('reviews.title')} />
 
       {showTypeTabs ? (
         <Tabs value={activeType} onValueChange={handleTypeChange}>

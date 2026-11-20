@@ -653,6 +653,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mcp-management/revisions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a manageable MCP revision with templates and review decisions */
+        get: operations["revisionDetail"];
+        /** Edit a draft revision's description, templates, and local curation */
+        put: operations["updateRevision"];
+        post?: never;
+        /** Delete a draft or rejected revision */
+        delete: operations["deleteRevision"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/users/{userId}/status": {
         parameters: {
             query?: never;
@@ -3244,6 +3263,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mcp-management/revisions/{id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw a pending revision back to draft */
+        post: operations["withdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mcp-management/revisions/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a draft revision for review */
+        post: operations["submit_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mcp-management/revisions/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a pending revision with review notes */
+        post: operations["reject_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mcp-management/revisions/{id}/direct-publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Super-admin direct publication of a validated draft revision */
+        post: operations["directPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mcp-management/revisions/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a pending revision and publish it as the entry's latest */
+        post: operations["approve_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mcp-management/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List manageable MCP entries or the review queue */
+        get: operations["list_9"];
+        put?: never;
+        /** Create an MCP entry with its first draft revision and connection templates */
+        post: operations["create_3"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mcp-management/entries/{id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create the next draft revision; a published revision stays visible until approval */
+        post: operations["createRevision"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/mcp-management/entries/{id}/governance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Govern an MCP entry: HIDE, SHOW, ARCHIVE, RESTORE, or VISIBILITY */
+        post: operations["govern_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/internal/software/inspector/tasks/{taskId}/result": {
         parameters: {
             query?: never;
@@ -3587,9 +3743,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_9"];
+        get: operations["list_10"];
         put?: never;
-        post: operations["create_3"];
+        post: operations["create_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3605,7 +3761,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["withdraw"];
+        post: operations["withdraw_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3908,9 +4064,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_11"];
+        get: operations["list_12"];
         put?: never;
-        post: operations["create_4"];
+        post: operations["create_5"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4070,7 +4226,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["reject_3"];
+        post: operations["reject_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4086,7 +4242,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["approve_3"];
+        post: operations["approve_4"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4384,6 +4540,24 @@ export interface paths {
         head?: never;
         /** Edit catalog metadata without changing native archives */
         patch: operations["update_1"];
+        trace?: never;
+    };
+    "/api/v1/mcp-management/entries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read an MCP entry with its revisions, templates, and review evidence */
+        get: operations["detail_4"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit MCP entry catalog metadata */
+        patch: operations["update_2"];
         trace?: never;
     };
     "/api/web/suites/{namespace}/{slug}/versions": {
@@ -6829,6 +7003,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mcp-servers/{namespace}/{slug}/connection-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get connection templates for the visible published MCP revision */
+        get: operations["connectionProfiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/internal/software/inspector/tasks/{taskId}/content": {
         parameters: {
             query?: never;
@@ -7077,7 +7268,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_10"];
+        get: operations["list_11"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7093,7 +7284,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["detail_4"];
+        get: operations["detail_5"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7141,7 +7332,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["list_12"];
+        get: operations["list_13"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8095,6 +8286,82 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
             requestId?: string;
+        };
+        McpProfileInput: {
+            profileKey: string;
+            displayName: string;
+            /** @enum {string} */
+            transportType: "STDIO" | "STREAMABLE_HTTP" | "LEGACY_HTTP_SSE" | "CUSTOM";
+            endpointTemplate?: string;
+            commandTemplate?: string;
+            arguments?: string[];
+            variables?: components["schemas"]["McpVariableInput"][];
+        };
+        McpRevisionUpdateRequest: {
+            description?: string;
+            profiles?: components["schemas"]["McpProfileInput"][];
+            localCuration?: string;
+        };
+        McpVariableInput: {
+            /** @description Variable name used in templates as ${name} */
+            name: string;
+            description?: string;
+            required?: boolean;
+            /** @description Secret variables render as placeholders; values are never stored */
+            secret?: boolean;
+            /** @description Optional non-secret default; rejected for secret variables */
+            defaultValue?: string;
+            validationHint?: string;
+        };
+        ApiResponseMcpRevisionView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["McpRevisionView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        McpProfileView: {
+            profileKey?: string;
+            displayName?: string;
+            /** @enum {string} */
+            transportType?: "STDIO" | "STREAMABLE_HTTP" | "LEGACY_HTTP_SSE" | "CUSTOM";
+            endpointTemplate?: string;
+            commandTemplate?: string;
+            arguments?: string[];
+            variables?: components["schemas"]["McpVariableView"][];
+        };
+        McpReviewDecisionView: {
+            reviewerId?: string;
+            decision?: string;
+            notes?: string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        McpRevisionView: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int32 */
+            revisionNumber?: number;
+            status?: string;
+            description?: string;
+            sourceKind?: string;
+            localCuration?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            publishedAt?: string;
+            profiles?: components["schemas"]["McpProfileView"][];
+            reviews?: components["schemas"]["McpReviewDecisionView"][];
+        };
+        McpVariableView: {
+            name?: string;
+            description?: string;
+            required?: boolean;
+            secret?: boolean;
+            defaultValue?: string;
+            validationHint?: string;
         };
         AdminUserStatusUpdateRequest: {
             status: string;
@@ -9536,6 +9803,68 @@ export interface components {
             /** Format: date-time */
             createdAt?: string;
         };
+        McpRejectRequest: {
+            notes: string;
+        };
+        McpReviewRequest: {
+            notes?: string;
+        };
+        McpEntryCreateRequest: {
+            /** Format: int64 */
+            namespaceId: number;
+            slug: string;
+            displayName: string;
+            summary?: string;
+            /** @enum {string} */
+            visibility: "PUBLIC" | "NAMESPACE_ONLY" | "PRIVATE";
+            profiles?: components["schemas"]["McpProfileInput"][];
+            /** @description Optional raw server.json content; remotes and packages prefill connection templates */
+            serverJson?: string;
+        };
+        ApiResponseMcpEntryView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["McpEntryView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        McpEntryView: {
+            /** Format: int64 */
+            id?: number;
+            /** Format: int64 */
+            namespaceId?: number;
+            namespace?: string;
+            slug?: string;
+            displayName?: string;
+            summary?: string;
+            ownerId?: string;
+            /** @enum {string} */
+            visibility?: "PUBLIC" | "NAMESPACE_ONLY" | "PRIVATE";
+            /** @enum {string} */
+            status?: "ACTIVE" | "ARCHIVED";
+            hidden?: boolean;
+            /** Format: int64 */
+            latestRevisionId?: number;
+            canManage?: boolean;
+            canReview?: boolean;
+            canGovern?: boolean;
+            pendingReview?: boolean;
+            revisions?: components["schemas"]["McpRevisionView"][];
+        };
+        McpRevisionCreateRequest: {
+            description?: string;
+            profiles?: components["schemas"]["McpProfileInput"][];
+            serverJson?: string;
+            localCuration?: string;
+        };
+        McpGovernanceRequest: {
+            action: string;
+            /** @enum {string} */
+            visibility?: "PUBLIC" | "NAMESPACE_ONLY" | "PRIVATE";
+            reason: string;
+        };
         SoftwareInspectorResultRequest: {
             workerId: string;
             attemptToken: string;
@@ -9998,6 +10327,10 @@ export interface components {
             changelog?: string;
         };
         PluginProjectUpdateRequest: {
+            displayName: string;
+            summary?: string;
+        };
+        McpEntryUpdateRequest: {
             displayName: string;
             summary?: string;
         };
@@ -11788,6 +12121,60 @@ export interface components {
         };
         PageResponseLoginConnectionSummaryResponse: {
             items?: components["schemas"]["LoginConnectionSummaryResponse"][];
+            /** Format: int64 */
+            total?: number;
+            /** Format: int32 */
+            page?: number;
+            /** Format: int32 */
+            size?: number;
+        };
+        ApiResponseMcpConnectionProfilesResponse: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["McpConnectionProfilesResponse"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        McpConnectionProfileResponse: {
+            profileKey?: string;
+            displayName?: string;
+            /** @enum {string} */
+            transportType?: "STDIO" | "STREAMABLE_HTTP" | "LEGACY_HTTP_SSE" | "CUSTOM";
+            endpointTemplate?: string;
+            commandTemplate?: string;
+            arguments?: string[];
+            variables?: components["schemas"]["McpVariableResponse"][];
+            configurationAvailable?: boolean;
+        };
+        McpConnectionProfilesResponse: {
+            /** Format: int32 */
+            revision?: number;
+            description?: string;
+            /** Format: date-time */
+            publishedAt?: string;
+            profiles?: components["schemas"]["McpConnectionProfileResponse"][];
+        };
+        McpVariableResponse: {
+            name?: string;
+            description?: string;
+            required?: boolean;
+            secret?: boolean;
+            defaultValue?: string;
+            validationHint?: string;
+        };
+        ApiResponsePageResponseMcpEntryView: {
+            /** Format: int32 */
+            code?: number;
+            msg?: string;
+            data?: components["schemas"]["PageResponseMcpEntryView"];
+            /** Format: date-time */
+            timestamp?: string;
+            requestId?: string;
+        };
+        PageResponseMcpEntryView: {
+            items?: components["schemas"]["McpEntryView"][];
             /** Format: int64 */
             total?: number;
             /** Format: int32 */
@@ -13952,6 +14339,76 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponsePluginImportLimits"];
+                };
+            };
+        };
+    };
+    revisionDetail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpRevisionView"];
+                };
+            };
+        };
+    };
+    updateRevision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpRevisionUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpRevisionView"];
+                };
+            };
+        };
+    };
+    deleteRevision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpRevisionView"];
                 };
             };
         };
@@ -18482,6 +18939,228 @@ export interface operations {
             };
         };
     };
+    withdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpRevisionView"];
+                };
+            };
+        };
+    };
+    submit_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpRevisionView"];
+                };
+            };
+        };
+    };
+    reject_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpRejectRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpRevisionView"];
+                };
+            };
+        };
+    };
+    directPublish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpRevisionView"];
+                };
+            };
+        };
+    };
+    approve_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpRevisionView"];
+                };
+            };
+        };
+    };
+    list_9: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+                pendingReview?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponsePageResponseMcpEntryView"];
+                };
+            };
+        };
+    };
+    create_3: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpEntryCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpEntryView"];
+                };
+            };
+        };
+    };
+    createRevision: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpRevisionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpRevisionView"];
+                };
+            };
+        };
+    };
+    govern_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpGovernanceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpEntryView"];
+                };
+            };
+        };
+    };
     submitResult: {
         parameters: {
             query?: never;
@@ -19000,7 +19679,7 @@ export interface operations {
             };
         };
     };
-    list_9: {
+    list_10: {
         parameters: {
             query?: {
                 catalogReleaseId?: number;
@@ -19023,7 +19702,7 @@ export interface operations {
             };
         };
     };
-    create_3: {
+    create_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -19047,7 +19726,7 @@ export interface operations {
             };
         };
     };
-    withdraw: {
+    withdraw_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -19560,7 +20239,7 @@ export interface operations {
             };
         };
     };
-    list_11: {
+    list_12: {
         parameters: {
             query?: never;
             header?: never;
@@ -19582,7 +20261,7 @@ export interface operations {
             };
         };
     };
-    create_4: {
+    create_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -19846,7 +20525,7 @@ export interface operations {
             };
         };
     };
-    reject_3: {
+    reject_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -19872,7 +20551,7 @@ export interface operations {
             };
         };
     };
-    approve_3: {
+    approve_4: {
         parameters: {
             query?: never;
             header?: never;
@@ -20453,6 +21132,54 @@ export interface operations {
                 };
                 content: {
                     "*/*": components["schemas"]["ApiResponsePluginProjectView"];
+                };
+            };
+        };
+    };
+    detail_4: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpEntryView"];
+                };
+            };
+        };
+    };
+    update_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["McpEntryUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpEntryView"];
                 };
             };
         };
@@ -24095,6 +24822,29 @@ export interface operations {
             };
         };
     };
+    connectionProfiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                namespace: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "*/*": components["schemas"]["ApiResponseMcpConnectionProfilesResponse"];
+                };
+            };
+        };
+    };
     downloadContent: {
         parameters: {
             query?: never;
@@ -24420,7 +25170,7 @@ export interface operations {
             };
         };
     };
-    list_10: {
+    list_11: {
         parameters: {
             query?: {
                 status?: string;
@@ -24444,7 +25194,7 @@ export interface operations {
             };
         };
     };
-    detail_4: {
+    detail_5: {
         parameters: {
             query?: never;
             header?: never;
@@ -24512,7 +25262,7 @@ export interface operations {
             };
         };
     };
-    list_12: {
+    list_13: {
         parameters: {
             query?: {
                 status?: string;

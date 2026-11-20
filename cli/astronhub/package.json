@@ -1,0 +1,10 @@
+{
+  "name": "astronhub-cli",
+  "version": "0.1.0",
+  "description": "Install enterprise Agent Skills and Node dependencies through AstronHub",
+  "type": "module",
+  "bin": { "astronhub": "./bin/astronhub.mjs" },
+  "files": ["bin", "skills", "README.md", "LICENSE"],
+  "license": "Apache-2.0",
+  "engines": { "node": ">=22" }
+}

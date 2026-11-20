@@ -1,10 +1,10 @@
 # 插件导入、审核、托管及治理 UI
 
-**Status:** ready-for-agent
+**Status:** claimed
 
-**Assignee:** unassigned
+**Assignee:** ZCode coding agent (adolbook)
 
-**Result:** not-run
+**Result:** partial — HOSTED子范围已通过；2026-10-20清单补验真实驳回后新版本发布、下载SHA256、安装指引、隐藏/归档/下架。三宿主、批量候选、组件关联及原生渠道等未全部覆盖，不能将整票标为passed。
 
 **Blocked by:** 01
 
@@ -29,4 +29,13 @@
 
 ## Execution log
 
+2026-10-20补验：见[本轮报告](../manual-acceptance-results.md)。B/C/D/G对应步骤通过；修复任务SUCCEEDED但版本仍PENDING_REVIEW时停止轮询的页面缺陷。保留以下2026-10-19历史记录，不将当时仅比较下载长度的结果转记为SHA256通过。
+
 尚未执行。领取时记录完整SHA、环境/runId、开始时间；结束追加实际命令、结果、证据、缺陷和清理，不覆盖首轮失败。
+
+- 2026-10-19 执行（runId `e2e-20261019-100450`，被测 = 70432891 + 未提交 DEF-01/03/05 修复）。新增 `web/e2e/plugin-hosted-lifecycle.spec.ts`，真实 UI 操作 + 真实 API 佐证，Playwright trace 归档 `.dev/e2e/e2e-20261019-100450/evidence/`。
+- 用例1（E02-1/E02-3/E02-4）：作者 UI 导入 ZIP（版本/namespace 校验，manifest name/version 契约）→ 提交 PENDING_REVIEW → PLUGIN_ADMIN 审核页批准 → 后台发布任务 poll 至 "Publication complete"（HOSTED 渠道）→ 作者页 Download original ZIP 可见且字节与导入档案一致 → 公开目录详情页可浏览。PASS。
+- 用例2（E02-3 驳回路径）：驳回并填意见 → 版本终态 REJECTED 不可再提交 → 新版本重新提交成立。PASS。
+- 用例3（权限门禁）：普通作者 approve 返回 403；outsider 无法看到私有项目。PASS。
+- E02-2（Git/npm 仓库候选）、E02-5（组件关联）、E02-6（隐藏/归档/下架治理）、PUBLIC 渠道发布：**未执行，blocked** —— 外部 Git/npm 渠道与扫描器环境缺失（见票03、票01 阻塞清单）；按规则不将 HOSTED-only 通过计为整票全量 passed。
+- 缺陷：无本票新缺陷（首轮启动失败 DEF-01 与软件包列表 DEF-03 见票01/票04）。

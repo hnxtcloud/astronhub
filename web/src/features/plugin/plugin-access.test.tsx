@@ -9,7 +9,7 @@ import {
 } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import i18n from '@/i18n/config'
-import { PluginPublishedDetail, PluginProjectGovernance } from './plugin-access'
+import { PluginMcpInventory, PluginPublishedDetail, PluginProjectGovernance } from './plugin-access'
 import type { PluginProject } from './plugin-api'
 
 afterEach(() => {
@@ -49,6 +49,7 @@ it('keeps downloads pinned to the selected version and renders file previews as 
       else if (url.includes('/install?'))
         data = {
           command: 'claude --plugin-dir "./plugins/demo/1.0.0"',
+          powershellCommand: 'Invoke-DemoInstall',
           preparation: 'CLAUDE_LOCAL',
           runtimeVerified: false,
           sha256: 'abc',
@@ -98,6 +99,12 @@ it('keeps downloads pinned to the selected version and renders file previews as 
     })
   )
   await screen.findByText('claude --plugin-dir "./plugins/demo/1.0.0"')
+  expect(screen.queryByText('Invoke-DemoInstall')).toBeNull()
+  fireEvent.change(screen.getByLabelText('Shell'), { target: { value: 'powershell' } })
+  expect(screen.getByText('Invoke-DemoInstall')).toBeTruthy()
+  expect(screen.queryByText('claude --plugin-dir "./plugins/demo/1.0.0"')).toBeNull()
+  fireEvent.change(screen.getByLabelText('Shell'), { target: { value: 'posix' } })
+  expect(screen.getByText('claude --plugin-dir "./plugins/demo/1.0.0"')).toBeTruthy()
   expect(
     screen.getByRole('link', { name: 'Download archive' }).getAttribute('href')
   ).toContain('/versions/1.0.0/download')
@@ -163,4 +170,81 @@ it('allows an authorized archived project to be restored with a reason and exter
     ])
   )
   client.clear()
+})
+
+it('renders the MCP inventory declared in distribution evidence', async () => {
+  await i18n.changeLanguage('en')
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      let data: unknown
+      if (url.endsWith('/versions'))
+        data = {
+          id: 1,
+          namespace: 'team',
+          slug: 'demo',
+          displayName: 'Demo',
+          visibility: 'PUBLIC',
+          latestReleaseId: 1,
+          versions: [{ id: 1, version: '1.0.0', runtimes: ['claude-code'] }],
+          components: [],
+        }
+      else
+        data = {
+          id: 1,
+          projectId: 1,
+          version: '1.0.0',
+          distributions: [
+            {
+              id: 1,
+              runtimeKey: 'claude-code',
+              nativeName: 'demo',
+              nativeVersion: '1.0.0',
+              sha256: 'abc',
+              compatibilityEvidence: 'MANIFEST_VALIDATED',
+              securityAssessment: 'NOT_SCANNED',
+              inventoryJson: JSON.stringify({
+                files: ['.claude-plugin/plugin.json', 'mcp/demo.json', '.mcp.json'],
+                resources: { mcpServers: ['mcp/demo.json'] },
+              }),
+              manifestJson: '{}',
+            },
+          ],
+        }
+      return new Response(JSON.stringify({ code: 0, data, msg: 'ok' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    })
+  )
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <PluginPublishedDetail namespace="team" slug="demo" />
+    </QueryClientProvider>
+  )
+  await screen.findByText('MCP servers in this package')
+  screen.getByText('claude-code')
+  screen.getByText('mcp/demo.json')
+  screen.getByText('.mcp.json')
+  client.clear()
+})
+
+it('renders nothing when distributions declare no MCP components', () => {
+  const distribution = {
+    id: 1,
+    runtimeKey: 'claude-code',
+    nativeName: 'demo',
+    nativeVersion: '1.0.0',
+    sha256: 'abc',
+    compatibilityEvidence: 'MANIFEST_VALIDATED',
+    securityAssessment: 'NOT_SCANNED',
+    inventoryJson: JSON.stringify({ files: ['README.md'], resources: {} }),
+    manifestJson: '{}',
+  } as const
+  render(<PluginMcpInventory distributions={[distribution]} />)
+  expect(screen.queryByText('MCP servers in this package')).toBeNull()
+  render(<PluginMcpInventory distributions={[]} />)
+  expect(screen.queryByText('MCP servers in this package')).toBeNull()
 })

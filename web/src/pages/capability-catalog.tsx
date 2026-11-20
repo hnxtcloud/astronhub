@@ -25,15 +25,12 @@ function CapabilityCatalogPage({ initialType = 'ALL' }: { initialType?: Capabili
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl py-8 md:py-12">
+    <div className="mx-auto w-full max-w-6xl py-5 md:py-6">
       <div className="max-w-3xl space-y-3">
         <h1 className="text-3xl font-semibold tracking-[-0.025em] text-foreground">{t('catalog.title')}</h1>
-        <p className="max-w-[68ch] text-base leading-7 text-muted-foreground">
-          {t('catalog.description')}
-        </p>
       </div>
 
-      <div className="mt-10 flex flex-col gap-4 border-y py-3 sm:flex-row sm:items-center">
+      <div className="mt-5 flex flex-col gap-4 border-y py-3 sm:flex-row sm:items-center">
         <label className="flex flex-1 items-center gap-3 rounded-md border bg-white px-3.5 py-2.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
@@ -69,7 +66,7 @@ function CapabilityCatalogPage({ initialType = 'ALL' }: { initialType?: Capabili
           {t('catalog.empty')}
         </div>
       )}
-      <div className="mt-8 divide-y border-y">
+      <div className="mt-4 divide-y border-y">
         {data?.items.map((item) => {
           if (item.type === 'PLUGIN') return <PluginCard key={item.coordinate} item={item} />
           if (item.type === 'MCP') return <McpServerCard key={item.coordinate} item={item} />
@@ -81,7 +78,7 @@ function CapabilityCatalogPage({ initialType = 'ALL' }: { initialType?: Capabili
                 <h2 className="text-base font-semibold text-foreground"><a href={withBasePath(detail)} className="rounded-sm hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{item.displayName}</a></h2>
                 <p className="mt-1 truncate font-mono text-xs text-muted-foreground" title={item.coordinate}>{item.coordinate}</p>
               </div>
-              <p className="text-sm leading-6 text-muted-foreground">{item.summary || '—'}</p>
+              <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">{item.summary || '—'}</p>
             </article>
           )
         })}

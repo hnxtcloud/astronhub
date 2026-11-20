@@ -94,6 +94,6 @@ describe('AdminUsersPage', () => {
 
     const html = renderToStaticMarkup(<AdminUsersPage />)
     expect(html).toContain('adminUsers.title')
-    expect(html).toContain('adminUsers.subtitle')
+    expect(html).not.toContain('adminUsers.subtitle')
   })
 })

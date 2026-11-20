@@ -46,17 +46,15 @@ export function LandingPage() {
 
   const skillSection = (
     title: string,
-    description: string,
     sort: 'downloads' | 'newest',
     isLoading: boolean,
     skills: typeof popularSkills,
   ) => (
-    <section className="w-full border-t border-border px-6 py-14 md:py-16">
+    <section className="w-full border-t border-border px-6 py-8 md:py-10">
       <div className="mx-auto max-w-6xl space-y-7">
         <div className="flex items-end justify-between gap-6">
           <div className="max-w-2xl">
-            <h2 className="mb-2 text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
-            <p className="text-sm leading-6 text-muted-foreground md:text-base">{description}</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
           </div>
           <Button
             variant="ghost"
@@ -81,13 +79,9 @@ export function LandingPage() {
 
   return (
     <>
-      <main className="w-full px-6 py-14 md:py-20">
+      <main className="w-full px-6 py-8 md:py-10">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
-            <div className="mb-6 flex items-baseline gap-3">
-              <span className="text-xl font-semibold text-primary">星枢</span>
-              <span className="font-mono text-xs text-muted-foreground">AstronHub</span>
-            </div>
             <h1 className="max-w-2xl text-4xl font-semibold leading-[1.12] tracking-tight text-foreground md:text-5xl">
               {t('landing.hero.title')}
             </h1>
@@ -126,35 +120,34 @@ export function LandingPage() {
         </div>
       </main>
 
-      <section className="w-full border-t border-border px-6 py-14 md:py-16">
+      {skillSection(t('home.popularTitle'), 'downloads', isLoadingPopular, popularSkills)}
+      {skillSection(t('home.latestTitle'), 'newest', isLoadingLatest, latestSkills)}
+      <LandingQuickStartSection />
+
+      <section className="w-full border-t border-border px-6 py-6">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-9 max-w-2xl">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">{t('landing.whySkillHub.title')}</h2>
-            <p className="mt-2 text-base leading-7 text-muted-foreground">{t('landing.whySkillHub.subtitle')}</p>
-          </div>
-          <div className="grid grid-cols-1 border-y border-border md:grid-cols-2">
-            {features.map((feature, index) => {
-              const Icon = feature.icon
-              return (
-                <div
-                  key={feature.title}
-                  className={`grid grid-cols-[2rem_1fr] gap-4 border-border py-5 md:px-5 ${index > 1 ? 'border-t' : ''} ${index % 2 === 1 ? 'md:border-l' : ''}`}
-                >
-                  <Icon className="mt-0.5 h-5 w-5 text-primary" strokeWidth={1.75} />
-                  <div>
-                    <h3 className="text-sm font-semibold text-foreground">{feature.title}</h3>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">{feature.description}</p>
+          <details>
+            <summary className="cursor-pointer text-base font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{t('landing.whySkillHub.title')}</summary>
+            <div className="mt-4 grid grid-cols-1 border-y border-border md:grid-cols-2">
+              {features.map((feature, index) => {
+                const Icon = feature.icon
+                return (
+                  <div
+                    key={feature.title}
+                    className={`grid grid-cols-[2rem_1fr] gap-4 border-border py-5 md:px-5 ${index > 1 ? 'border-t' : ''} ${index % 2 === 1 ? 'md:border-l' : ''}`}
+                  >
+                    <Icon className="mt-0.5 h-5 w-5 text-primary" strokeWidth={1.75} />
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">{feature.title}</h3>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">{feature.description}</p>
+                    </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          </details>
         </div>
       </section>
-
-      <LandingQuickStartSection />
-      {skillSection(t('home.popularTitle'), t('home.popularDescription'), 'downloads', isLoadingPopular, popularSkills)}
-      {skillSection(t('home.latestTitle'), t('home.latestDescription'), 'newest', isLoadingLatest, latestSkills)}
     </>
   )
 }

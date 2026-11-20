@@ -31,7 +31,10 @@ export function usePluginProjects(page: number, pendingReview: boolean, enabled 
 export function usePluginProject(id: number | null) {
   return useQuery({ queryKey: ['plugin-management', 'project', id], enabled: id !== null,
     queryFn: () => fetchJson<PluginProject>(`${base}/projects/${id}`),
-    refetchInterval: (query) => query.state.data?.releases.some(r => r.publication?.status === 'QUEUED') ? 5000 : false })
+    refetchInterval: (query) => query.state.data?.releases.some(r =>
+      r.publication?.status === 'QUEUED'
+      // Task completion can become visible before the release publication transaction.
+      || (r.publication?.status === 'SUCCEEDED' && r.status === 'PENDING_REVIEW')) ? 5000 : false })
 }
 export function usePluginNamespaces() {
   return useQuery({ queryKey: ['plugin-management', 'namespaces'], queryFn: namespaceApi.listMine })

@@ -1,10 +1,10 @@
 # 身份、CSRF、隔离与机器发版
 
-**Status:** ready-for-agent
+**Status:** claimed
 
-**Assignee:** unassigned
+**Assignee:** ZCode coding agent (adolbook)
 
-**Result:** not-run
+**Result:** partial — 已有真实身份/CSRF/隔离子范围证据；2026-10-20清单补验真实UI登录注销、私有详情与下载隔离、普通用户软件管理拒绝及匿名更新源开关。机器凭据/发版工具、完整跨对象矩阵等仍未执行，不能将整票标为passed；未执行本身不意味着必须真实多机才能测。
 
 **Blocked by:** 02,04
 
@@ -29,4 +29,14 @@
 
 ## Execution log
 
+2026-10-20补验：见[本轮报告](../manual-acceptance-results.md)。A/D和匿名更新源边界通过；本轮未复跑2026-10-19的全部CSRF负向与机器发版矩阵，以下历史证据独立保留。
+
 尚未执行。领取时记录完整SHA、环境/runId、开始时间；结束追加实际命令、结果、证据、缺陷和清理，不覆盖首轮失败。
+
+- 2026-10-19 执行（runId `e2e-20261019-100450`，依赖票02/04 已完成的真实账号与业务数据）。新增 `web/e2e/permission-isolation-csrf.spec.ts`，4 用例全过，trace 归档。
+- 用例1（匿名边界）：`/api/v1/auth/me` 401；受保护管理 API 401/403；公开插件目录可读（产品契约：软件目录为登录用户内部目录，匿名 401 为预期边界而非缺陷）。UI 受保护路由跳转登录。PASS。
+- 用例2（CSRF，E05-3 前半）：`POST /api/v1/plugin-management/projects` 无 `X-XSRF-TOKEN` 403；带真实 cookie+token 成功创建。PASS。
+- 用例3（跨用户隔离，E05-2 部分）：outsider 对他人私有插件项目/指定 release/archive 均 403/404，无元信息泄漏。PASS。
+- 用例4（注销失效，E05-5 部分）：logout（maxRedirects:0，302）后原 session cookie 调 `/me` 401 —— 服务端真实失效。PASS。
+- E05-3 机器 token 部分、E05-4 Python 发版工具、E05-5 token 到期/撤销矩阵、E05-6 NSIS 声明与审计脱敏：**blocked/未覆盖** —— 本轮未运行机器发版工具与真实多机环境（见票09 阻塞清单）；未签发机器 token，故无撤销类用例可执行。
+- 工程记录：`BrowserContext.request` 为属性而非方法（Playwright API 差异，修 spec 时踩坑一次）。

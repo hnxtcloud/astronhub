@@ -149,6 +149,9 @@ server {
     location /oauth2/ {
         proxy_pass $skillhub_api_upstream;
         proxy_set_header Host $host;
+        proxy_set_header Forwarded "";
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Port "";
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;
@@ -158,6 +161,9 @@ server {
     location /login/oauth2/ {
         proxy_pass $skillhub_api_upstream;
         proxy_set_header Host $host;
+        proxy_set_header Forwarded "";
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Port "";
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $proxy_x_forwarded_proto;

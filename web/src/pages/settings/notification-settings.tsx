@@ -9,7 +9,7 @@ export function NotificationSettingsPage() {
   const { t } = useTranslation()
   return (
     <div className="space-y-8 animate-fade-up">
-      <DashboardPageHeader title={t('notification.preferences.title')} subtitle={t('notification.preferences.description')} />
+      <DashboardPageHeader title={t('notification.preferences.title')} />
       <NotificationPreferenceForm showHeader={false} />
     </div>
   )

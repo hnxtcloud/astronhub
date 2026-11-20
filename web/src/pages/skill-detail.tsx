@@ -388,7 +388,7 @@ export function SkillDetailPage() {
 
   // Download a single file from the skill version
   const handleDownloadFile = () => {
-    const isAnonymousAllowed = namespace === 'global' && skill?.visibility === 'PUBLIC'
+    const isAnonymousAllowed = skill?.visibility === 'PUBLIC'
     if (!user && !isAnonymousAllowed) {
       requireLogin()
       return
@@ -408,7 +408,7 @@ export function SkillDetailPage() {
   }
 
   const handleDownload = async () => {
-    const isAnonymousAllowed = namespace === 'global' && skill?.visibility === 'PUBLIC'
+    const isAnonymousAllowed = skill?.visibility === 'PUBLIC'
     if (!user && !isAnonymousAllowed) {
       requireLogin()
       return

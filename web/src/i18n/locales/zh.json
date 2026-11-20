@@ -6,6 +6,7 @@
     "evidence": "证据"
   },
   "common": {
+    "help": "帮助",
     "expand": "展开详情",
     "collapse": "收起详情",
     "loading": "加载中…",
@@ -562,7 +563,8 @@
     "reviewProgress": "我的审核进度",
     "admin": "管理员",
     "governance": "审核与治理",
-    "reports": "举报管理"
+    "reports": "举报管理",
+    "mcpServers": "MCP 服务"
   },
   "overview": {
     "mySkills": "我的技能",
@@ -2787,6 +2789,7 @@
     }
   },
   "pluginManagement": {
+    "editProject": "编辑信息",
     "title": "插件管理",
     "description": "按命名空间管理原生插件包、审核记录和发布渠道。",
     "createProject": "创建项目",
@@ -3009,6 +3012,7 @@
     "initial": "首次创建分支"
   },
   "pluginAccess": {
+    "shell": "命令环境",
     "publishedVersion": "已发布版本",
     "downloadArchive": "下载归档包",
     "generateInstall": "生成安装说明",
@@ -3040,7 +3044,11 @@
       "CLAUDE_GIT": "从已确认的 Git 发布安装，并固定到下方命令中的提交。需要 Git 和您自己的仓库读取凭据。这些指引不代表运行验证通过。",
       "CODEX_GIT": "从已确认的 Git 发布安装，并固定到下方命令中的提交。需要 Git 和您自己的仓库读取凭据。这些指引不代表运行验证通过。"
     },
-    "posixShell": "POSIX Shell"
+    "posixShell": "POSIX Shell",
+    "mcpInventory": {
+      "title": "本插件包含的 MCP 服务",
+      "inline": "在插件清单中内联声明;清单内容可通过包文件浏览查看。"
+    }
   },
   "softwarePublishers": {
     "title": "机器发版凭据",
@@ -3121,6 +3129,32 @@
       "MISSING": "缺失",
       "UNRESOLVED_RANGE": "版本范围未解析",
       "UNSUPPORTED_SOURCE": "不支持的来源"
+    }
+  },
+  "mcpDetail": {
+    "back": "返回 MCP 目录",
+    "revision": "已发布修订 r{{revision}}",
+    "profiles": "连接配置",
+    "templateHint": "复制配置后，在客户端中填写所需变量。配置中的 ${VARIABLE} 是占位符；未在模板中引用的变量请按服务文档设置。请在本地保存凭据。",
+    "unavailable": "MCP 条目不存在或你无权访问",
+    "error": "MCP 详情加载失败，请稍后重试。",
+    "retry": "重新加载",
+    "empty": "当前修订尚未提供连接配置。",
+    "copy": "复制配置",
+    "copied": "已复制",
+    "copyError": "复制失败，请手动选择下方配置并复制。",
+    "manualConfiguration": "此模板暂不支持自动生成客户端配置，请参考下方模板手动配置。",
+    "configuration": "客户端配置模板",
+    "variables": "所需变量",
+    "required": "必填",
+    "optional": "可选",
+    "secret": "敏感变量，仅在本地填写",
+    "defaultValue": "默认值：{{value}}",
+    "transports": {
+      "STDIO": "本地进程（STDIO）",
+      "STREAMABLE_HTTP": "Streamable HTTP",
+      "LEGACY_HTTP_SSE": "HTTP SSE（旧版兼容）",
+      "CUSTOM": "自定义传输"
     }
   },
   "publication": {
@@ -3227,5 +3261,83 @@
     "confirmTarget": "将更新你拥有的 {{coordinate}}（当前已发布版本：{{version}}）。我确认此目标。",
     "detectionAmbiguous": "未识别到支持的清单。请选择预期类型以继续校验；不支持的材料无法发布。",
     "detectionInvalid": "无法安全识别此压缩包。请检查结构和清单，或选择类型查看具体校验结果。"
+  },
+  "mcpManagement": {
+    "title": "MCP 服务",
+    "catalog": "打开 MCP 目录",
+    "createEntry": "创建 MCP 条目",
+    "selectNamespace": "选择命名空间",
+    "namespace": "命名空间",
+    "slug": "标识符",
+    "displayName": "显示名称",
+    "visibility": "可见性",
+    "summary": "描述",
+    "serverJson": "server.json 导入",
+    "serverJsonHelp": "粘贴或上传标准 server.json,其 remotes 与 packages 会自动预填连接模板。文档中的凭据值会被丢弃,绝不存储。",
+    "uploadServerJson": "从文件加载",
+    "pendingOnly": "仅看待审核",
+    "empty": "当前视图中没有 MCP 条目。创建条目并添加第一个修订。",
+    "selectEntry": "选择一个条目管理其修订。",
+    "hidden": "已隐藏",
+    "editEntry": "编辑信息",
+    "saveMetadata": "保存信息",
+    "newDraft": "新建草稿修订",
+    "description": "修订说明",
+    "localCuration": "甄别备注",
+    "createDraft": "创建草稿",
+    "revisions": "修订历史",
+    "noRevisions": "还没有修订。创建草稿即可发布该条目。",
+    "revisionNumber": "修订 r{{number}}",
+    "profiles": "连接模板",
+    "profileKey": "模板标识",
+    "profileDisplayName": "模板名称",
+    "transport": "传输类型",
+    "commandTemplate": "命令",
+    "endpointTemplate": "端点 URL 模板",
+    "arguments": "参数,每行一个",
+    "variables": "变量",
+    "variableName": "名称",
+    "variableDescription": "描述",
+    "defaultValue": "默认值",
+    "required": "必填",
+    "secret": "密钥",
+    "addVariable": "添加变量",
+    "removeVariable": "删除",
+    "addProfile": "添加模板",
+    "removeProfile": "删除模板",
+    "preview": "客户端配置预览",
+    "submit": "提交审核",
+    "withdraw": "撤回",
+    "approve": "通过",
+    "reject": "驳回",
+    "reviewNotes": "审核备注",
+    "directPublish": "直接发布草稿",
+    "deleteDraft": "删除草稿",
+    "saveDraft": "保存草稿",
+    "govern": "执行治理操作",
+    "governanceAction": "操作",
+    "governanceReason": "原因",
+    "governanceValues": {
+      "HIDE": "从目录隐藏",
+      "SHOW": "在目录展示",
+      "ARCHIVE": "归档条目",
+      "RESTORE": "恢复条目",
+      "VISIBILITY": "调整可见性"
+    },
+    "visibilityValues": {
+      "PRIVATE": "私有",
+      "NAMESPACE_ONLY": "命名空间成员",
+      "PUBLIC": "公开"
+    },
+    "status": {
+      "DRAFT": "草稿",
+      "PENDING_REVIEW": "已提交",
+      "PUBLISHED": "已发布",
+      "REJECTED": "已驳回"
+    },
+    "sourceKind": {
+      "MANUAL": "手工录入",
+      "SERVER_JSON": "导入的 server.json"
+    }
   }
 }

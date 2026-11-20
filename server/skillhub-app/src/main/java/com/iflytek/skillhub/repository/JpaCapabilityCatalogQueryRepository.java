@@ -1,5 +1,7 @@
 package com.iflytek.skillhub.repository;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iflytek.skillhub.domain.mcp.McpConnectionProfile;
 import com.iflytek.skillhub.domain.mcp.McpConnectionProfileRepository;
 import com.iflytek.skillhub.domain.mcp.McpEntryRevision;
@@ -14,6 +16,9 @@ import com.iflytek.skillhub.domain.software.SoftwareApplication;
 import com.iflytek.skillhub.dto.PageResponse;
 import com.iflytek.skillhub.dto.catalog.CapabilityCatalogItem;
 import com.iflytek.skillhub.dto.catalog.CapabilityType;
+import com.iflytek.skillhub.dto.catalog.McpConnectionProfilesResponse;
+import com.iflytek.skillhub.dto.catalog.McpConnectionProfilesResponse.McpConnectionProfileResponse;
+import com.iflytek.skillhub.dto.catalog.McpConnectionProfilesResponse.McpVariableResponse;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import java.util.ArrayList;
@@ -24,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Builds catalog read models across capability, namespace, and published-version tables.
@@ -69,16 +75,19 @@ public class JpaCapabilityCatalogQueryRepository implements CapabilityCatalogQue
     private final PluginDistributionRepository pluginDistributionRepository;
     private final McpConnectionProfileRepository mcpConnectionProfileRepository;
     private final SkillCatalogQuerySource skillCatalogQuerySource;
+    private final ObjectMapper objectMapper;
 
     public JpaCapabilityCatalogQueryRepository(
             EntityManager entityManager,
             PluginDistributionRepository pluginDistributionRepository,
             McpConnectionProfileRepository mcpConnectionProfileRepository,
-            SkillCatalogQuerySource skillCatalogQuerySource) {
+            SkillCatalogQuerySource skillCatalogQuerySource,
+            ObjectMapper objectMapper) {
         this.entityManager = entityManager;
         this.pluginDistributionRepository = pluginDistributionRepository;
         this.mcpConnectionProfileRepository = mcpConnectionProfileRepository;
         this.skillCatalogQuerySource = skillCatalogQuerySource;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -129,12 +138,74 @@ public class JpaCapabilityCatalogQueryRepository implements CapabilityCatalogQue
     public Optional<CapabilityCatalogItem> findMcpServer(
             String namespace, String slug, String userId,
             Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles) {
+        return findMcpRow(namespace, slug, userId, namespaceRoles, platformRoles)
+                .map(row -> toMcp((McpServerEntry) row[0], (Namespace) row[1], (McpEntryRevision) row[2]));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<McpConnectionProfilesResponse> findMcpConnectionProfiles(
+            String namespace, String slug, String userId,
+            Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles) {
+        return findMcpRow(namespace, slug, userId, namespaceRoles, platformRoles).map(row -> {
+            McpEntryRevision revision = (McpEntryRevision) row[2];
+            return new McpConnectionProfilesResponse(
+                    revision.getRevisionNumber(), revision.getDescription(), revision.getPublishedAt(),
+                    mcpConnectionProfileRepository.findByRevisionIdOrderByProfileKey(revision.getId()).stream()
+                            .map(this::toMcpProfile).toList());
+        });
+    }
+
+    private Optional<Object[]> findMcpRow(
+            String namespace, String slug, String userId,
+            Map<Long, NamespaceRole> namespaceRoles, Set<String> platformRoles) {
         TypedQuery<Object[]> query = entityManager.createQuery(
                 "select e, n, r" + MCP_FROM + " and n.slug = :namespace and e.slug = :slug", Object[].class);
         bind(query, "", userId, namespaceRoles, isMcpAdmin(platformRoles));
         query.setParameter("namespace", namespace).setParameter("slug", slug).setMaxResults(1);
-        return query.getResultList().stream().findFirst()
-                .map(row -> toMcp((McpServerEntry) row[0], (Namespace) row[1], (McpEntryRevision) row[2]));
+        return query.getResultList().stream().findFirst();
+    }
+
+    private McpConnectionProfileResponse toMcpProfile(McpConnectionProfile profile) {
+        List<String> arguments = new ArrayList<>();
+        List<McpVariableResponse> variables = new ArrayList<>();
+        boolean valid = true;
+        try {
+            for (JsonNode argument : profileArray(profile.getArgumentsJson())) {
+                if (!argument.isTextual()) throw new IllegalArgumentException("Invalid argument");
+                arguments.add(argument.asText());
+            }
+            for (JsonNode variable : profileArray(profile.getVariablesJson())) {
+                String name = variable.path("name").asText("");
+                if (!name.matches("[A-Za-z_][A-Za-z0-9_]*")) throw new IllegalArgumentException("Invalid variable name");
+                boolean secret = variable.path("secret").asBoolean(false);
+                JsonNode defaultValue = variable.has("defaultValue") ? variable.get("defaultValue") : variable.get("default");
+                variables.add(new McpVariableResponse(name, variable.path("description").asText(null),
+                        variable.path("required").asBoolean(false), secret,
+                        secret || defaultValue == null || defaultValue.isNull() ? null : defaultValue.asText(),
+                        variable.path("validationHint").asText(null)));
+            }
+        } catch (java.io.IOException | IllegalArgumentException exception) {
+            // Malformed stored templates remain visible, but cannot be copied as a working configuration.
+            valid = false;
+            arguments = List.of();
+            variables = List.of();
+        }
+        valid = valid && switch (profile.getTransportType()) {
+            case STDIO -> profile.getCommandTemplate() != null && !profile.getCommandTemplate().isBlank();
+            case STREAMABLE_HTTP, LEGACY_HTTP_SSE -> profile.getEndpointTemplate() != null && !profile.getEndpointTemplate().isBlank();
+            case CUSTOM -> false;
+        };
+        return new McpConnectionProfileResponse(profile.getProfileKey(), profile.getDisplayName(),
+                profile.getTransportType(), profile.getEndpointTemplate(), profile.getCommandTemplate(),
+                arguments, variables, valid);
+    }
+
+    private JsonNode profileArray(String value) throws java.io.IOException {
+        if (value == null || value.isBlank()) return objectMapper.createArrayNode();
+        JsonNode parsed = objectMapper.readTree(value);
+        if (parsed == null || !parsed.isArray()) throw new IllegalArgumentException("Expected template array");
+        return parsed;
     }
 
     @Override

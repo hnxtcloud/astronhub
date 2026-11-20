@@ -1,5 +1,6 @@
 package com.iflytek.skillhub.domain.mcp;
 
+import com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException;
 import jakarta.persistence.*;
 import java.time.Clock;
 import java.time.Instant;
@@ -54,4 +55,58 @@ public class McpEntryRevision {
     public String getCreatedBy() { return createdBy; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getPublishedAt() { return publishedAt; }
+
+    /** Draft revisions are the only mutable revisions; published revisions stay immutable. */
+    public void requireEditable() {
+        if (status != McpRevisionStatus.DRAFT) {
+            throw new DomainBadRequestException("error.mcp.notEditable");
+        }
+    }
+
+    public void requireDeletable() {
+        if (status != McpRevisionStatus.DRAFT && status != McpRevisionStatus.REJECTED) {
+            throw new DomainBadRequestException("error.mcp.notDeletable");
+        }
+    }
+
+    public void submit() {
+        if (status != McpRevisionStatus.DRAFT) {
+            throw new DomainBadRequestException("error.mcp.reviewState");
+        }
+        status = McpRevisionStatus.PENDING_REVIEW;
+    }
+
+    public void withdraw() {
+        if (status != McpRevisionStatus.PENDING_REVIEW) {
+            throw new DomainBadRequestException("error.mcp.reviewState");
+        }
+        status = McpRevisionStatus.DRAFT;
+    }
+
+    public void approve() {
+        if (status != McpRevisionStatus.PENDING_REVIEW) {
+            throw new DomainBadRequestException("error.mcp.reviewState");
+        }
+        status = McpRevisionStatus.PUBLISHED;
+        publishedAt = Instant.now(Clock.systemUTC());
+    }
+
+    public void reject() {
+        if (status != McpRevisionStatus.PENDING_REVIEW) {
+            throw new DomainBadRequestException("error.mcp.reviewState");
+        }
+        status = McpRevisionStatus.REJECTED;
+    }
+
+    public void updateDraft(String description, String localCuration) {
+        requireEditable();
+        this.description = description;
+        this.localCuration = localCuration;
+    }
+
+    /** Provenance snapshot (manual metadata or imported server.json) attaches to drafts only. */
+    public void attachSourceSnapshot(String sourceSnapshot) {
+        requireEditable();
+        this.sourceSnapshot = sourceSnapshot;
+    }
 }

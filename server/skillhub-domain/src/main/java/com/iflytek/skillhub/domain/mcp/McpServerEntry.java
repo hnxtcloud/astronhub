@@ -86,6 +86,20 @@ public class McpServerEntry {
     public Instant getCreatedAt() { return createdAt; }
     public String getUpdatedBy() { return updatedBy; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public void rename(String displayName) {
+        if (displayName == null || displayName.isBlank() || displayName.length() > 200) {
+            throw new com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException("error.mcp.metadata");
+        }
+        this.displayName = displayName.trim();
+    }
+
+    public void changeVisibility(McpVisibility visibility) {
+        if (visibility == null) {
+            throw new com.iflytek.skillhub.domain.shared.exception.DomainBadRequestException("error.mcp.metadata");
+        }
+        this.visibility = visibility;
+    }
+
     public void setSummary(String summary) { this.summary = summary; }
     public void pointToPublishedRevision(McpEntryRevision revision) {
         if (revision == null || revision.getId() == null || revision.getStatus() != McpRevisionStatus.PUBLISHED) {

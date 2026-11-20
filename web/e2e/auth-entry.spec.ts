@@ -17,7 +17,7 @@ test.describe('Auth Entry', () => {
     })
     await page.goto('/login?returnTo=%2Fdashboard%2Ftokens')
 
-    await expect(page.getByRole('heading', { name: 'Login to SkillHub' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Login to AstronHub' })).toBeVisible()
     await expect(page.getByText(/password compatibility layer/i)).toHaveCount(0)
 
     await page.getByRole('button', { name: 'Login' }).click()
@@ -150,7 +150,7 @@ test.describe('Auth Entry', () => {
       await page.setViewportSize(viewport)
       await page.goto('/login')
       await page.addStyleTag({ content: '*, *::before, *::after { animation-duration: 0s !important; transition-duration: 0s !important; }' })
-      const title = page.getByRole('heading', { name: 'Login to SkillHub' })
+      const title = page.getByRole('heading', { name: 'Login to AstronHub' })
       const registerLink = page.getByRole('link', { name: 'Sign up now' })
       await expect(title).toBeVisible()
       await expect(registerLink).toBeVisible()

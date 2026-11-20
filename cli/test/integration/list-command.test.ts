@@ -312,8 +312,7 @@ describe('list command', () => {
 
     expect(result.exitCode).toBe(0)
     expect(result.stdout).toContain('global/ghost-skill@1.0.0')
-    expect(result.stdout).toContain('missing')
-    expect(result.stdout).not.toContain('ok')
+    expect(result.stdout).toMatch(/\s+missing$/)
   })
 
   // ---------------------------------------------------------------------------

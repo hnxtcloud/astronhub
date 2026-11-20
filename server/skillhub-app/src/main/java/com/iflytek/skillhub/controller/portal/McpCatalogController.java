@@ -6,6 +6,7 @@ import com.iflytek.skillhub.dto.ApiResponse;
 import com.iflytek.skillhub.dto.ApiResponseFactory;
 import com.iflytek.skillhub.dto.PageResponse;
 import com.iflytek.skillhub.dto.catalog.CapabilityCatalogItem;
+import com.iflytek.skillhub.dto.catalog.McpConnectionProfilesResponse;
 import com.iflytek.skillhub.service.CapabilityCatalogAppService;
 import io.swagger.v3.oas.annotations.Operation;
 import java.util.Map;
@@ -54,5 +55,17 @@ public class McpCatalogController extends BaseApiController {
             @RequestAttribute(value = "platformRoles", required = false) Set<String> platformRoles) {
         return ok("response.success.read",
                 catalogAppService.getMcpServer(namespace, slug, userId, namespaceRoles, platformRoles));
+    }
+
+    @GetMapping("/{namespace}/{slug}/connection-profiles")
+    @Operation(summary = "Get connection templates for the visible published MCP revision")
+    public ApiResponse<McpConnectionProfilesResponse> connectionProfiles(
+            @PathVariable String namespace,
+            @PathVariable String slug,
+            @RequestAttribute(value = "userId", required = false) String userId,
+            @RequestAttribute(value = "userNsRoles", required = false) Map<Long, NamespaceRole> namespaceRoles,
+            @RequestAttribute(value = "platformRoles", required = false) Set<String> platformRoles) {
+        return ok("response.success.read",
+                catalogAppService.getMcpConnectionProfiles(namespace, slug, userId, namespaceRoles, platformRoles));
     }
 }

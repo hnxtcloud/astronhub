@@ -76,7 +76,7 @@ export function GovernancePage() {
 
   return (
     <div className="space-y-8 animate-fade-up">
-      <DashboardPageHeader title={t('governance.title')} subtitle={t('governance.subtitle')} />
+      <DashboardPageHeader title={t('governance.title')} />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <SummaryCard label={t('governance.pendingReviews')} value={isSummaryLoading ? undefined : summary?.pendingReviews} />

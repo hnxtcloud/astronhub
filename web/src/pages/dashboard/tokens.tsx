@@ -11,7 +11,6 @@ export function TokensPage() {
     <div className="space-y-8 animate-fade-up">
       <DashboardPageHeader
         title={t('tokens.pageTitle')}
-        subtitle={t('tokens.pageSubtitle')}
       />
       <TokenList />
     </div>

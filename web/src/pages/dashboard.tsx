@@ -6,7 +6,7 @@ import { canViewGovernanceCenter } from '@/shared/lib/governance-access'
 import { APP_SHELL_PAGE_CLASS_NAME } from '@/app/page-shell-style'
 import { DashboardPageHeader } from '@/shared/components/dashboard-page-header'
 import {
-  Star, Heart, Package, Key, Shield, Flag, Globe,
+  Star, Heart, Package, Key, Shield, Flag, Globe, Server,
   UserCog, Lock, Bell, Clock, ChevronDown, ChevronRight,
 } from 'lucide-react'
 
@@ -45,6 +45,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     label: 'sidebar.skillsAndData',
     items: [
       { key: 'publications', icon: Package, label: 'publication.mine', to: '/dashboard/publications' },
+      { key: 'mcpServers', icon: Server, label: 'sidebar.mcpServers', to: '/dashboard/mcp-servers' },
       { key: 'namespaces', icon: Globe, label: 'sidebar.namespaces', to: '/dashboard/namespaces' },
       { key: 'stars', icon: Star, label: 'sidebar.stars', to: '/dashboard/stars' },
       { key: 'subscriptions', icon: Heart, label: 'sidebar.subscriptions', to: '/dashboard/subscriptions' },
@@ -106,7 +107,7 @@ export function DashboardPage() {
 
   return (
     <div className={APP_SHELL_PAGE_CLASS_NAME}>
-      <DashboardPageHeader title={t('dashboard.title')} subtitle={t('dashboard.subtitle')} />
+      <DashboardPageHeader title={t('dashboard.title')} />
       {/* Two-column layout */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left sidebar */}

@@ -244,7 +244,6 @@ export function AdminLabelsPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="mb-2 text-4xl font-bold font-heading">{t('adminLabels.title')}</h1>
-          <p className="text-lg text-muted-foreground">{t('adminLabels.subtitle')}</p>
         </div>
         <Button type="button" onClick={openCreateDialog}>
           {t('adminLabels.createAction')}

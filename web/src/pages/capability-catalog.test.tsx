@@ -81,6 +81,7 @@ describe('CapabilityCatalogPage', () => {
     expect(html).toContain('plugin:Plugin Demo')
     expect(html).toContain('mcp:MCP Demo')
     expect(html).toContain('Skill Demo')
+    expect(html).not.toContain('catalog.description')
   })
 
   it('starts dedicated routes with their domain filter', () => {

@@ -67,10 +67,20 @@ describe('LandingPage', () => {
   it('offers shared discovery and publishing entrypoints', () => {
     const html = renderToStaticMarkup(<LandingPage />)
 
-    expect(html).toContain('星枢')
     expect(html).toContain('landing.hero.title')
     expect(html).toContain('landing.hero.exploreSkills')
     expect(html).toContain('publication.new')
     expect(html).not.toContain('catalog.types.plugin')
+  })
+
+  it('puts resources before product explanations and keeps explanations collapsed', () => {
+    const html = renderToStaticMarkup(<LandingPage />)
+
+    expect(html.indexOf('home.popularTitle')).toBeLessThan(html.indexOf('landing.whySkillHub.title'))
+    expect(html.indexOf('home.latestTitle')).toBeLessThan(html.indexOf('landing.whySkillHub.title'))
+    expect(html).toContain('<details>')
+    expect(html).not.toContain('<details open')
+    expect(html).not.toContain('landing.scope.description')
+    expect(html).not.toContain('home.popularDescription')
   })
 })
